@@ -1,0 +1,2756 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Scaling Oracle Database 26ai on Exadata Exascale</title>
+  <meta name="description" content="Technical article about scaling Oracle Database 26ai on Oracle Exadata Exascale from single-node RAC to two-node RAC in OCI.">
+  <style>
+    :root {
+      --bg: #f7f6f3;
+      --surface: #ffffff;
+      --surface-soft: #fbfaf7;
+      --surface-strong: #f0eeea;
+      --text: #1f1f1f;
+      --muted: #5e5a54;
+      --subtle: #8b8580;
+      --line: #dfd9d0;
+      --accent: #c74634;
+      --accent-strong: #9f2f22;
+      --accent-soft: #fff0ed;
+      --gold: #b07113;
+      --green: #22775f;
+      --blue: #2f5f96;
+      --code-bg: #171717;
+      --code-text: #f7f3ec;
+      --shadow: 0 18px 45px rgba(31, 31, 31, 0.08);
+      --radius: 8px;
+      color-scheme: light;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    [data-theme="dark"] {
+      --bg: #141311;
+      --surface: #1d1c1a;
+      --surface-soft: #24221f;
+      --surface-strong: #2d2a26;
+      --text: #f5f0e8;
+      --muted: #c9c0b6;
+      --subtle: #9c948d;
+      --line: #3a352f;
+      --accent: #e46b5d;
+      --accent-strong: #ff8a7c;
+      --accent-soft: #351f1b;
+      --gold: #d69a3c;
+      --green: #5bbd9d;
+      --blue: #78a8dd;
+      --code-bg: #0c0c0c;
+      --code-text: #f8f3ec;
+      --shadow: 0 20px 55px rgba(0, 0, 0, 0.38);
+      color-scheme: dark;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      background:
+        radial-gradient(circle at top left, rgba(199, 70, 52, 0.08), transparent 34rem),
+        linear-gradient(180deg, var(--surface-soft), var(--bg) 28rem);
+      color: var(--text);
+      line-height: 1.65;
+    }
+
+    body.no-scroll {
+      overflow: hidden;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    button,
+    summary {
+      font: inherit;
+    }
+
+    .skip-link {
+      position: absolute;
+      left: 1rem;
+      top: -4rem;
+      z-index: 100;
+      padding: 0.65rem 1rem;
+      background: var(--accent);
+      color: white;
+      border-radius: var(--radius);
+      transition: top 0.2s ease;
+    }
+
+    .skip-link:focus {
+      top: 1rem;
+    }
+
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      border-bottom: 1px solid color-mix(in srgb, var(--line), transparent 25%);
+      background: color-mix(in srgb, var(--surface), transparent 8%);
+      backdrop-filter: blur(16px);
+    }
+
+    .topbar-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      width: min(1240px, calc(100% - 2rem));
+      margin: 0 auto;
+      padding: 0.8rem 0;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 0.65rem;
+      min-width: 0;
+      font-weight: 700;
+      letter-spacing: 0;
+    }
+
+    .brand-mark {
+      display: inline-grid;
+      place-items: center;
+      width: 2.05rem;
+      height: 2.05rem;
+      border-radius: 50%;
+      background: var(--accent);
+      color: white;
+      font-size: 0.76rem;
+      font-weight: 800;
+      flex: 0 0 auto;
+    }
+
+    .brand-text {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .top-actions {
+      display: flex;
+      align-items: center;
+      gap: 0.55rem;
+      flex: 0 0 auto;
+    }
+
+    .language-switch {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.25rem;
+      padding: 0.25rem;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: var(--surface-soft);
+    }
+
+    .language-switch button,
+    .theme-toggle,
+    .copy-btn,
+    .back-top {
+      border: 1px solid var(--line);
+      background: var(--surface);
+      color: var(--text);
+      cursor: pointer;
+      transition: border-color 0.18s ease, background 0.18s ease, color 0.18s ease, transform 0.18s ease;
+    }
+
+    .language-switch button {
+      min-width: 2.8rem;
+      padding: 0.42rem 0.7rem;
+      border-radius: 999px;
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: var(--muted);
+      border-color: transparent;
+      background: transparent;
+    }
+
+    .language-switch button[aria-pressed="true"] {
+      background: var(--accent);
+      color: white;
+      border-color: var(--accent);
+    }
+
+    .theme-toggle {
+      min-width: 6.2rem;
+      padding: 0.62rem 0.9rem;
+      border-radius: 999px;
+      font-size: 0.84rem;
+      font-weight: 700;
+    }
+
+    .theme-toggle:hover,
+    .copy-btn:hover,
+    .back-top:hover {
+      border-color: var(--accent);
+      color: var(--accent-strong);
+      transform: translateY(-1px);
+    }
+
+    .language-panel {
+      display: none;
+    }
+
+    .language-panel.is-active {
+      display: block;
+    }
+
+    .hero {
+      width: min(1240px, calc(100% - 2rem));
+      margin: 0 auto;
+      padding: 3.4rem 0 2.2rem;
+    }
+
+    .hero-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.1fr) minmax(320px, 0.9fr);
+      gap: 2rem;
+      align-items: center;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.55rem;
+      margin: 0 0 1rem;
+      color: var(--accent-strong);
+      font-weight: 800;
+      font-size: 0.82rem;
+      letter-spacing: 0.02em;
+      text-transform: uppercase;
+    }
+
+    .eyebrow::before {
+      content: "";
+      width: 2.1rem;
+      height: 2px;
+      background: var(--accent);
+    }
+
+    h1,
+    h2,
+    h3 {
+      line-height: 1.14;
+      letter-spacing: 0;
+      margin: 0;
+    }
+
+    h1 {
+      max-width: 16ch;
+      font-size: clamp(2.2rem, 6vw, 4.75rem);
+      font-weight: 780;
+    }
+
+    .subtitle {
+      max-width: 48rem;
+      margin: 1.2rem 0 0;
+      color: var(--muted);
+      font-size: clamp(1.04rem, 1.8vw, 1.28rem);
+    }
+
+    .highlight-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 0.8rem;
+      margin-top: 1.6rem;
+    }
+
+    .acronym-guide {
+      margin-top: 1.35rem;
+      padding: 1rem;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: color-mix(in srgb, var(--surface), transparent 8%);
+      box-shadow: 0 10px 30px rgba(31, 31, 31, 0.04);
+    }
+
+    .acronym-guide h2 {
+      margin: 0 0 0.8rem;
+      color: var(--muted);
+      font-size: 0.82rem;
+      text-transform: uppercase;
+    }
+
+    .acronym-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 0.65rem;
+    }
+
+    .acronym-card {
+      min-height: 4.7rem;
+      padding: 0.72rem;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--surface-soft);
+    }
+
+    .acronym-card strong {
+      display: block;
+      color: var(--accent-strong);
+      font-size: 0.86rem;
+      line-height: 1.25;
+    }
+
+    .acronym-card span {
+      display: block;
+      margin-top: 0.24rem;
+      color: var(--muted);
+      font-size: 0.82rem;
+      line-height: 1.35;
+    }
+
+    .highlight {
+      min-height: 6.3rem;
+      padding: 1rem;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: color-mix(in srgb, var(--surface), transparent 6%);
+      box-shadow: 0 10px 30px rgba(31, 31, 31, 0.04);
+    }
+
+    .highlight b {
+      display: block;
+      margin-bottom: 0.3rem;
+      color: var(--text);
+      font-size: 0.95rem;
+    }
+
+    .highlight span {
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+
+    .hero-visual {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background:
+        linear-gradient(135deg, color-mix(in srgb, var(--surface), var(--accent-soft) 22%), var(--surface));
+      box-shadow: var(--shadow);
+      padding: 1.2rem;
+      overflow: hidden;
+    }
+
+    .visual-caption {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      margin-bottom: 1rem;
+      color: var(--muted);
+      font-size: 0.86rem;
+      font-weight: 700;
+    }
+
+    .visual-pill {
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 0.32rem 0.6rem;
+      color: var(--accent-strong);
+      background: var(--accent-soft);
+      white-space: nowrap;
+    }
+
+    .cluster-map {
+      display: grid;
+      gap: 0.85rem;
+      text-align: center;
+    }
+
+    .map-node {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--surface);
+      padding: 0.8rem;
+      font-weight: 800;
+    }
+
+    .map-node small {
+      display: block;
+      margin-top: 0.12rem;
+      color: var(--muted);
+      font-size: 0.8rem;
+      font-weight: 700;
+    }
+
+    .map-scan {
+      border-color: color-mix(in srgb, var(--accent), var(--line) 55%);
+      background: var(--accent-soft);
+      color: var(--accent-strong);
+    }
+
+    .map-instances {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 0.85rem;
+      position: relative;
+    }
+
+    .connector {
+      color: var(--subtle);
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+      font-size: 1rem;
+      line-height: 1;
+    }
+
+    .page-grid {
+      display: grid;
+      grid-template-columns: 270px minmax(0, 1fr);
+      gap: 2.1rem;
+      width: min(1240px, calc(100% - 2rem));
+      margin: 0 auto;
+      padding: 1rem 0 5rem;
+      align-items: start;
+    }
+
+    .toc {
+      position: sticky;
+      top: 5.4rem;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: color-mix(in srgb, var(--surface), transparent 5%);
+      box-shadow: 0 12px 30px rgba(31, 31, 31, 0.04);
+      padding: 1rem;
+      max-height: calc(100vh - 6.4rem);
+      overflow: auto;
+    }
+
+    .toc h2 {
+      margin-bottom: 0.7rem;
+      color: var(--muted);
+      font-size: 0.84rem;
+      text-transform: uppercase;
+    }
+
+    .toc ol {
+      display: grid;
+      gap: 0.24rem;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+      counter-reset: toc;
+    }
+
+    .toc li {
+      counter-increment: toc;
+    }
+
+    .toc a {
+      display: grid;
+      grid-template-columns: 1.55rem minmax(0, 1fr);
+      gap: 0.55rem;
+      align-items: start;
+      padding: 0.46rem 0.48rem;
+      border-radius: 6px;
+      color: var(--muted);
+      font-size: 0.9rem;
+      line-height: 1.35;
+    }
+
+    .toc a::before {
+      content: counter(toc, decimal-leading-zero);
+      color: var(--subtle);
+      font-size: 0.72rem;
+      font-weight: 800;
+      line-height: 1.9;
+    }
+
+    .toc a:hover,
+    .toc a:focus {
+      background: var(--accent-soft);
+      color: var(--accent-strong);
+      outline: none;
+    }
+
+    .article {
+      min-width: 0;
+    }
+
+    .article-section {
+      scroll-margin-top: 6rem;
+      padding: 2.2rem 0;
+      border-top: 1px solid var(--line);
+    }
+
+    .article-section:first-child {
+      border-top: 0;
+      padding-top: 0.5rem;
+    }
+
+    .article-section h2 {
+      margin-bottom: 1rem;
+      font-size: clamp(1.65rem, 3vw, 2.35rem);
+      font-weight: 760;
+    }
+
+    .article-section h3 {
+      margin: 1.5rem 0 0.7rem;
+      font-size: 1.18rem;
+      font-weight: 760;
+    }
+
+    .article-section p {
+      max-width: 72ch;
+      margin: 0.85rem 0;
+      color: var(--muted);
+      font-size: 1.02rem;
+    }
+
+    .content-card,
+    details.content-card {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--surface);
+      box-shadow: 0 10px 28px rgba(31, 31, 31, 0.04);
+      padding: 1.05rem;
+    }
+
+    .section-stack {
+      display: grid;
+      gap: 1rem;
+    }
+
+    .rac-infographic {
+      display: grid;
+      gap: 1rem;
+      margin: 1rem 0 1.35rem;
+      padding: 1rem;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background:
+        linear-gradient(135deg, color-mix(in srgb, var(--accent-soft), transparent 25%), transparent 45%),
+        var(--surface);
+      box-shadow: 0 14px 36px rgba(31, 31, 31, 0.06);
+    }
+
+    .rac-infographic h3 {
+      margin: 0;
+      font-size: 1rem;
+    }
+
+    .rac-infographic p {
+      margin: 0.28rem 0 0;
+      color: var(--muted);
+      font-size: 0.9rem;
+      line-height: 1.45;
+    }
+
+    .rac-flow {
+      display: grid;
+      grid-template-columns: minmax(130px, 0.8fr) 2rem minmax(220px, 1.2fr) 2rem minmax(220px, 1.2fr);
+      gap: 0.7rem;
+      align-items: stretch;
+    }
+
+    .rac-stage,
+    .rac-node,
+    .rac-signal {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: color-mix(in srgb, var(--surface), transparent 4%);
+      padding: 0.95rem;
+    }
+
+    .rac-stage {
+      min-height: 8rem;
+    }
+
+    .rac-stage strong,
+    .rac-node strong,
+    .rac-signal strong {
+      display: block;
+      color: var(--text);
+      font-size: 0.95rem;
+    }
+
+    .rac-stage ul,
+    .rac-node ul {
+      display: grid;
+      gap: 0.35rem;
+      margin: 0.7rem 0 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .rac-stage li,
+    .rac-node li {
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: var(--surface-soft);
+      padding: 0.34rem 0.55rem;
+      color: var(--muted);
+      font-size: 0.82rem;
+      font-weight: 740;
+      text-align: center;
+    }
+
+    .rac-arrow {
+      display: grid;
+      place-items: center;
+      color: var(--accent-strong);
+      font-size: 1.4rem;
+      font-weight: 900;
+    }
+
+    .rac-arrow::before {
+      content: ">";
+    }
+
+    .rac-node-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 0.8rem;
+      position: relative;
+    }
+
+    .rac-node {
+      border-top: 4px solid var(--accent);
+    }
+
+    .rac-node:nth-child(2) {
+      border-top-color: var(--blue);
+    }
+
+    .rac-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 1.7rem;
+      margin-bottom: 0.55rem;
+      padding: 0.25rem 0.58rem;
+      border-radius: 999px;
+      background: var(--accent-soft);
+      color: var(--accent-strong);
+      font-size: 0.76rem;
+      font-weight: 820;
+      text-transform: uppercase;
+    }
+
+    .rac-signal-row {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 0.7rem;
+    }
+
+    .rac-signal {
+      min-height: 6.2rem;
+      border-left: 4px solid var(--green);
+    }
+
+    .rac-signal:nth-child(2) {
+      border-left-color: var(--blue);
+    }
+
+    .rac-signal:nth-child(3) {
+      border-left-color: var(--gold);
+    }
+
+    .rac-signal:nth-child(4) {
+      border-left-color: var(--accent);
+    }
+
+    .two-up {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 1rem;
+      align-items: stretch;
+    }
+
+    .benefits {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 0.7rem;
+      margin: 1rem 0 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .benefits li {
+      min-height: 3.1rem;
+      border: 1px solid var(--line);
+      border-left: 3px solid var(--accent);
+      border-radius: var(--radius);
+      background: var(--surface);
+      padding: 0.72rem 0.85rem;
+      color: var(--muted);
+      font-weight: 700;
+    }
+
+    .component-list {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 0.62rem;
+      margin: 1rem 0 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .component-list li {
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 0.48rem 0.72rem;
+      background: var(--surface-soft);
+      color: var(--muted);
+      font-weight: 760;
+      text-align: center;
+    }
+
+    .term-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 0.9rem;
+      margin-top: 1.2rem;
+    }
+
+    .term-card {
+      min-height: 9.7rem;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--surface);
+      padding: 1rem;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .term-card::before {
+      content: "";
+      position: absolute;
+      inset: 0 auto 0 0;
+      width: 4px;
+      background: var(--accent);
+    }
+
+    .term-card:nth-child(2)::before,
+    .term-card:nth-child(5)::before {
+      background: var(--blue);
+    }
+
+    .term-card:nth-child(3)::before,
+    .term-card:nth-child(6)::before {
+      background: var(--green);
+    }
+
+    .term-card h3 {
+      margin: 0 0 0.55rem;
+      font-size: 1.06rem;
+      color: var(--text);
+    }
+
+    .term-card p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+
+    .code-card {
+      margin: 0.9rem 0;
+      overflow: hidden;
+      border: 1px solid color-mix(in srgb, var(--line), #000 18%);
+      border-radius: var(--radius);
+      background: var(--code-bg);
+      box-shadow: 0 14px 34px rgba(0, 0, 0, 0.13);
+    }
+
+    .code-toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+      background: rgba(255, 255, 255, 0.04);
+      padding: 0.58rem 0.72rem;
+      color: rgba(255, 255, 255, 0.78);
+      font-size: 0.78rem;
+      font-weight: 800;
+      letter-spacing: 0.02em;
+      text-transform: uppercase;
+    }
+
+    .code-toolbar span::before {
+      content: "";
+      display: inline-block;
+      width: 0.52rem;
+      height: 0.52rem;
+      margin-right: 0.45rem;
+      border-radius: 999px;
+      background: var(--accent);
+      vertical-align: 0.03rem;
+    }
+
+    .code-sql .code-toolbar span::before {
+      background: var(--blue);
+    }
+
+    .code-text .code-toolbar span::before,
+    .code-diagram .code-toolbar span::before {
+      background: var(--gold);
+    }
+
+    .copy-btn {
+      min-width: 4.4rem;
+      padding: 0.38rem 0.62rem;
+      border-color: rgba(255, 255, 255, 0.2);
+      border-radius: 6px;
+      background: rgba(255, 255, 255, 0.08);
+      color: white;
+      font-size: 0.78rem;
+      font-weight: 800;
+      text-transform: none;
+    }
+
+    pre {
+      margin: 0;
+      overflow: auto;
+      white-space: pre;
+      color: var(--code-text);
+      font-size: 0.9rem;
+      line-height: 1.55;
+    }
+
+    code {
+      font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+    }
+
+    pre code {
+      display: block;
+      min-width: max-content;
+      padding: 1rem;
+    }
+
+    .code-diagram pre {
+      color: #f6e6c8;
+    }
+
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--surface);
+    }
+
+    .table-wrap {
+      margin-top: 0.8rem;
+      overflow-x: auto;
+      border-radius: var(--radius);
+    }
+
+    .data-table th,
+    .data-table td {
+      padding: 0.82rem 0.9rem;
+      border-bottom: 1px solid var(--line);
+      text-align: left;
+      white-space: nowrap;
+    }
+
+    .data-table th {
+      background: var(--surface-strong);
+      color: var(--text);
+      font-size: 0.84rem;
+      text-transform: uppercase;
+    }
+
+    .data-table tr:last-child td {
+      border-bottom: 0;
+    }
+
+    .data-table td:not(:first-child) {
+      font-weight: 800;
+    }
+
+    .yes {
+      color: var(--green);
+    }
+
+    .no {
+      color: var(--accent-strong);
+    }
+
+    details.content-card {
+      padding: 0;
+    }
+
+    details.content-card summary {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      padding: 1rem 1.05rem;
+      color: var(--text);
+      cursor: pointer;
+      font-weight: 800;
+      list-style: none;
+    }
+
+    details.content-card summary::-webkit-details-marker {
+      display: none;
+    }
+
+    details.content-card summary::after {
+      content: "+";
+      display: inline-grid;
+      place-items: center;
+      width: 1.8rem;
+      height: 1.8rem;
+      border: 1px solid var(--line);
+      border-radius: 50%;
+      color: var(--accent-strong);
+      flex: 0 0 auto;
+    }
+
+    details.content-card[open] summary::after {
+      content: "-";
+    }
+
+    .details-body {
+      border-top: 1px solid var(--line);
+      padding: 0.85rem 1.05rem 1.05rem;
+    }
+
+    .best-practice-list {
+      display: grid;
+      gap: 0.7rem;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .best-practice-list li {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--surface-soft);
+      padding: 0.8rem 0.92rem;
+      color: var(--muted);
+      font-weight: 720;
+    }
+
+    .glossary-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 0.85rem;
+      margin-top: 1rem;
+    }
+
+    .glossary-term {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--surface);
+      padding: 0.9rem;
+    }
+
+    .glossary-term h3 {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 0.65rem;
+      margin: 0 0 0.45rem;
+      font-size: 1rem;
+    }
+
+    .glossary-term h3 span {
+      color: var(--subtle);
+      font-size: 0.78rem;
+      font-weight: 760;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    .glossary-term p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.9rem;
+      line-height: 1.48;
+    }
+
+    .reference-list {
+      display: grid;
+      gap: 0.65rem;
+      margin: 1rem 0 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .reference-list a {
+      display: block;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--surface-soft);
+      padding: 0.78rem 0.9rem;
+      color: var(--accent-strong);
+      font-weight: 780;
+    }
+
+    .reference-list a:hover,
+    .reference-list a:focus {
+      border-color: var(--accent);
+      outline: none;
+    }
+
+    .back-top {
+      position: fixed;
+      right: 1.1rem;
+      bottom: 1.1rem;
+      z-index: 45;
+      opacity: 0;
+      pointer-events: none;
+      min-width: 7.2rem;
+      padding: 0.72rem 0.9rem;
+      border-radius: 999px;
+      background: var(--surface);
+      box-shadow: var(--shadow);
+      font-weight: 800;
+    }
+
+    .back-top.is-visible {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    @media (max-width: 1040px) {
+      .hero-grid {
+        grid-template-columns: 1fr;
+      }
+
+      h1 {
+        max-width: 20ch;
+      }
+
+      .page-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .toc {
+        top: 4.4rem;
+        z-index: 20;
+        max-height: none;
+        overflow-x: auto;
+        overflow-y: hidden;
+      }
+
+      .toc h2 {
+        margin-bottom: 0.55rem;
+      }
+
+      .toc ol {
+        display: flex;
+        gap: 0.35rem;
+        width: max-content;
+      }
+
+      .toc a {
+        display: block;
+        white-space: nowrap;
+      }
+
+      .toc a::before {
+        content: "";
+        display: none;
+      }
+    }
+
+    @media (max-width: 760px) {
+      .topbar-inner {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+
+      .top-actions {
+        width: 100%;
+        justify-content: space-between;
+      }
+
+      .hero {
+        padding-top: 2.2rem;
+      }
+
+      .highlight-grid,
+      .acronym-grid,
+      .two-up,
+      .term-grid,
+      .rac-flow,
+      .rac-node-grid,
+      .rac-signal-row,
+      .glossary-grid,
+      .component-list,
+      .benefits,
+      .map-instances {
+        grid-template-columns: 1fr;
+      }
+
+      .rac-arrow {
+        min-height: 1.5rem;
+      }
+
+      .rac-arrow::before {
+        content: "v";
+      }
+
+      .article-section {
+        scroll-margin-top: 8rem;
+      }
+
+      .content-card,
+      details.content-card {
+        padding: 0.9rem;
+      }
+
+      details.content-card {
+        padding: 0;
+      }
+
+      pre {
+        font-size: 0.82rem;
+      }
+
+      .back-top {
+        right: 0.8rem;
+        bottom: 0.8rem;
+      }
+    }
+  </style>
+</head>
+<body data-theme="light">
+  <a class="skip-link" href="#en-main">Skip to article</a>
+  <header class="topbar" aria-label="Global controls">
+    <div class="topbar-inner">
+      <a class="brand" href="#top" aria-label="Oracle Exadata Exascale article">
+        <span class="brand-mark" aria-hidden="true">26ai</span>
+        <span class="brand-text">Oracle Exadata Exascale</span>
+      </a>
+      <div class="top-actions">
+        <div class="language-switch" role="group" aria-label="Language">
+          <button type="button" data-language-button="en" aria-pressed="true">EN</button>
+          <button type="button" data-language-button="es" aria-pressed="false">ES</button>
+          <button type="button" data-language-button="pt" aria-pressed="false">PT</button>
+        </div>
+        <button type="button" class="theme-toggle" id="themeToggle">Dark mode</button>
+      </div>
+    </div>
+  </header>
+
+  <div id="top"></div>
+
+  <div class="language-panel is-active" data-language-panel="en">
+    <section class="hero" aria-labelledby="en-title">
+      <div class="hero-grid">
+        <div>
+          <p class="eyebrow">Oracle Database 26ai on Oracle Cloud Infrastructure</p>
+          <h1 id="en-title">Scaling Oracle Database 26ai on Exadata Exascale</h1>
+          <p class="subtitle">From a single-node clustered database deployment to a two-node deployment, with service access, high availability components, service configuration, and workload validation organized for fast technical review.</p>
+          <div class="highlight-grid" aria-label="Key highlights">
+            <div class="highlight"><b>Scale path</b><span>Single-node clustered database deployment to two-node clustered database deployment.</span></div>
+            <div class="highlight"><b>Availability stack</b><span>Resilience components are presented with full acronym descriptions after the benefits list.</span></div>
+            <div class="highlight"><b>Service routing</b><span>Oracle Net connect descriptors and service-management examples show service access and load balancing.</span></div>
+            <div class="highlight"><b>Validation</b><span>Cluster commands and database queries check status, sessions, and memory distribution.</span></div>
+          </div>
+        </div>
+        <aside class="hero-visual" aria-label="Two-node cluster visual">
+          <div class="visual-caption">
+            <span>Architecture focus</span>
+            <span class="visual-pill">Two-node cluster</span>
+          </div>
+          <div class="cluster-map" aria-hidden="true">
+            <div class="map-node">Clients</div>
+            <div class="connector">|</div>
+            <div class="map-node map-scan">Service access<small>service resolution</small></div>
+            <div class="connector">+---------+---------+</div>
+            <div class="map-instances">
+              <div class="map-node">Node1<small>DB26AI1</small></div>
+              <div class="map-node">Node2<small>DB26AI2</small></div>
+            </div>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <div class="page-grid">
+      <nav class="toc" aria-label="Table of contents">
+        <h2>Table of Contents</h2>
+        <ol>
+          <li><a href="#en-introduction">Introduction</a></li>
+          <li><a href="#en-architecture">Architecture Evolution</a></li>
+          <li><a href="#en-scan">Single Client Access Architecture</a></li>
+          <li><a href="#en-ha">High Availability Components</a></li>
+          <li><a href="#en-ac">Application Continuity</a></li>
+          <li><a href="#en-tac">Transparent Application Continuity</a></li>
+          <li><a href="#en-service">Service Configuration and Load Balancing</a></li>
+          <li><a href="#en-validation">Cluster Validation Commands</a></li>
+          <li><a href="#en-session">Session and Memory Queries</a></li>
+          <li><a href="#en-testing">High Availability Testing</a></li>
+          <li><a href="#en-best-practices">Best Practices</a></li>
+          <li><a href="#en-conclusion">Conclusion</a></li>
+          <li><a href="#en-glossary">Glossary</a></li>
+        </ol>
+      </nav>
+
+      <main id="en-main" class="article">
+        <section id="en-introduction" class="article-section">
+          <h2>Introduction</h2>
+          <p>Oracle Exadata Exascale Database Service on Oracle Cloud Infrastructure (OCI) enables elastic scaling of Oracle Real Application Clusters (RAC) databases. This document explains the architectural transition from a single-node RAC deployment to a two-node RAC deployment running Oracle Database 26ai.</p>
+        </section>
+
+        <section id="en-architecture" class="article-section">
+          <h2>Architecture Evolution</h2>
+          <div class="rac-infographic" aria-label="High-level RAC component infographic">
+            <div class="rac-flow">
+              <div class="rac-stage">
+                <span class="rac-badge">Entry</span>
+                <strong>Client connections</strong>
+                <p>Clients connect through service-based connections rather than instance-specific endpoints.</p>
+                <ul>
+                  <li>Clients</li>
+                  <li>Service name</li>
+                </ul>
+              </div>
+              <div class="rac-arrow" aria-hidden="true"></div>
+              <div class="rac-stage">
+                <span class="rac-badge">SCAN</span>
+                <strong>Single Client Access Name (SCAN) access layer</strong>
+                <p>The connection path uses SCAN, Domain Name System (DNS) resolution, SCAN Virtual IPs (VIPs), and SCAN listeners before service lookup.</p>
+                <ul>
+                  <li>SCAN Name</li>
+                  <li>SCAN DNS</li>
+                  <li>SCAN VIPs</li>
+                  <li>SCAN Listeners</li>
+                </ul>
+              </div>
+              <div class="rac-arrow" aria-hidden="true"></div>
+              <div class="rac-stage">
+                <span class="rac-badge">Service</span>
+                <strong>Service resolution</strong>
+                <p>Services resolve the connection toward local listeners on the available RAC nodes.</p>
+                <ul>
+                  <li>Services</li>
+                  <li>Service Lookup</li>
+                  <li>Local Listeners</li>
+                </ul>
+              </div>
+            </div>
+            <div class="rac-node-grid" aria-label="RAC instance evolution">
+              <div class="rac-node">
+                <span class="rac-badge">Single-node baseline</span>
+                <strong>Node1 / DB26AI1</strong>
+                <p>Node1 hosts DB26AI1 in the single-node RAC deployment and remains active after scaling.</p>
+                <ul>
+                  <li>Node Virtual IP (VIP)</li>
+                  <li>Local Listener</li>
+                  <li>Database Instance</li>
+                </ul>
+              </div>
+              <div class="rac-node">
+                <span class="rac-badge">Two-node RAC</span>
+                <strong>Node2 / DB26AI2</strong>
+                <p>Node2 adds DB26AI2 for the two-node RAC deployment.</p>
+                <ul>
+                  <li>Node Virtual IP (VIP)</li>
+                  <li>Local Listener</li>
+                  <li>Database Instance</li>
+                </ul>
+              </div>
+            </div>
+            <div class="rac-signal-row" aria-label="RAC high availability and load balancing signals">
+              <div class="rac-signal"><strong>Fast Application Notification (FAN)</strong><p>Included in the high availability stack with Oracle Notification Service.</p></div>
+              <div class="rac-signal"><strong>Oracle Notification Service (ONS)</strong><p>Shown with FAN as part of the SCAN component list.</p></div>
+              <div class="rac-signal"><strong>Runtime Load Balancing (RLB)</strong><p>Runtime Load Balancing is part of the two-node RAC benefits and service configuration.</p></div>
+              <div class="rac-signal"><strong>Application Continuity (AC) / Transparent Application Continuity (TAC)</strong><p>Application Continuity and Transparent Application Continuity provide replay-capable availability options.</p></div>
+            </div>
+          </div>
+          <h3>Benefits</h3>
+          <ul class="benefits">
+            <li>Active-active processing</li>
+            <li>Rolling maintenance</li>
+            <li>Runtime Load Balancing</li>
+            <li>Higher availability</li>
+          </ul>
+          <div class="acronym-guide" aria-label="First-use acronym guide">
+            <h2>Acronym Guide</h2>
+            <div class="acronym-grid">
+              <div class="acronym-card"><strong>OCI — Oracle Cloud Infrastructure</strong><span>Oracle's cloud platform where Exadata Exascale Database Service runs.</span></div>
+              <div class="acronym-card"><strong>RAC — Real Application Clusters</strong><span>Oracle architecture where multiple database instances on clustered nodes access one shared database.</span></div>
+              <div class="acronym-card"><strong>SCAN — Single Client Access Name</strong><span>A stable cluster-level client access name that routes service connections without tying clients to individual nodes.</span></div>
+              <div class="acronym-card"><strong>DNS / VIP — Domain Name System / Virtual IP</strong><span>DNS resolves names such as SCAN; VIPs provide movable network addresses used by cluster listeners and nodes.</span></div>
+              <div class="acronym-card"><strong>FAN / ONS — Fast Application Notification / Oracle Notification Service</strong><span>FAN publishes high availability events, and ONS transports those notifications to interested clients.</span></div>
+              <div class="acronym-card"><strong>RLB — Runtime Load Balancing</strong><span>Connection routing uses service workload information to direct clients toward suitable RAC instances.</span></div>
+              <div class="acronym-card"><strong>AC — Application Continuity</strong><span>Replay-capable availability that can mask recoverable outages by rebuilding and replaying database work when safe.</span></div>
+              <div class="acronym-card"><strong>TAC — Transparent Application Continuity</strong><span>A mode of Application Continuity that automatically tracks session state and discovers request boundaries.</span></div>
+            </div>
+          </div>
+        </section>
+
+        <section id="en-scan" class="article-section">
+          <h2>SCAN Architecture Deep Dive</h2>
+          <div class="code-card code-diagram">
+            <div class="code-toolbar"><span>Text diagram</span><button class="copy-btn" type="button">Copy</button></div>
+            <pre><code>Client
+   |
+SCAN DNS
+   |
+SCAN Listener
+   |
+Service Lookup
+   |
+Local Listener
+   |
+Database Instance</code></pre>
+          </div>
+          <h3>Components</h3>
+          <ul class="component-list">
+            <li>SCAN Name</li>
+            <li>SCAN VIPs</li>
+            <li>SCAN Listeners</li>
+            <li>Node VIPs</li>
+            <li>Local Listeners</li>
+            <li>Services</li>
+            <li>FAN</li>
+            <li>ONS</li>
+          </ul>
+        </section>
+
+        <section id="en-ha" class="article-section">
+          <h2>High Availability Components</h2>
+          <div class="term-grid" aria-label="High availability callouts">
+            <article class="term-card"><h3>SCAN</h3><p>Used exclusively in best practices and shown as the path from clients to service lookup and local listeners.</p></article>
+            <article class="term-card"><h3>RAC</h3><p>The article contrasts one RAC node with a two-node RAC deployment using DB26AI1 and DB26AI2.</p></article>
+            <article class="term-card"><h3>FAN</h3><p>Listed with ONS in the SCAN component stack and included in the high availability infographic.</p></article>
+            <article class="term-card"><h3>RLB</h3><p>Runtime Load Balancing is configured with <code>-clbgoal SHORT</code> and <code>-rlbgoal SERVICE_TIME</code>.</p></article>
+            <article class="term-card"><h3>AC</h3><p>The AC example uses <code>TRANSACTION</code>, <code>commit_outcome TRUE</code>, replay initialization, and retention settings.</p></article>
+            <article class="term-card"><h3>TAC</h3><p>The TAC recommendation uses <code>AUTO</code>, <code>DYNAMIC</code>, commit outcome, replay initialization, and retention settings.</p></article>
+          </div>
+          <h3>High Availability Infographic</h3>
+          <div class="code-card code-diagram">
+            <div class="code-toolbar"><span>Text diagram</span><button class="copy-btn" type="button">Copy</button></div>
+            <pre><code>CLIENTS
+   |
+SCAN
+   |
++-----------------------------+
+| SCAN VIP1 / SCAN LISTENER1 |
+| SCAN VIP2 / SCAN LISTENER2 |
+| SCAN VIP3 / SCAN LISTENER3 |
++-----------------------------+
+              |
+      Service Resolution
+              |
+     +--------+--------+
+     |                 |
+  DB26AI1          DB26AI2
+
+ FAN / ONS / RLB / TAC</code></pre>
+          </div>
+          <h3>Availability Technology Comparison</h3>
+          <div class="table-wrap">
+            <table class="data-table">
+              <thead>
+                <tr><th>Technology</th><th>Reconnect</th><th>Replay</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>SCAN</td><td class="yes">Yes</td><td class="no">No</td></tr>
+                <tr><td>Fast Connection Failover (FCF)</td><td class="yes">Yes</td><td class="no">No</td></tr>
+                <tr><td>AC</td><td class="yes">Yes</td><td class="yes">Yes</td></tr>
+                <tr><td>TAC</td><td class="yes">Yes</td><td class="yes">Yes</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section id="en-ac" class="article-section">
+          <h2>Application Continuity (AC)</h2>
+          <details class="content-card" open>
+            <summary>Example configuration</summary>
+            <div class="details-body">
+              <p>Example: Server Control Utility (SRVCTL) manages Oracle RAC database services. The placeholder <code>MYCDB</code> represents the Container Database (CDB), and <code>pdb1</code> represents a Pluggable Database (PDB) service.</p>
+              <div class="code-card code-bash">
+                <div class="code-toolbar"><span>Bash</span><button class="copy-btn" type="button">Copy</button></div>
+                <pre><code>srvctl modify service \
+-db MYCDB \
+-service pdb1 \
+-failovertype TRANSACTION \
+-commit_outcome TRUE \
+-replay_init_time 1800 \
+-retention 86400</code></pre>
+              </div>
+            </div>
+          </details>
+        </section>
+
+        <section id="en-tac" class="article-section">
+          <h2>Transparent Application Continuity (TAC)</h2>
+          <details class="content-card" open>
+            <summary>Recommended configuration</summary>
+            <div class="details-body">
+              <p>Recommended configuration: SRVCTL applies the TAC service attributes to the CDB and PDB service placeholders used in this example.</p>
+              <div class="code-card code-bash">
+                <div class="code-toolbar"><span>Bash</span><button class="copy-btn" type="button">Copy</button></div>
+                <pre><code>srvctl modify service \
+-db MYCDB \
+-service pdb1 \
+-failovertype AUTO \
+-session_state DYNAMIC \
+-commit_outcome TRUE \
+-replay_init_time 1800 \
+-retention 86400</code></pre>
+              </div>
+            </div>
+          </details>
+        </section>
+
+        <section id="en-service" class="article-section">
+          <h2>Service Configuration and Load Balancing</h2>
+          <div class="section-stack">
+            <div class="content-card">
+              <h3>Transparent Network Substrate (TNS) connect descriptor</h3>
+              <p>This Oracle Net descriptor uses the <code>PDB1</code> service name, SCAN host name, load balancing, and failover flags for service-based access.</p>
+              <div class="code-card code-text">
+                <div class="code-toolbar"><span>TNS</span><button class="copy-btn" type="button">Copy</button></div>
+                <pre><code>PDB1 =
+ (DESCRIPTION=
+   (LOAD_BALANCE=ON)
+   (FAILOVER=ON)
+   (ADDRESS=
+      (PROTOCOL=TCP)
+      (HOST=salesdb-scan.company.com)
+      (PORT=1521))
+   (CONNECT_DATA=
+      (SERVICE_NAME=pdb1)))</code></pre>
+              </div>
+            </div>
+            <div class="content-card">
+              <h3>Runtime Load Balancing</h3>
+              <div class="code-card code-bash">
+                <div class="code-toolbar"><span>Bash</span><button class="copy-btn" type="button">Copy</button></div>
+                <pre><code>srvctl modify service \
+-db MYCDB \
+-service pdb1 \
+-clbgoal SHORT \
+-rlbgoal SERVICE_TIME</code></pre>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section id="en-validation" class="article-section">
+          <h2>RAC Validation Commands</h2>
+          <details class="content-card" open>
+            <summary>Cluster and service status commands</summary>
+            <div class="details-body">
+              <p>Cluster Ready Services Control (CRSCTL) checks Oracle Clusterware status. SRVCTL checks the database, services, SCAN, SCAN listeners, and local listeners.</p>
+              <div class="code-card code-bash">
+                <div class="code-toolbar"><span>Bash</span><button class="copy-btn" type="button">Copy</button></div>
+                <pre><code>crsctl check cluster -all
+crsctl stat res -t
+olsnodes -n
+
+srvctl status database -db MYCDB
+srvctl status service -db MYCDB
+srvctl status scan
+srvctl status scan_listener
+srvctl status listener</code></pre>
+              </div>
+            </div>
+          </details>
+        </section>
+
+        <section id="en-session" class="article-section">
+          <h2>Session and Memory Distribution Queries</h2>
+          <p>These Structured Query Language (SQL) queries use Oracle dynamic performance views to compare user sessions and process memory across RAC instances and PDBs.</p>
+          <div class="section-stack">
+            <details class="content-card" open>
+              <summary>Sessions per Instance</summary>
+              <div class="details-body">
+                <div class="code-card code-sql">
+                  <div class="code-toolbar"><span>SQL</span><button class="copy-btn" type="button">Copy</button></div>
+                  <pre><code>SELECT inst_id, COUNT(*)
+FROM gv$session
+GROUP BY inst_id;</code></pre>
+                </div>
+              </div>
+            </details>
+            <details class="content-card" open>
+              <summary>Sessions per PDB and Instance</summary>
+              <div class="details-body">
+                <div class="code-card code-sql">
+                  <div class="code-toolbar"><span>SQL</span><button class="copy-btn" type="button">Copy</button></div>
+                  <pre><code>SELECT s.inst_id,
+       p.name pdb_name,
+       COUNT(*) sessions
+FROM gv$session s
+JOIN v$containers p
+  ON s.con_id=p.con_id
+WHERE s.type='USER'
+GROUP BY s.inst_id,p.name
+ORDER BY p.name,s.inst_id;</code></pre>
+                </div>
+              </div>
+            </details>
+            <details class="content-card" open>
+              <summary>Memory Usage per PDB and RAC Instance</summary>
+              <div class="details-body">
+                <div class="code-card code-sql">
+                  <div class="code-toolbar"><span>SQL</span><button class="copy-btn" type="button">Copy</button></div>
+                  <pre><code>SELECT
+    s.inst_id,
+    c.name pdb_name,
+    ROUND(SUM(p.pga_alloc_mem)/1024/1024,2) pga_mb,
+    COUNT(*) sessions
+FROM gv$session s
+JOIN gv$process p
+  ON s.inst_id=p.inst_id
+ AND s.paddr=p.addr
+JOIN v$containers c
+  ON s.con_id=c.con_id
+WHERE s.type='USER'
+GROUP BY s.inst_id,c.name
+ORDER BY c.name,s.inst_id;</code></pre>
+                </div>
+              </div>
+            </details>
+            <details class="content-card" open>
+              <summary>Cluster-Wide Memory Distribution</summary>
+              <div class="details-body">
+                <div class="code-card code-sql">
+                  <div class="code-toolbar"><span>SQL</span><button class="copy-btn" type="button">Copy</button></div>
+                  <pre><code>SELECT
+    c.name pdb_name,
+    ROUND(SUM(p.pga_alloc_mem)/1024/1024,2) total_pga_mb,
+    COUNT(*) sessions
+FROM gv$session s
+JOIN gv$process p
+  ON s.inst_id=p.inst_id
+ AND s.paddr=p.addr
+JOIN v$containers c
+  ON s.con_id=c.con_id
+WHERE s.type='USER'
+GROUP BY c.name
+ORDER BY total_pga_mb DESC;</code></pre>
+                </div>
+              </div>
+            </details>
+            <details class="content-card" open>
+              <summary>RAC Workload Dashboard</summary>
+              <div class="details-body">
+                <div class="code-card code-sql">
+                  <div class="code-toolbar"><span>SQL</span><button class="copy-btn" type="button">Copy</button></div>
+                  <pre><code>SELECT
+    s.inst_id,
+    c.name pdb_name,
+    COUNT(*) sessions,
+    ROUND(SUM(p.pga_alloc_mem)/1024/1024,2) total_pga_mb,
+    ROUND(SUM(p.pga_alloc_mem)/COUNT(*)/1024/1024,2) avg_pga_mb_per_session
+FROM gv$session s
+JOIN gv$process p
+  ON s.inst_id=p.inst_id
+ AND s.paddr=p.addr
+JOIN v$containers c
+  ON s.con_id=c.con_id
+WHERE s.type='USER'
+GROUP BY s.inst_id,c.name
+ORDER BY c.name,s.inst_id;</code></pre>
+                </div>
+              </div>
+            </details>
+          </div>
+        </section>
+
+        <section id="en-testing" class="article-section">
+          <h2>High Availability Testing</h2>
+          <div class="code-card code-bash">
+            <div class="code-toolbar"><span>Bash</span><button class="copy-btn" type="button">Copy</button></div>
+            <pre><code>srvctl relocate service \
+-db MYCDB \
+-service pdb1 \
+-oldinst DB26AI1 \
+-newinst DB26AI2</code></pre>
+          </div>
+        </section>
+
+        <section id="en-best-practices" class="article-section">
+          <h2>Best Practices</h2>
+          <details class="content-card" open>
+            <summary>Operational checklist</summary>
+            <div class="details-body">
+              <ul class="best-practice-list">
+                <li>Use SCAN exclusively.</li>
+                <li>Use services instead of instance-specific connections.</li>
+                <li>Enable FAN and Runtime Load Balancing.</li>
+                <li>Use Universal Connection Pool (UCP) with TAC.</li>
+                <li>Validate service distribution after scaling.</li>
+                <li>Test rolling maintenance procedures regularly.</li>
+              </ul>
+            </div>
+          </details>
+        </section>
+
+        <section id="en-conclusion" class="article-section">
+          <h2>Conclusion</h2>
+          <p>A two-node Oracle RAC deployment on Exadata Exascale provides active-active scalability, workload balancing, and high availability. Combining SCAN, FAN, RLB, AC, and TAC delivers a resilient architecture for Oracle Database 26ai workloads.</p>
+        </section>
+
+        <section id="en-glossary" class="article-section">
+          <h2>Glossary</h2>
+          <p>These definitions summarize the acronyms used in this article and point to official Oracle documentation for deeper reference.</p>
+          <div class="glossary-grid">
+            <article class="glossary-term"><h3>AC <span>Application Continuity</span></h3><p>Replay-capable high availability for recoverable database outages when replay is enabled and safe.</p></article>
+            <article class="glossary-term"><h3>CDB <span>Container Database</span></h3><p>The multitenant database container used in the service examples; PDB services run inside it.</p></article>
+            <article class="glossary-term"><h3>CRSCTL <span>Clusterware control</span></h3><p>Command-line utility used to check and manage Oracle Clusterware resources.</p></article>
+            <article class="glossary-term"><h3>DNS <span>Domain Name System</span></h3><p>Name resolution layer used by clients to resolve names such as SCAN.</p></article>
+            <article class="glossary-term"><h3>ExaDB-XS <span>Exadata Database Service on Exascale Infrastructure</span></h3><p>Oracle's Exadata Exascale cloud database service deployment option in OCI.</p></article>
+            <article class="glossary-term"><h3>FAN <span>Fast Application Notification</span></h3><p>Oracle RAC high availability event notification framework for planned and unplanned events.</p></article>
+            <article class="glossary-term"><h3>FCF <span>Fast Connection Failover</span></h3><p>Client-side failover behavior that helps reconnect applications after service or instance changes.</p></article>
+            <article class="glossary-term"><h3>OCI <span>Oracle Cloud Infrastructure</span></h3><p>Oracle's cloud platform for running Exadata Exascale Database Service resources.</p></article>
+            <article class="glossary-term"><h3>ONS <span>Oracle Notification Service</span></h3><p>Notification transport used with FAN events for Oracle RAC-aware clients.</p></article>
+            <article class="glossary-term"><h3>PDB <span>Pluggable Database</span></h3><p>A database container inside a CDB; this article uses <code>pdb1</code> as a service placeholder.</p></article>
+            <article class="glossary-term"><h3>RAC <span>Real Application Clusters</span></h3><p>Oracle architecture where multiple instances on clustered servers access one shared database.</p></article>
+            <article class="glossary-term"><h3>RLB <span>Runtime Load Balancing</span></h3><p>Service-aware routing that uses workload information to direct connections across RAC instances.</p></article>
+            <article class="glossary-term"><h3>SCAN <span>Single Client Access Name</span></h3><p>Stable cluster access name used by clients instead of node-specific addresses.</p></article>
+            <article class="glossary-term"><h3>SQL <span>Structured Query Language</span></h3><p>Query language used here to inspect RAC sessions and process memory distribution.</p></article>
+            <article class="glossary-term"><h3>SRVCTL <span>Server Control Utility</span></h3><p>Oracle command-line utility for managing RAC databases, services, listeners, and related resources.</p></article>
+            <article class="glossary-term"><h3>TAC <span>Transparent Application Continuity</span></h3><p>A mode of Application Continuity that automatically tracks session state and request boundaries.</p></article>
+            <article class="glossary-term"><h3>TNS <span>Transparent Network Substrate</span></h3><p>Oracle Net connection descriptor format used to define service, host, load balancing, and failover settings.</p></article>
+            <article class="glossary-term"><h3>UCP <span>Universal Connection Pool</span></h3><p>Oracle JDBC connection pool commonly used with RAC-aware high availability features.</p></article>
+            <article class="glossary-term"><h3>VIP <span>Virtual IP</span></h3><p>Cluster-managed network address used by SCAN listeners and node access paths.</p></article>
+          </div>
+          <h3>Official Oracle references</h3>
+          <ul class="reference-list">
+            <li><a href="https://docs.oracle.com/en/engineered-systems/exadata-database-exascale/exdxs/overview-exadb-xs-service.html" target="_blank" rel="noopener">Oracle Exadata Database Service on Exascale Infrastructure Overview</a></li>
+            <li><a href="https://docs.oracle.com/en/engineered-systems/exadata-database-machine/exscl/what-is-oracle-exascale.html" target="_blank" rel="noopener">What is Oracle Exadata Exascale?</a></li>
+            <li><a href="https://docs.oracle.com/en/database/oracle/oracle-database/26/racad/index.html" target="_blank" rel="noopener">Oracle Real Application Clusters Administration and Deployment Guide, 26ai</a></li>
+            <li><a href="https://docs.oracle.com/en/database/oracle/oracle-database/26/cwlin/about-the-scan.html" target="_blank" rel="noopener">About the SCAN</a></li>
+            <li><a href="https://docs.oracle.com/en/database/oracle/oracle-database/26/racad/ensuring-application-continuity.html" target="_blank" rel="noopener">Ensuring Application Continuity</a></li>
+            <li><a href="https://docs.oracle.com/en/database/oracle/oracle-database/26/rilin/load-balancing-of-connections-to-oracle-rac-databases.html" target="_blank" rel="noopener">Load Balancing of Connections to Oracle RAC Databases</a></li>
+            <li><a href="https://docs.oracle.com/en/database/oracle/oracle-database/26/haovw/oracle-real-application-clusters-and-oracle-clusterware.html" target="_blank" rel="noopener">Oracle Real Application Clusters and Oracle Clusterware</a></li>
+          </ul>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <div class="language-panel" data-language-panel="es">
+    <section class="hero" aria-labelledby="es-title">
+      <div class="hero-grid">
+        <div>
+          <p class="eyebrow">Oracle Database 26ai en Oracle Cloud Infrastructure</p>
+          <h1 id="es-title">Escalado de Oracle Database 26ai en Exadata Exascale</h1>
+          <p class="subtitle">De un despliegue de base de datos en clúster de un solo nodo a un despliegue de dos nodos, con acceso por servicios, componentes de alta disponibilidad, configuración de servicios y validación de carga de trabajo organizados para una revisión técnica rápida.</p>
+          <div class="highlight-grid" aria-label="Puntos clave">
+            <div class="highlight"><b>Ruta de escalado</b><span>Despliegue de base de datos en clúster de un solo nodo a despliegue en clúster de dos nodos.</span></div>
+            <div class="highlight"><b>Pila de disponibilidad</b><span>Los componentes de resiliencia se presentan con descripciones completas de acrónimos después de la lista de beneficios.</span></div>
+            <div class="highlight"><b>Enrutamiento de servicios</b><span>Los descriptores de Oracle Net y ejemplos de administración de servicios muestran acceso por servicios y balanceo de carga.</span></div>
+            <div class="highlight"><b>Validación</b><span>Comandos de clúster y consultas de base de datos revisan estado, sesiones y distribución de memoria.</span></div>
+          </div>
+        </div>
+        <aside class="hero-visual" aria-label="Visual de clúster de dos nodos">
+          <div class="visual-caption">
+            <span>Foco de arquitectura</span>
+            <span class="visual-pill">Clúster de dos nodos</span>
+          </div>
+          <div class="cluster-map" aria-hidden="true">
+            <div class="map-node">Clientes</div>
+            <div class="connector">|</div>
+            <div class="map-node map-scan">Acceso por servicios<small>resolución de servicio</small></div>
+            <div class="connector">+---------+---------+</div>
+            <div class="map-instances">
+              <div class="map-node">Nodo1<small>DB26AI1</small></div>
+              <div class="map-node">Nodo2<small>DB26AI2</small></div>
+            </div>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <div class="page-grid">
+      <nav class="toc" aria-label="Tabla de contenido">
+        <h2>Tabla de contenido</h2>
+        <ol>
+          <li><a href="#es-introduction">Introducción</a></li>
+          <li><a href="#es-architecture">Evolución de la arquitectura</a></li>
+          <li><a href="#es-scan">Arquitectura de acceso cliente</a></li>
+          <li><a href="#es-ha">Componentes de alta disponibilidad</a></li>
+          <li><a href="#es-ac">Application Continuity</a></li>
+          <li><a href="#es-tac">Transparent Application Continuity</a></li>
+          <li><a href="#es-service">Configuración de servicios y balanceo</a></li>
+          <li><a href="#es-validation">Comandos de validación de clúster</a></li>
+          <li><a href="#es-session">Consultas de sesiones y memoria</a></li>
+          <li><a href="#es-testing">Pruebas de alta disponibilidad</a></li>
+          <li><a href="#es-best-practices">Mejores prácticas</a></li>
+          <li><a href="#es-conclusion">Conclusión</a></li>
+          <li><a href="#es-glossary">Glosario</a></li>
+        </ol>
+      </nav>
+
+      <main id="es-main" class="article">
+        <section id="es-introduction" class="article-section">
+          <h2>Introducción</h2>
+          <p>Oracle Exadata Exascale Database Service en Oracle Cloud Infrastructure (OCI) permite el escalado elástico de bases de datos Oracle Real Application Clusters (RAC). Este documento explica la transición arquitectónica desde un despliegue RAC de un solo nodo hacia un despliegue RAC de dos nodos ejecutando Oracle Database 26ai.</p>
+        </section>
+
+        <section id="es-architecture" class="article-section">
+          <h2>Evolución de la arquitectura</h2>
+          <div class="rac-infographic" aria-label="Infografía de alto nivel de componentes RAC">
+            <div class="rac-flow">
+              <div class="rac-stage">
+                <span class="rac-badge">Entrada</span>
+                <strong>Conexiones de clientes</strong>
+                <p>Los clientes se conectan mediante conexiones basadas en servicios en lugar de endpoints específicos por instancia.</p>
+                <ul>
+                  <li>Clientes</li>
+                  <li>Nombre de servicio</li>
+                </ul>
+              </div>
+              <div class="rac-arrow" aria-hidden="true"></div>
+              <div class="rac-stage">
+                <span class="rac-badge">SCAN</span>
+                <strong>Capa de acceso Single Client Access Name (SCAN)</strong>
+                <p>La ruta de conexión usa SCAN, resolución Domain Name System (DNS), Virtual IPs (VIPs) de SCAN y listeners SCAN antes de la búsqueda de servicio.</p>
+                <ul>
+                  <li>Nombre SCAN</li>
+                  <li>SCAN DNS</li>
+                  <li>VIPs de SCAN</li>
+                  <li>Listeners SCAN</li>
+                </ul>
+              </div>
+              <div class="rac-arrow" aria-hidden="true"></div>
+              <div class="rac-stage">
+                <span class="rac-badge">Servicio</span>
+                <strong>Resolución de servicio</strong>
+                <p>Los servicios resuelven la conexión hacia listeners locales en los nodos RAC disponibles.</p>
+                <ul>
+                  <li>Servicios</li>
+                  <li>Búsqueda de servicio</li>
+                  <li>Listeners locales</li>
+                </ul>
+              </div>
+            </div>
+            <div class="rac-node-grid" aria-label="Evolución de instancias RAC">
+              <div class="rac-node">
+                <span class="rac-badge">Base de un nodo</span>
+                <strong>Nodo1 / DB26AI1</strong>
+                <p>El Nodo1 hospeda DB26AI1 en el despliegue RAC de un solo nodo y permanece activo después del escalado.</p>
+                <ul>
+                  <li>Virtual IP (VIP) de nodo</li>
+                  <li>Listener local</li>
+                  <li>Instancia de base de datos</li>
+                </ul>
+              </div>
+              <div class="rac-node">
+                <span class="rac-badge">RAC de dos nodos</span>
+                <strong>Nodo2 / DB26AI2</strong>
+                <p>El Nodo2 agrega DB26AI2 para el despliegue RAC de dos nodos.</p>
+                <ul>
+                  <li>Virtual IP (VIP) de nodo</li>
+                  <li>Listener local</li>
+                  <li>Instancia de base de datos</li>
+                </ul>
+              </div>
+            </div>
+            <div class="rac-signal-row" aria-label="Señales RAC de alta disponibilidad y balanceo">
+              <div class="rac-signal"><strong>Fast Application Notification (FAN)</strong><p>Incluido en la pila de alta disponibilidad con Oracle Notification Service.</p></div>
+              <div class="rac-signal"><strong>Oracle Notification Service (ONS)</strong><p>Se muestra con FAN como parte de la lista de componentes SCAN.</p></div>
+              <div class="rac-signal"><strong>Runtime Load Balancing (RLB)</strong><p>Runtime Load Balancing es parte de los beneficios de RAC de dos nodos y de la configuración de servicios.</p></div>
+              <div class="rac-signal"><strong>Application Continuity (AC) / Transparent Application Continuity (TAC)</strong><p>Application Continuity y Transparent Application Continuity ofrecen opciones de disponibilidad con replay.</p></div>
+            </div>
+          </div>
+          <h3>Beneficios</h3>
+          <ul class="benefits">
+            <li>Procesamiento activo-activo</li>
+            <li>Mantenimiento rolling</li>
+            <li>Runtime Load Balancing</li>
+            <li>Mayor disponibilidad</li>
+          </ul>
+          <div class="acronym-guide" aria-label="Guía de acrónimos de primer uso">
+            <h2>Guía de acrónimos</h2>
+            <div class="acronym-grid">
+              <div class="acronym-card"><strong>OCI — Oracle Cloud Infrastructure</strong><span>La plataforma cloud de Oracle donde se ejecuta Exadata Exascale Database Service.</span></div>
+              <div class="acronym-card"><strong>RAC — Real Application Clusters</strong><span>Arquitectura de Oracle donde varias instancias de base de datos en nodos de clúster acceden a una base de datos compartida.</span></div>
+              <div class="acronym-card"><strong>SCAN — Single Client Access Name</strong><span>Nombre estable de acceso al clúster que enruta conexiones de servicio sin ligar clientes a nodos individuales.</span></div>
+              <div class="acronym-card"><strong>DNS / VIP — Domain Name System / Virtual IP</strong><span>DNS resuelve nombres como SCAN; las VIPs proporcionan direcciones de red móviles usadas por listeners y nodos del clúster.</span></div>
+              <div class="acronym-card"><strong>FAN / ONS — Fast Application Notification / Oracle Notification Service</strong><span>FAN publica eventos de alta disponibilidad y ONS transporta esas notificaciones a clientes interesados.</span></div>
+              <div class="acronym-card"><strong>RLB — Runtime Load Balancing</strong><span>El enrutamiento de conexiones usa información de carga de trabajo del servicio para dirigir clientes hacia instancias RAC adecuadas.</span></div>
+              <div class="acronym-card"><strong>AC — Application Continuity</strong><span>Disponibilidad con capacidad de replay que puede ocultar interrupciones recuperables al reconstruir y reproducir trabajo de base de datos cuando es seguro.</span></div>
+              <div class="acronym-card"><strong>TAC — Transparent Application Continuity</strong><span>Modo de Application Continuity que rastrea automáticamente el estado de sesión y descubre límites de petición.</span></div>
+            </div>
+          </div>
+        </section>
+
+        <section id="es-scan" class="article-section">
+          <h2>Análisis detallado de arquitectura SCAN</h2>
+          <div class="code-card code-diagram">
+            <div class="code-toolbar"><span>Diagrama de texto</span><button class="copy-btn" type="button">Copiar</button></div>
+            <pre><code>Client
+   |
+SCAN DNS
+   |
+SCAN Listener
+   |
+Service Lookup
+   |
+Local Listener
+   |
+Database Instance</code></pre>
+          </div>
+          <h3>Componentes</h3>
+          <ul class="component-list">
+            <li>Nombre SCAN</li>
+            <li>VIPs de SCAN</li>
+            <li>Listeners SCAN</li>
+            <li>VIPs de nodo</li>
+            <li>Listeners locales</li>
+            <li>Servicios</li>
+            <li>FAN</li>
+            <li>ONS</li>
+          </ul>
+        </section>
+
+        <section id="es-ha" class="article-section">
+          <h2>Componentes de alta disponibilidad</h2>
+          <div class="term-grid" aria-label="Llamadas de alta disponibilidad">
+            <article class="term-card"><h3>SCAN</h3><p>Se usa exclusivamente en las mejores prácticas y se muestra como la ruta desde clientes hacia la búsqueda de servicio y los listeners locales.</p></article>
+            <article class="term-card"><h3>RAC</h3><p>El artículo contrasta un nodo RAC con un despliegue RAC de dos nodos usando DB26AI1 y DB26AI2.</p></article>
+            <article class="term-card"><h3>FAN</h3><p>Está listado con ONS en la pila de componentes SCAN e incluido en la infografía de alta disponibilidad.</p></article>
+            <article class="term-card"><h3>RLB</h3><p>Runtime Load Balancing se configura con <code>-clbgoal SHORT</code> y <code>-rlbgoal SERVICE_TIME</code>.</p></article>
+            <article class="term-card"><h3>AC</h3><p>El ejemplo de AC usa <code>TRANSACTION</code>, <code>commit_outcome TRUE</code>, inicialización de replay y configuración de retención.</p></article>
+            <article class="term-card"><h3>TAC</h3><p>La recomendación de TAC usa <code>AUTO</code>, <code>DYNAMIC</code>, commit outcome, inicialización de replay y configuración de retención.</p></article>
+          </div>
+          <h3>Infografía de alta disponibilidad</h3>
+          <div class="code-card code-diagram">
+            <div class="code-toolbar"><span>Diagrama de texto</span><button class="copy-btn" type="button">Copiar</button></div>
+            <pre><code>CLIENTS
+   |
+SCAN
+   |
++-----------------------------+
+| SCAN VIP1 / SCAN LISTENER1 |
+| SCAN VIP2 / SCAN LISTENER2 |
+| SCAN VIP3 / SCAN LISTENER3 |
++-----------------------------+
+              |
+      Service Resolution
+              |
+     +--------+--------+
+     |                 |
+  DB26AI1          DB26AI2
+
+ FAN / ONS / RLB / TAC</code></pre>
+          </div>
+          <h3>Comparación de tecnologías de disponibilidad</h3>
+          <div class="table-wrap">
+            <table class="data-table">
+              <thead>
+                <tr><th>Tecnología</th><th>Reconexión</th><th>Replay</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>SCAN</td><td class="yes">Sí</td><td class="no">No</td></tr>
+                <tr><td>Fast Connection Failover (FCF)</td><td class="yes">Sí</td><td class="no">No</td></tr>
+                <tr><td>AC</td><td class="yes">Sí</td><td class="yes">Sí</td></tr>
+                <tr><td>TAC</td><td class="yes">Sí</td><td class="yes">Sí</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section id="es-ac" class="article-section">
+          <h2>Application Continuity (AC)</h2>
+          <details class="content-card" open>
+            <summary>Configuración de ejemplo</summary>
+            <div class="details-body">
+              <p>Ejemplo: Server Control Utility (SRVCTL) administra servicios de base de datos Oracle RAC. El marcador <code>MYCDB</code> representa la Container Database (CDB), y <code>pdb1</code> representa un servicio de Pluggable Database (PDB).</p>
+              <div class="code-card code-bash">
+                <div class="code-toolbar"><span>Bash</span><button class="copy-btn" type="button">Copiar</button></div>
+                <pre><code>srvctl modify service \
+-db MYCDB \
+-service pdb1 \
+-failovertype TRANSACTION \
+-commit_outcome TRUE \
+-replay_init_time 1800 \
+-retention 86400</code></pre>
+              </div>
+            </div>
+          </details>
+        </section>
+
+        <section id="es-tac" class="article-section">
+          <h2>Transparent Application Continuity (TAC)</h2>
+          <details class="content-card" open>
+            <summary>Configuración recomendada</summary>
+            <div class="details-body">
+              <p>Configuración recomendada: SRVCTL aplica los atributos de servicio TAC a los marcadores de CDB y servicio PDB usados en este ejemplo.</p>
+              <div class="code-card code-bash">
+                <div class="code-toolbar"><span>Bash</span><button class="copy-btn" type="button">Copiar</button></div>
+                <pre><code>srvctl modify service \
+-db MYCDB \
+-service pdb1 \
+-failovertype AUTO \
+-session_state DYNAMIC \
+-commit_outcome TRUE \
+-replay_init_time 1800 \
+-retention 86400</code></pre>
+              </div>
+            </div>
+          </details>
+        </section>
+
+        <section id="es-service" class="article-section">
+          <h2>Configuración de servicios y balanceo de carga</h2>
+          <div class="section-stack">
+            <div class="content-card">
+              <h3>Descriptor de conexión Transparent Network Substrate (TNS)</h3>
+              <p>Este descriptor de Oracle Net usa el nombre de servicio <code>PDB1</code>, el nombre de host SCAN y las opciones de balanceo de carga y failover para acceso basado en servicios.</p>
+              <div class="code-card code-text">
+                <div class="code-toolbar"><span>TNS</span><button class="copy-btn" type="button">Copiar</button></div>
+                <pre><code>PDB1 =
+ (DESCRIPTION=
+   (LOAD_BALANCE=ON)
+   (FAILOVER=ON)
+   (ADDRESS=
+      (PROTOCOL=TCP)
+      (HOST=salesdb-scan.company.com)
+      (PORT=1521))
+   (CONNECT_DATA=
+      (SERVICE_NAME=pdb1)))</code></pre>
+              </div>
+            </div>
+            <div class="content-card">
+              <h3>Runtime Load Balancing</h3>
+              <div class="code-card code-bash">
+                <div class="code-toolbar"><span>Bash</span><button class="copy-btn" type="button">Copiar</button></div>
+                <pre><code>srvctl modify service \
+-db MYCDB \
+-service pdb1 \
+-clbgoal SHORT \
+-rlbgoal SERVICE_TIME</code></pre>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section id="es-validation" class="article-section">
+          <h2>Comandos de validación RAC</h2>
+          <details class="content-card" open>
+            <summary>Comandos de estado del clúster y servicios</summary>
+            <div class="details-body">
+              <p>Cluster Ready Services Control (CRSCTL) revisa el estado de Oracle Clusterware. SRVCTL revisa la base de datos, servicios, SCAN, listeners SCAN y listeners locales.</p>
+              <div class="code-card code-bash">
+                <div class="code-toolbar"><span>Bash</span><button class="copy-btn" type="button">Copiar</button></div>
+                <pre><code>crsctl check cluster -all
+crsctl stat res -t
+olsnodes -n
+
+srvctl status database -db MYCDB
+srvctl status service -db MYCDB
+srvctl status scan
+srvctl status scan_listener
+srvctl status listener</code></pre>
+              </div>
+            </div>
+          </details>
+        </section>
+
+        <section id="es-session" class="article-section">
+          <h2>Consultas de distribución de sesiones y memoria</h2>
+          <p>Estas consultas Structured Query Language (SQL) usan vistas dinámicas de rendimiento de Oracle para comparar sesiones de usuario y memoria de procesos entre instancias RAC y PDBs.</p>
+          <div class="section-stack">
+            <details class="content-card" open>
+              <summary>Sesiones por instancia</summary>
+              <div class="details-body">
+                <div class="code-card code-sql">
+                  <div class="code-toolbar"><span>SQL</span><button class="copy-btn" type="button">Copiar</button></div>
+                  <pre><code>SELECT inst_id, COUNT(*)
+FROM gv$session
+GROUP BY inst_id;</code></pre>
+                </div>
+              </div>
+            </details>
+            <details class="content-card" open>
+              <summary>Sesiones por PDB e instancia</summary>
+              <div class="details-body">
+                <div class="code-card code-sql">
+                  <div class="code-toolbar"><span>SQL</span><button class="copy-btn" type="button">Copiar</button></div>
+                  <pre><code>SELECT s.inst_id,
+       p.name pdb_name,
+       COUNT(*) sessions
+FROM gv$session s
+JOIN v$containers p
+  ON s.con_id=p.con_id
+WHERE s.type='USER'
+GROUP BY s.inst_id,p.name
+ORDER BY p.name,s.inst_id;</code></pre>
+                </div>
+              </div>
+            </details>
+            <details class="content-card" open>
+              <summary>Uso de memoria por PDB e instancia RAC</summary>
+              <div class="details-body">
+                <div class="code-card code-sql">
+                  <div class="code-toolbar"><span>SQL</span><button class="copy-btn" type="button">Copiar</button></div>
+                  <pre><code>SELECT
+    s.inst_id,
+    c.name pdb_name,
+    ROUND(SUM(p.pga_alloc_mem)/1024/1024,2) pga_mb,
+    COUNT(*) sessions
+FROM gv$session s
+JOIN gv$process p
+  ON s.inst_id=p.inst_id
+ AND s.paddr=p.addr
+JOIN v$containers c
+  ON s.con_id=c.con_id
+WHERE s.type='USER'
+GROUP BY s.inst_id,c.name
+ORDER BY c.name,s.inst_id;</code></pre>
+                </div>
+              </div>
+            </details>
+            <details class="content-card" open>
+              <summary>Distribución de memoria en todo el clúster</summary>
+              <div class="details-body">
+                <div class="code-card code-sql">
+                  <div class="code-toolbar"><span>SQL</span><button class="copy-btn" type="button">Copiar</button></div>
+                  <pre><code>SELECT
+    c.name pdb_name,
+    ROUND(SUM(p.pga_alloc_mem)/1024/1024,2) total_pga_mb,
+    COUNT(*) sessions
+FROM gv$session s
+JOIN gv$process p
+  ON s.inst_id=p.inst_id
+ AND s.paddr=p.addr
+JOIN v$containers c
+  ON s.con_id=c.con_id
+WHERE s.type='USER'
+GROUP BY c.name
+ORDER BY total_pga_mb DESC;</code></pre>
+                </div>
+              </div>
+            </details>
+            <details class="content-card" open>
+              <summary>Dashboard de carga de trabajo RAC</summary>
+              <div class="details-body">
+                <div class="code-card code-sql">
+                  <div class="code-toolbar"><span>SQL</span><button class="copy-btn" type="button">Copiar</button></div>
+                  <pre><code>SELECT
+    s.inst_id,
+    c.name pdb_name,
+    COUNT(*) sessions,
+    ROUND(SUM(p.pga_alloc_mem)/1024/1024,2) total_pga_mb,
+    ROUND(SUM(p.pga_alloc_mem)/COUNT(*)/1024/1024,2) avg_pga_mb_per_session
+FROM gv$session s
+JOIN gv$process p
+  ON s.inst_id=p.inst_id
+ AND s.paddr=p.addr
+JOIN v$containers c
+  ON s.con_id=c.con_id
+WHERE s.type='USER'
+GROUP BY s.inst_id,c.name
+ORDER BY c.name,s.inst_id;</code></pre>
+                </div>
+              </div>
+            </details>
+          </div>
+        </section>
+
+        <section id="es-testing" class="article-section">
+          <h2>Pruebas de alta disponibilidad</h2>
+          <div class="code-card code-bash">
+            <div class="code-toolbar"><span>Bash</span><button class="copy-btn" type="button">Copiar</button></div>
+            <pre><code>srvctl relocate service \
+-db MYCDB \
+-service pdb1 \
+-oldinst DB26AI1 \
+-newinst DB26AI2</code></pre>
+          </div>
+        </section>
+
+        <section id="es-best-practices" class="article-section">
+          <h2>Mejores prácticas</h2>
+          <details class="content-card" open>
+            <summary>Lista operativa</summary>
+            <div class="details-body">
+              <ul class="best-practice-list">
+                <li>Use SCAN exclusivamente.</li>
+                <li>Use servicios en lugar de conexiones específicas por instancia.</li>
+                <li>Habilite FAN y Runtime Load Balancing.</li>
+                <li>Use Universal Connection Pool (UCP) con TAC.</li>
+                <li>Valide la distribución de servicios después del escalado.</li>
+                <li>Pruebe regularmente los procedimientos de mantenimiento rolling.</li>
+              </ul>
+            </div>
+          </details>
+        </section>
+
+        <section id="es-conclusion" class="article-section">
+          <h2>Conclusión</h2>
+          <p>Un despliegue Oracle RAC de dos nodos en Exadata Exascale proporciona escalabilidad activo-activo, balanceo de carga de trabajo y alta disponibilidad. La combinación de SCAN, FAN, RLB, AC y TAC ofrece una arquitectura resiliente para cargas de trabajo de Oracle Database 26ai.</p>
+        </section>
+
+        <section id="es-glossary" class="article-section">
+          <h2>Glosario</h2>
+          <p>Estas definiciones resumen los acrónimos usados en el artículo y apuntan a documentación oficial de Oracle para una referencia más profunda.</p>
+          <div class="glossary-grid">
+            <article class="glossary-term"><h3>AC <span>Application Continuity</span></h3><p>Alta disponibilidad con capacidad de replay para interrupciones recuperables cuando el replay está habilitado y es seguro.</p></article>
+            <article class="glossary-term"><h3>CDB <span>Container Database</span></h3><p>Contenedor multitenant de base de datos usado en los ejemplos de servicio; los servicios PDB se ejecutan dentro de él.</p></article>
+            <article class="glossary-term"><h3>CRSCTL <span>Control de Clusterware</span></h3><p>Utilidad de línea de comandos usada para revisar y administrar recursos de Oracle Clusterware.</p></article>
+            <article class="glossary-term"><h3>DNS <span>Domain Name System</span></h3><p>Capa de resolución de nombres usada por clientes para resolver nombres como SCAN.</p></article>
+            <article class="glossary-term"><h3>ExaDB-XS <span>Exadata Database Service on Exascale Infrastructure</span></h3><p>Opción de servicio cloud de Oracle para Exadata Exascale Database Service en OCI.</p></article>
+            <article class="glossary-term"><h3>FAN <span>Fast Application Notification</span></h3><p>Marco de notificación de eventos de alta disponibilidad de Oracle RAC para eventos planeados y no planeados.</p></article>
+            <article class="glossary-term"><h3>FCF <span>Fast Connection Failover</span></h3><p>Comportamiento de failover del cliente que ayuda a reconectar aplicaciones después de cambios de servicio o instancia.</p></article>
+            <article class="glossary-term"><h3>OCI <span>Oracle Cloud Infrastructure</span></h3><p>Plataforma cloud de Oracle para ejecutar recursos de Exadata Exascale Database Service.</p></article>
+            <article class="glossary-term"><h3>ONS <span>Oracle Notification Service</span></h3><p>Transporte de notificaciones usado con eventos FAN para clientes conscientes de Oracle RAC.</p></article>
+            <article class="glossary-term"><h3>PDB <span>Pluggable Database</span></h3><p>Contenedor de base de datos dentro de una CDB; este artículo usa <code>pdb1</code> como marcador de servicio.</p></article>
+            <article class="glossary-term"><h3>RAC <span>Real Application Clusters</span></h3><p>Arquitectura Oracle donde varias instancias en servidores de clúster acceden a una base de datos compartida.</p></article>
+            <article class="glossary-term"><h3>RLB <span>Runtime Load Balancing</span></h3><p>Enrutamiento consciente de servicios que usa información de carga de trabajo para dirigir conexiones entre instancias RAC.</p></article>
+            <article class="glossary-term"><h3>SCAN <span>Single Client Access Name</span></h3><p>Nombre estable de acceso al clúster usado por clientes en lugar de direcciones específicas por nodo.</p></article>
+            <article class="glossary-term"><h3>SQL <span>Structured Query Language</span></h3><p>Lenguaje de consulta usado aquí para inspeccionar sesiones RAC y distribución de memoria de procesos.</p></article>
+            <article class="glossary-term"><h3>SRVCTL <span>Server Control Utility</span></h3><p>Utilidad de línea de comandos de Oracle para administrar bases de datos RAC, servicios, listeners y recursos relacionados.</p></article>
+            <article class="glossary-term"><h3>TAC <span>Transparent Application Continuity</span></h3><p>Modo de Application Continuity que rastrea automáticamente estado de sesión y límites de petición.</p></article>
+            <article class="glossary-term"><h3>TNS <span>Transparent Network Substrate</span></h3><p>Formato de descriptor de conexión de Oracle Net usado para definir servicio, host, balanceo de carga y failover.</p></article>
+            <article class="glossary-term"><h3>UCP <span>Universal Connection Pool</span></h3><p>Pool de conexiones JDBC de Oracle usado comúnmente con funciones de alta disponibilidad conscientes de RAC.</p></article>
+            <article class="glossary-term"><h3>VIP <span>Virtual IP</span></h3><p>Dirección de red administrada por el clúster usada por listeners SCAN y rutas de acceso de nodo.</p></article>
+          </div>
+          <h3>Referencias oficiales de Oracle</h3>
+          <ul class="reference-list">
+            <li><a href="https://docs.oracle.com/en/engineered-systems/exadata-database-exascale/exdxs/overview-exadb-xs-service.html" target="_blank" rel="noopener">Oracle Exadata Database Service on Exascale Infrastructure Overview</a></li>
+            <li><a href="https://docs.oracle.com/en/engineered-systems/exadata-database-machine/exscl/what-is-oracle-exascale.html" target="_blank" rel="noopener">What is Oracle Exadata Exascale?</a></li>
+            <li><a href="https://docs.oracle.com/en/database/oracle/oracle-database/26/racad/index.html" target="_blank" rel="noopener">Oracle Real Application Clusters Administration and Deployment Guide, 26ai</a></li>
+            <li><a href="https://docs.oracle.com/en/database/oracle/oracle-database/26/cwlin/about-the-scan.html" target="_blank" rel="noopener">About the SCAN</a></li>
+            <li><a href="https://docs.oracle.com/en/database/oracle/oracle-database/26/racad/ensuring-application-continuity.html" target="_blank" rel="noopener">Ensuring Application Continuity</a></li>
+            <li><a href="https://docs.oracle.com/en/database/oracle/oracle-database/26/rilin/load-balancing-of-connections-to-oracle-rac-databases.html" target="_blank" rel="noopener">Load Balancing of Connections to Oracle RAC Databases</a></li>
+            <li><a href="https://docs.oracle.com/en/database/oracle/oracle-database/26/haovw/oracle-real-application-clusters-and-oracle-clusterware.html" target="_blank" rel="noopener">Oracle Real Application Clusters and Oracle Clusterware</a></li>
+          </ul>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <div class="language-panel" data-language-panel="pt">
+    <section class="hero" aria-labelledby="pt-title">
+      <div class="hero-grid">
+        <div>
+          <p class="eyebrow">Oracle Database 26ai no Oracle Cloud Infrastructure</p>
+          <h1 id="pt-title">Escalando Oracle Database 26ai no Exadata Exascale</h1>
+          <p class="subtitle">De uma implantação de banco de dados em cluster de nó único para uma implantação de dois nós, com acesso por serviços, componentes de alta disponibilidade, configuração de serviços e validação de carga de trabalho organizados para revisão técnica rápida.</p>
+          <div class="highlight-grid" aria-label="Principais destaques">
+            <div class="highlight"><b>Caminho de escala</b><span>Implantação de banco de dados em cluster de nó único para implantação em cluster de dois nós.</span></div>
+            <div class="highlight"><b>Pilha de disponibilidade</b><span>Os componentes de resiliência aparecem com descrições completas de acrônimos após a lista de benefícios.</span></div>
+            <div class="highlight"><b>Roteamento de serviços</b><span>Descritores do Oracle Net e exemplos de administração de serviços mostram acesso por serviços e balanceamento de carga.</span></div>
+            <div class="highlight"><b>Validação</b><span>Comandos de cluster e consultas de banco de dados verificam estado, sessões e distribuição de memória.</span></div>
+          </div>
+        </div>
+        <aside class="hero-visual" aria-label="Visual de cluster de dois nós">
+          <div class="visual-caption">
+            <span>Foco da arquitetura</span>
+            <span class="visual-pill">Cluster de dois nós</span>
+          </div>
+          <div class="cluster-map" aria-hidden="true">
+            <div class="map-node">Clientes</div>
+            <div class="connector">|</div>
+            <div class="map-node map-scan">Acesso por serviços<small>resolução de serviço</small></div>
+            <div class="connector">+---------+---------+</div>
+            <div class="map-instances">
+              <div class="map-node">Nó1<small>DB26AI1</small></div>
+              <div class="map-node">Nó2<small>DB26AI2</small></div>
+            </div>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <div class="page-grid">
+      <nav class="toc" aria-label="Sumário">
+        <h2>Sumário</h2>
+        <ol>
+          <li><a href="#pt-introduction">Introdução</a></li>
+          <li><a href="#pt-architecture">Evolução da arquitetura</a></li>
+          <li><a href="#pt-scan">Arquitetura de acesso cliente</a></li>
+          <li><a href="#pt-ha">Componentes de alta disponibilidade</a></li>
+          <li><a href="#pt-ac">Application Continuity</a></li>
+          <li><a href="#pt-tac">Transparent Application Continuity</a></li>
+          <li><a href="#pt-service">Configuração de serviços e balanceamento</a></li>
+          <li><a href="#pt-validation">Comandos de validação de cluster</a></li>
+          <li><a href="#pt-session">Consultas de sessões e memória</a></li>
+          <li><a href="#pt-testing">Testes de alta disponibilidade</a></li>
+          <li><a href="#pt-best-practices">Melhores práticas</a></li>
+          <li><a href="#pt-conclusion">Conclusão</a></li>
+          <li><a href="#pt-glossary">Glossário</a></li>
+        </ol>
+      </nav>
+
+      <main id="pt-main" class="article">
+        <section id="pt-introduction" class="article-section">
+          <h2>Introdução</h2>
+          <p>O Oracle Exadata Exascale Database Service no Oracle Cloud Infrastructure (OCI) permite escalonamento elástico de bancos de dados Oracle Real Application Clusters (RAC). Este documento explica a transição arquitetônica de uma implantação RAC de nó único para uma implantação RAC de dois nós executando Oracle Database 26ai.</p>
+        </section>
+
+        <section id="pt-architecture" class="article-section">
+          <h2>Evolução da arquitetura</h2>
+          <div class="rac-infographic" aria-label="Infográfico de alto nível de componentes RAC">
+            <div class="rac-flow">
+              <div class="rac-stage">
+                <span class="rac-badge">Entrada</span>
+                <strong>Conexões de clientes</strong>
+                <p>Os clientes se conectam por conexões baseadas em serviços, em vez de endpoints específicos por instância.</p>
+                <ul>
+                  <li>Clientes</li>
+                  <li>Nome do serviço</li>
+                </ul>
+              </div>
+              <div class="rac-arrow" aria-hidden="true"></div>
+              <div class="rac-stage">
+                <span class="rac-badge">SCAN</span>
+                <strong>Camada de acesso Single Client Access Name (SCAN)</strong>
+                <p>O caminho de conexão usa SCAN, resolução Domain Name System (DNS), Virtual IPs (VIPs) do SCAN e listeners SCAN antes da busca de serviço.</p>
+                <ul>
+                  <li>Nome SCAN</li>
+                  <li>SCAN DNS</li>
+                  <li>VIPs do SCAN</li>
+                  <li>Listeners SCAN</li>
+                </ul>
+              </div>
+              <div class="rac-arrow" aria-hidden="true"></div>
+              <div class="rac-stage">
+                <span class="rac-badge">Serviço</span>
+                <strong>Resolução de serviço</strong>
+                <p>Os serviços resolvem a conexão para listeners locais nos nós RAC disponíveis.</p>
+                <ul>
+                  <li>Serviços</li>
+                  <li>Busca de serviço</li>
+                  <li>Listeners locais</li>
+                </ul>
+              </div>
+            </div>
+            <div class="rac-node-grid" aria-label="Evolução de instâncias RAC">
+              <div class="rac-node">
+                <span class="rac-badge">Base de nó único</span>
+                <strong>Nó1 / DB26AI1</strong>
+                <p>O Nó1 hospeda DB26AI1 na implantação RAC de nó único e permanece ativo após o escalonamento.</p>
+                <ul>
+                  <li>Virtual IP (VIP) do nó</li>
+                  <li>Listener local</li>
+                  <li>Instância do banco de dados</li>
+                </ul>
+              </div>
+              <div class="rac-node">
+                <span class="rac-badge">RAC de dois nós</span>
+                <strong>Nó2 / DB26AI2</strong>
+                <p>O Nó2 adiciona DB26AI2 para a implantação RAC de dois nós.</p>
+                <ul>
+                  <li>Virtual IP (VIP) do nó</li>
+                  <li>Listener local</li>
+                  <li>Instância do banco de dados</li>
+                </ul>
+              </div>
+            </div>
+            <div class="rac-signal-row" aria-label="Sinais RAC de alta disponibilidade e balanceamento">
+              <div class="rac-signal"><strong>Fast Application Notification (FAN)</strong><p>Incluído na pilha de alta disponibilidade com Oracle Notification Service.</p></div>
+              <div class="rac-signal"><strong>Oracle Notification Service (ONS)</strong><p>Mostrado com FAN como parte da lista de componentes SCAN.</p></div>
+              <div class="rac-signal"><strong>Runtime Load Balancing (RLB)</strong><p>Runtime Load Balancing faz parte dos benefícios do RAC de dois nós e da configuração de serviços.</p></div>
+              <div class="rac-signal"><strong>Application Continuity (AC) / Transparent Application Continuity (TAC)</strong><p>Application Continuity e Transparent Application Continuity oferecem opções de disponibilidade com replay.</p></div>
+            </div>
+          </div>
+          <h3>Benefícios</h3>
+          <ul class="benefits">
+            <li>Processamento ativo-ativo</li>
+            <li>Manutenção rolling</li>
+            <li>Runtime Load Balancing</li>
+            <li>Maior disponibilidade</li>
+          </ul>
+          <div class="acronym-guide" aria-label="Guia de acrônimos de primeiro uso">
+            <h2>Guia de acrônimos</h2>
+            <div class="acronym-grid">
+              <div class="acronym-card"><strong>OCI — Oracle Cloud Infrastructure</strong><span>A plataforma cloud da Oracle onde o Exadata Exascale Database Service é executado.</span></div>
+              <div class="acronym-card"><strong>RAC — Real Application Clusters</strong><span>Arquitetura Oracle em que várias instâncias de banco de dados em nós de cluster acessam um banco de dados compartilhado.</span></div>
+              <div class="acronym-card"><strong>SCAN — Single Client Access Name</strong><span>Nome estável de acesso ao cluster que roteia conexões de serviço sem vincular clientes a nós individuais.</span></div>
+              <div class="acronym-card"><strong>DNS / VIP — Domain Name System / Virtual IP</strong><span>DNS resolve nomes como SCAN; VIPs fornecem endereços de rede móveis usados por listeners e nós do cluster.</span></div>
+              <div class="acronym-card"><strong>FAN / ONS — Fast Application Notification / Oracle Notification Service</strong><span>FAN publica eventos de alta disponibilidade, e ONS transporta essas notificações para clientes interessados.</span></div>
+              <div class="acronym-card"><strong>RLB — Runtime Load Balancing</strong><span>O roteamento de conexões usa informações de carga de trabalho do serviço para direcionar clientes a instâncias RAC adequadas.</span></div>
+              <div class="acronym-card"><strong>AC — Application Continuity</strong><span>Disponibilidade com capacidade de replay que pode ocultar interrupções recuperáveis ao reconstruir e reproduzir trabalho de banco de dados quando seguro.</span></div>
+              <div class="acronym-card"><strong>TAC — Transparent Application Continuity</strong><span>Modo de Application Continuity que rastreia automaticamente o estado da sessão e descobre limites de requisição.</span></div>
+            </div>
+          </div>
+        </section>
+
+        <section id="pt-scan" class="article-section">
+          <h2>Análise detalhada da arquitetura SCAN</h2>
+          <div class="code-card code-diagram">
+            <div class="code-toolbar"><span>Diagrama de texto</span><button class="copy-btn" type="button">Copiar</button></div>
+            <pre><code>Client
+   |
+SCAN DNS
+   |
+SCAN Listener
+   |
+Service Lookup
+   |
+Local Listener
+   |
+Database Instance</code></pre>
+          </div>
+          <h3>Componentes</h3>
+          <ul class="component-list">
+            <li>Nome SCAN</li>
+            <li>VIPs do SCAN</li>
+            <li>Listeners SCAN</li>
+            <li>VIPs dos nós</li>
+            <li>Listeners locais</li>
+            <li>Serviços</li>
+            <li>FAN</li>
+            <li>ONS</li>
+          </ul>
+        </section>
+
+        <section id="pt-ha" class="article-section">
+          <h2>Componentes de alta disponibilidade</h2>
+          <div class="term-grid" aria-label="Chamadas de alta disponibilidade">
+            <article class="term-card"><h3>SCAN</h3><p>Usado exclusivamente nas melhores práticas e mostrado como o caminho dos clientes para a busca de serviço e os listeners locais.</p></article>
+            <article class="term-card"><h3>RAC</h3><p>O artigo contrasta um nó RAC com uma implantação RAC de dois nós usando DB26AI1 e DB26AI2.</p></article>
+            <article class="term-card"><h3>FAN</h3><p>Listado com ONS na pilha de componentes SCAN e incluído no infográfico de alta disponibilidade.</p></article>
+            <article class="term-card"><h3>RLB</h3><p>Runtime Load Balancing é configurado com <code>-clbgoal SHORT</code> e <code>-rlbgoal SERVICE_TIME</code>.</p></article>
+            <article class="term-card"><h3>AC</h3><p>O exemplo de AC usa <code>TRANSACTION</code>, <code>commit_outcome TRUE</code>, inicialização de replay e configurações de retenção.</p></article>
+            <article class="term-card"><h3>TAC</h3><p>A recomendação de TAC usa <code>AUTO</code>, <code>DYNAMIC</code>, commit outcome, inicialização de replay e configurações de retenção.</p></article>
+          </div>
+          <h3>Infográfico de alta disponibilidade</h3>
+          <div class="code-card code-diagram">
+            <div class="code-toolbar"><span>Diagrama de texto</span><button class="copy-btn" type="button">Copiar</button></div>
+            <pre><code>CLIENTS
+   |
+SCAN
+   |
++-----------------------------+
+| SCAN VIP1 / SCAN LISTENER1 |
+| SCAN VIP2 / SCAN LISTENER2 |
+| SCAN VIP3 / SCAN LISTENER3 |
++-----------------------------+
+              |
+      Service Resolution
+              |
+     +--------+--------+
+     |                 |
+  DB26AI1          DB26AI2
+
+ FAN / ONS / RLB / TAC</code></pre>
+          </div>
+          <h3>Comparação de tecnologias de disponibilidade</h3>
+          <div class="table-wrap">
+            <table class="data-table">
+              <thead>
+                <tr><th>Tecnologia</th><th>Reconexão</th><th>Replay</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>SCAN</td><td class="yes">Sim</td><td class="no">Não</td></tr>
+                <tr><td>Fast Connection Failover (FCF)</td><td class="yes">Sim</td><td class="no">Não</td></tr>
+                <tr><td>AC</td><td class="yes">Sim</td><td class="yes">Sim</td></tr>
+                <tr><td>TAC</td><td class="yes">Sim</td><td class="yes">Sim</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section id="pt-ac" class="article-section">
+          <h2>Application Continuity (AC)</h2>
+          <details class="content-card" open>
+            <summary>Configuração de exemplo</summary>
+            <div class="details-body">
+              <p>Exemplo: Server Control Utility (SRVCTL) administra serviços de banco de dados Oracle RAC. O marcador <code>MYCDB</code> representa a Container Database (CDB), e <code>pdb1</code> representa um serviço de Pluggable Database (PDB).</p>
+              <div class="code-card code-bash">
+                <div class="code-toolbar"><span>Bash</span><button class="copy-btn" type="button">Copiar</button></div>
+                <pre><code>srvctl modify service \
+-db MYCDB \
+-service pdb1 \
+-failovertype TRANSACTION \
+-commit_outcome TRUE \
+-replay_init_time 1800 \
+-retention 86400</code></pre>
+              </div>
+            </div>
+          </details>
+        </section>
+
+        <section id="pt-tac" class="article-section">
+          <h2>Transparent Application Continuity (TAC)</h2>
+          <details class="content-card" open>
+            <summary>Configuração recomendada</summary>
+            <div class="details-body">
+              <p>Configuração recomendada: SRVCTL aplica os atributos de serviço TAC aos marcadores de CDB e serviço PDB usados neste exemplo.</p>
+              <div class="code-card code-bash">
+                <div class="code-toolbar"><span>Bash</span><button class="copy-btn" type="button">Copiar</button></div>
+                <pre><code>srvctl modify service \
+-db MYCDB \
+-service pdb1 \
+-failovertype AUTO \
+-session_state DYNAMIC \
+-commit_outcome TRUE \
+-replay_init_time 1800 \
+-retention 86400</code></pre>
+              </div>
+            </div>
+          </details>
+        </section>
+
+        <section id="pt-service" class="article-section">
+          <h2>Configuração de serviços e balanceamento de carga</h2>
+          <div class="section-stack">
+            <div class="content-card">
+              <h3>Descritor de conexão Transparent Network Substrate (TNS)</h3>
+              <p>Este descritor do Oracle Net usa o nome de serviço <code>PDB1</code>, o nome de host SCAN e as opções de balanceamento de carga e failover para acesso baseado em serviços.</p>
+              <div class="code-card code-text">
+                <div class="code-toolbar"><span>TNS</span><button class="copy-btn" type="button">Copiar</button></div>
+                <pre><code>PDB1 =
+ (DESCRIPTION=
+   (LOAD_BALANCE=ON)
+   (FAILOVER=ON)
+   (ADDRESS=
+      (PROTOCOL=TCP)
+      (HOST=salesdb-scan.company.com)
+      (PORT=1521))
+   (CONNECT_DATA=
+      (SERVICE_NAME=pdb1)))</code></pre>
+              </div>
+            </div>
+            <div class="content-card">
+              <h3>Runtime Load Balancing</h3>
+              <div class="code-card code-bash">
+                <div class="code-toolbar"><span>Bash</span><button class="copy-btn" type="button">Copiar</button></div>
+                <pre><code>srvctl modify service \
+-db MYCDB \
+-service pdb1 \
+-clbgoal SHORT \
+-rlbgoal SERVICE_TIME</code></pre>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section id="pt-validation" class="article-section">
+          <h2>Comandos de validação RAC</h2>
+          <details class="content-card" open>
+            <summary>Comandos de estado do cluster e serviços</summary>
+            <div class="details-body">
+              <p>Cluster Ready Services Control (CRSCTL) verifica o estado do Oracle Clusterware. SRVCTL verifica o banco de dados, serviços, SCAN, listeners SCAN e listeners locais.</p>
+              <div class="code-card code-bash">
+                <div class="code-toolbar"><span>Bash</span><button class="copy-btn" type="button">Copiar</button></div>
+                <pre><code>crsctl check cluster -all
+crsctl stat res -t
+olsnodes -n
+
+srvctl status database -db MYCDB
+srvctl status service -db MYCDB
+srvctl status scan
+srvctl status scan_listener
+srvctl status listener</code></pre>
+              </div>
+            </div>
+          </details>
+        </section>
+
+        <section id="pt-session" class="article-section">
+          <h2>Consultas de distribuição de sessões e memória</h2>
+          <p>Estas consultas Structured Query Language (SQL) usam visões dinâmicas de desempenho da Oracle para comparar sessões de usuário e memória de processos entre instâncias RAC e PDBs.</p>
+          <div class="section-stack">
+            <details class="content-card" open>
+              <summary>Sessões por instância</summary>
+              <div class="details-body">
+                <div class="code-card code-sql">
+                  <div class="code-toolbar"><span>SQL</span><button class="copy-btn" type="button">Copiar</button></div>
+                  <pre><code>SELECT inst_id, COUNT(*)
+FROM gv$session
+GROUP BY inst_id;</code></pre>
+                </div>
+              </div>
+            </details>
+            <details class="content-card" open>
+              <summary>Sessões por PDB e instância</summary>
+              <div class="details-body">
+                <div class="code-card code-sql">
+                  <div class="code-toolbar"><span>SQL</span><button class="copy-btn" type="button">Copiar</button></div>
+                  <pre><code>SELECT s.inst_id,
+       p.name pdb_name,
+       COUNT(*) sessions
+FROM gv$session s
+JOIN v$containers p
+  ON s.con_id=p.con_id
+WHERE s.type='USER'
+GROUP BY s.inst_id,p.name
+ORDER BY p.name,s.inst_id;</code></pre>
+                </div>
+              </div>
+            </details>
+            <details class="content-card" open>
+              <summary>Uso de memória por PDB e instância RAC</summary>
+              <div class="details-body">
+                <div class="code-card code-sql">
+                  <div class="code-toolbar"><span>SQL</span><button class="copy-btn" type="button">Copiar</button></div>
+                  <pre><code>SELECT
+    s.inst_id,
+    c.name pdb_name,
+    ROUND(SUM(p.pga_alloc_mem)/1024/1024,2) pga_mb,
+    COUNT(*) sessions
+FROM gv$session s
+JOIN gv$process p
+  ON s.inst_id=p.inst_id
+ AND s.paddr=p.addr
+JOIN v$containers c
+  ON s.con_id=c.con_id
+WHERE s.type='USER'
+GROUP BY s.inst_id,c.name
+ORDER BY c.name,s.inst_id;</code></pre>
+                </div>
+              </div>
+            </details>
+            <details class="content-card" open>
+              <summary>Distribuição de memória em todo o cluster</summary>
+              <div class="details-body">
+                <div class="code-card code-sql">
+                  <div class="code-toolbar"><span>SQL</span><button class="copy-btn" type="button">Copiar</button></div>
+                  <pre><code>SELECT
+    c.name pdb_name,
+    ROUND(SUM(p.pga_alloc_mem)/1024/1024,2) total_pga_mb,
+    COUNT(*) sessions
+FROM gv$session s
+JOIN gv$process p
+  ON s.inst_id=p.inst_id
+ AND s.paddr=p.addr
+JOIN v$containers c
+  ON s.con_id=c.con_id
+WHERE s.type='USER'
+GROUP BY c.name
+ORDER BY total_pga_mb DESC;</code></pre>
+                </div>
+              </div>
+            </details>
+            <details class="content-card" open>
+              <summary>Dashboard de carga de trabalho RAC</summary>
+              <div class="details-body">
+                <div class="code-card code-sql">
+                  <div class="code-toolbar"><span>SQL</span><button class="copy-btn" type="button">Copiar</button></div>
+                  <pre><code>SELECT
+    s.inst_id,
+    c.name pdb_name,
+    COUNT(*) sessions,
+    ROUND(SUM(p.pga_alloc_mem)/1024/1024,2) total_pga_mb,
+    ROUND(SUM(p.pga_alloc_mem)/COUNT(*)/1024/1024,2) avg_pga_mb_per_session
+FROM gv$session s
+JOIN gv$process p
+  ON s.inst_id=p.inst_id
+ AND s.paddr=p.addr
+JOIN v$containers c
+  ON s.con_id=c.con_id
+WHERE s.type='USER'
+GROUP BY s.inst_id,c.name
+ORDER BY c.name,s.inst_id;</code></pre>
+                </div>
+              </div>
+            </details>
+          </div>
+        </section>
+
+        <section id="pt-testing" class="article-section">
+          <h2>Testes de alta disponibilidade</h2>
+          <div class="code-card code-bash">
+            <div class="code-toolbar"><span>Bash</span><button class="copy-btn" type="button">Copiar</button></div>
+            <pre><code>srvctl relocate service \
+-db MYCDB \
+-service pdb1 \
+-oldinst DB26AI1 \
+-newinst DB26AI2</code></pre>
+          </div>
+        </section>
+
+        <section id="pt-best-practices" class="article-section">
+          <h2>Melhores práticas</h2>
+          <details class="content-card" open>
+            <summary>Lista operacional</summary>
+            <div class="details-body">
+              <ul class="best-practice-list">
+                <li>Use SCAN exclusivamente.</li>
+                <li>Use serviços em vez de conexões específicas por instância.</li>
+                <li>Habilite FAN e Runtime Load Balancing.</li>
+                <li>Use Universal Connection Pool (UCP) com TAC.</li>
+                <li>Valide a distribuição de serviços após o escalonamento.</li>
+                <li>Teste regularmente os procedimentos de manutenção rolling.</li>
+              </ul>
+            </div>
+          </details>
+        </section>
+
+        <section id="pt-conclusion" class="article-section">
+          <h2>Conclusão</h2>
+          <p>Uma implantação Oracle RAC de dois nós no Exadata Exascale fornece escalabilidade ativo-ativo, balanceamento de carga de trabalho e alta disponibilidade. A combinação de SCAN, FAN, RLB, AC e TAC entrega uma arquitetura resiliente para cargas de trabalho do Oracle Database 26ai.</p>
+        </section>
+
+        <section id="pt-glossary" class="article-section">
+          <h2>Glossário</h2>
+          <p>Estas definições resumem os acrônimos usados no artigo e apontam para documentação oficial da Oracle para referência mais detalhada.</p>
+          <div class="glossary-grid">
+            <article class="glossary-term"><h3>AC <span>Application Continuity</span></h3><p>Alta disponibilidade com capacidade de replay para interrupções recuperáveis quando o replay está habilitado e é seguro.</p></article>
+            <article class="glossary-term"><h3>CDB <span>Container Database</span></h3><p>Contêiner multitenant de banco de dados usado nos exemplos de serviço; os serviços PDB são executados dentro dele.</p></article>
+            <article class="glossary-term"><h3>CRSCTL <span>Controle de Clusterware</span></h3><p>Utilitário de linha de comando usado para verificar e administrar recursos do Oracle Clusterware.</p></article>
+            <article class="glossary-term"><h3>DNS <span>Domain Name System</span></h3><p>Camada de resolução de nomes usada por clientes para resolver nomes como SCAN.</p></article>
+            <article class="glossary-term"><h3>ExaDB-XS <span>Exadata Database Service on Exascale Infrastructure</span></h3><p>Opção de serviço cloud da Oracle para Exadata Exascale Database Service no OCI.</p></article>
+            <article class="glossary-term"><h3>FAN <span>Fast Application Notification</span></h3><p>Estrutura de notificação de eventos de alta disponibilidade do Oracle RAC para eventos planejados e não planejados.</p></article>
+            <article class="glossary-term"><h3>FCF <span>Fast Connection Failover</span></h3><p>Comportamento de failover do cliente que ajuda a reconectar aplicações após mudanças de serviço ou instância.</p></article>
+            <article class="glossary-term"><h3>OCI <span>Oracle Cloud Infrastructure</span></h3><p>Plataforma cloud da Oracle para executar recursos do Exadata Exascale Database Service.</p></article>
+            <article class="glossary-term"><h3>ONS <span>Oracle Notification Service</span></h3><p>Transporte de notificações usado com eventos FAN para clientes conscientes de Oracle RAC.</p></article>
+            <article class="glossary-term"><h3>PDB <span>Pluggable Database</span></h3><p>Contêiner de banco de dados dentro de uma CDB; este artigo usa <code>pdb1</code> como marcador de serviço.</p></article>
+            <article class="glossary-term"><h3>RAC <span>Real Application Clusters</span></h3><p>Arquitetura Oracle em que várias instâncias em servidores de cluster acessam um banco de dados compartilhado.</p></article>
+            <article class="glossary-term"><h3>RLB <span>Runtime Load Balancing</span></h3><p>Roteamento consciente de serviços que usa informações de carga de trabalho para direcionar conexões entre instâncias RAC.</p></article>
+            <article class="glossary-term"><h3>SCAN <span>Single Client Access Name</span></h3><p>Nome estável de acesso ao cluster usado por clientes em vez de endereços específicos por nó.</p></article>
+            <article class="glossary-term"><h3>SQL <span>Structured Query Language</span></h3><p>Linguagem de consulta usada aqui para inspecionar sessões RAC e distribuição de memória de processos.</p></article>
+            <article class="glossary-term"><h3>SRVCTL <span>Server Control Utility</span></h3><p>Utilitário de linha de comando da Oracle para administrar bancos de dados RAC, serviços, listeners e recursos relacionados.</p></article>
+            <article class="glossary-term"><h3>TAC <span>Transparent Application Continuity</span></h3><p>Modo de Application Continuity que rastreia automaticamente estado de sessão e limites de requisição.</p></article>
+            <article class="glossary-term"><h3>TNS <span>Transparent Network Substrate</span></h3><p>Formato de descritor de conexão do Oracle Net usado para definir serviço, host, balanceamento de carga e failover.</p></article>
+            <article class="glossary-term"><h3>UCP <span>Universal Connection Pool</span></h3><p>Pool de conexões JDBC da Oracle usado comumente com recursos de alta disponibilidade conscientes de RAC.</p></article>
+            <article class="glossary-term"><h3>VIP <span>Virtual IP</span></h3><p>Endereço de rede administrado pelo cluster usado por listeners SCAN e caminhos de acesso de nó.</p></article>
+          </div>
+          <h3>Referências oficiais da Oracle</h3>
+          <ul class="reference-list">
+            <li><a href="https://docs.oracle.com/en/engineered-systems/exadata-database-exascale/exdxs/overview-exadb-xs-service.html" target="_blank" rel="noopener">Oracle Exadata Database Service on Exascale Infrastructure Overview</a></li>
+            <li><a href="https://docs.oracle.com/en/engineered-systems/exadata-database-machine/exscl/what-is-oracle-exascale.html" target="_blank" rel="noopener">What is Oracle Exadata Exascale?</a></li>
+            <li><a href="https://docs.oracle.com/en/database/oracle/oracle-database/26/racad/index.html" target="_blank" rel="noopener">Oracle Real Application Clusters Administration and Deployment Guide, 26ai</a></li>
+            <li><a href="https://docs.oracle.com/en/database/oracle/oracle-database/26/cwlin/about-the-scan.html" target="_blank" rel="noopener">About the SCAN</a></li>
+            <li><a href="https://docs.oracle.com/en/database/oracle/oracle-database/26/racad/ensuring-application-continuity.html" target="_blank" rel="noopener">Ensuring Application Continuity</a></li>
+            <li><a href="https://docs.oracle.com/en/database/oracle/oracle-database/26/rilin/load-balancing-of-connections-to-oracle-rac-databases.html" target="_blank" rel="noopener">Load Balancing of Connections to Oracle RAC Databases</a></li>
+            <li><a href="https://docs.oracle.com/en/database/oracle/oracle-database/26/haovw/oracle-real-application-clusters-and-oracle-clusterware.html" target="_blank" rel="noopener">Oracle Real Application Clusters and Oracle Clusterware</a></li>
+          </ul>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <button type="button" class="back-top" id="backTop">Back to top</button>
+
+  <script>
+    const labels = {
+      en: { back: "Back to top", dark: "Dark mode", light: "Light mode", copied: "Copied", selected: "Selected", copy: "Copy", skip: "Skip to article" },
+      es: { back: "Volver arriba", dark: "Modo oscuro", light: "Modo claro", copied: "Copiado", selected: "Seleccionado", copy: "Copiar", skip: "Saltar al artículo" },
+      pt: { back: "Voltar ao topo", dark: "Modo escuro", light: "Modo claro", copied: "Copiado", selected: "Selecionado", copy: "Copiar", skip: "Ir para o artigo" }
+    };
+
+    const root = document.documentElement;
+    const body = document.body;
+    const languageButtons = document.querySelectorAll("[data-language-button]");
+    const languagePanels = document.querySelectorAll("[data-language-panel]");
+    const themeToggle = document.getElementById("themeToggle");
+    const backTop = document.getElementById("backTop");
+    const skipLink = document.querySelector(".skip-link");
+    let activeLanguage = "en";
+
+    function setLanguage(language) {
+      activeLanguage = language;
+      root.lang = language;
+
+      languageButtons.forEach((button) => {
+        const active = button.dataset.languageButton === language;
+        button.setAttribute("aria-pressed", String(active));
+      });
+
+      languagePanels.forEach((panel) => {
+        const active = panel.dataset.languagePanel === language;
+        panel.classList.toggle("is-active", active);
+      });
+
+      const main = document.getElementById(`${language}-main`);
+      if (main) {
+        skipLink.setAttribute("href", `#${language}-main`);
+      }
+
+      backTop.textContent = labels[language].back;
+      skipLink.textContent = labels[language].skip;
+      updateThemeLabel();
+    }
+
+    function updateThemeLabel() {
+      const isDark = body.dataset.theme === "dark";
+      themeToggle.textContent = isDark ? labels[activeLanguage].light : labels[activeLanguage].dark;
+    }
+
+    languageButtons.forEach((button) => {
+      button.addEventListener("click", () => {
+        setLanguage(button.dataset.languageButton);
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      });
+    });
+
+    themeToggle.addEventListener("click", () => {
+      body.dataset.theme = body.dataset.theme === "dark" ? "light" : "dark";
+      updateThemeLabel();
+    });
+
+    backTop.addEventListener("click", () => {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    });
+
+    window.addEventListener("scroll", () => {
+      backTop.classList.toggle("is-visible", window.scrollY > 600);
+    }, { passive: true });
+
+    async function copyText(text, sourceElement) {
+      const clipboard = window.navigator && window.navigator.clipboard;
+
+      if (clipboard && window.isSecureContext) {
+        await clipboard.writeText(text);
+        return true;
+      }
+
+      const textarea = document.createElement("textarea");
+      textarea.value = text;
+      textarea.setAttribute("readonly", "");
+      textarea.style.position = "fixed";
+      textarea.style.opacity = "0";
+      document.body.appendChild(textarea);
+      textarea.select();
+
+      if (typeof document.execCommand === "function" && document.execCommand("copy")) {
+        textarea.remove();
+        return true;
+      }
+
+      textarea.remove();
+
+      const selection = window.getSelection && window.getSelection();
+      if (selection && document.createRange) {
+        const range = document.createRange();
+        range.selectNodeContents(sourceElement);
+        selection.removeAllRanges();
+        selection.addRange(range);
+        return false;
+      }
+
+      throw new Error("Clipboard unavailable");
+    }
+
+    document.querySelectorAll(".copy-btn").forEach((button) => {
+      button.addEventListener("click", async () => {
+        const code = button.closest(".code-card").querySelector("code");
+        const original = button.textContent;
+        try {
+          const copied = await copyText(code.innerText, code);
+          button.textContent = copied ? labels[activeLanguage].copied : labels[activeLanguage].selected;
+        } catch (error) {
+          button.textContent = labels[activeLanguage].copy;
+        }
+
+        window.setTimeout(() => {
+          button.textContent = original;
+        }, 1400);
+      });
+    });
+
+    setLanguage("en");
+  </script>
+</body>
+</html>
