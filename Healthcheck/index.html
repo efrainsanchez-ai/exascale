@@ -1,0 +1,1226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Oracle Exadata Exascale 26ai RAC health check guide for OCI, with translated Spanish and Portuguese versions." />
+  <title>Exadata Exascale 26ai RAC Health Check Guide</title>
+  <script>
+    (function () {
+      const saved = localStorage.getItem("exascale-theme");
+      const prefersDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+      if (saved === "dark" || (!saved && prefersDark)) document.documentElement.classList.add("dark");
+    })();
+  </script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            oracle: {
+              red: "#c74634",
+              deep: "#5f2b24",
+              sand: "#f7f4f2",
+              ink: "#1f1b1a",
+              graphite: "#312d2a"
+            }
+          },
+          boxShadow: {
+            subtle: "0 18px 50px rgba(31, 27, 26, 0.08)"
+          }
+        }
+      }
+    };
+  </script>
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <style>
+    :root {
+      color-scheme: light;
+      --code-bg: #171412;
+      --code-border: rgba(199, 70, 52, 0.32);
+    }
+    .dark {
+      color-scheme: dark;
+      --code-bg: #12100f;
+      --code-border: rgba(255, 166, 148, 0.24);
+    }
+    html {
+      scroll-behavior: smooth;
+    }
+    body {
+      font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      text-rendering: optimizeLegibility;
+    }
+    code, pre, kbd, samp {
+      font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+    }
+    section {
+      scroll-margin-top: 96px;
+    }
+    .article-gradient {
+      background:
+        linear-gradient(135deg, rgba(199, 70, 52, 0.11), transparent 36%),
+        linear-gradient(180deg, #fff 0%, #faf8f7 100%);
+    }
+    .dark .article-gradient {
+      background:
+        linear-gradient(135deg, rgba(199, 70, 52, 0.18), transparent 38%),
+        linear-gradient(180deg, #171412 0%, #211d1b 100%);
+    }
+    .code-scroll::-webkit-scrollbar {
+      height: 10px;
+      width: 10px;
+    }
+    .code-scroll::-webkit-scrollbar-track {
+      background: rgba(255,255,255,0.08);
+    }
+    .code-scroll::-webkit-scrollbar-thumb {
+      background: rgba(255,255,255,0.28);
+      border-radius: 999px;
+    }
+  </style>
+</head>
+<body class="bg-white text-oracle-ink antialiased dark:bg-[#171412] dark:text-stone-100">
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useEffect, useMemo, useState } = React;
+
+    const refs = {
+      exadbxs: "https://docs.oracle.com/en/engineered-systems/exadata-database-exascale/exdxs/overview-exadb-xs-service.html",
+      vault: "https://docs.oracle.com/en/engineered-systems/exadata-database-machine/edbid/exadata_exascale.html",
+      manageDb: "https://docs.oracle.com/en/engineered-systems/exadata-database-exascale/exdxs/manage-databases-exadb-xs.html",
+      crsctl: "https://docs.oracle.com/en/database/oracle/oracle-database/26/cwadd/oracle-clusterware-control-crsctl-utility-reference.html",
+      olsnodes: "https://docs.oracle.com/en/database/oracle/oracle-database/26/cwadd/olsnodes-command-reference.html",
+      srvctl: "https://docs.oracle.com/en/database/oracle/oracle-database/26/racad/server-control-utility-reference.html",
+      srvctlCluster: "https://docs.oracle.com/en/database/oracle/oracle-database/26/cwadd/server-control-command-reference.html",
+      scan: "https://docs.oracle.com/en/database/oracle/oracle-database/26/jjdbc/single-client-access-name.html",
+      racListener: "https://docs.oracle.com/en/database/oracle/oracle-database/26/adrac/rac_lstnr.html",
+      fan: "https://docs.oracle.com/en/database/oracle/oracle-database/26/adrac/rac_ons.html",
+      rlb: "https://docs.oracle.com/en/database/oracle/oracle-database/26/jjucp/run-time-connection-load-balancing.html",
+      fcf: "https://docs.oracle.com/en/database/oracle/oracle-database/26/jjucp/fast-connection-failover.html",
+      appContinuity: "https://docs.oracle.com/en/database/oracle/oracle-database/26/racad/ensuring-application-continuity.html",
+      jdbcAc: "https://docs.oracle.com/en/database/oracle/oracle-database/26/jjdbc/application-continuity.html",
+      jdbcUrls: "https://docs.oracle.com/en/database/oracle/oracle-database/26/jjdbc/data-sources-and-URLs.html",
+      ucpAc: "https://docs.oracle.com/en/database/oracle/oracle-database/26/jjucp/application-continuity-using-ucp.html",
+      taf: "https://docs.oracle.com/en/database/oracle/oracle-database/26/jjdbc/transparent-application-failover.html",
+      dynamicViews: "https://docs.oracle.com/en/database/oracle/oracle-database/26/refrn/about-dynamic-performance-views.html",
+      tnsnames: "https://docs.oracle.com/en/database/oracle/oracle-database/26/netrf/local-naming-parameters-in-tns-ora-file.html",
+      tnsping: "https://docs.oracle.com/en/database/oracle/oracle-database/26/netag/using-tnsping-utility-test-connectivity-client.html",
+      sqlplus: "https://docs.oracle.com/en/database/oracle/oracle-database/26/sqpug/CONNECT.html",
+      netConnect: "https://docs.oracle.com/en/database/oracle/oracle-database/26/netag/connecting-database.html"
+    };
+
+    const commands = {
+      grid: `sudo su - grid
+crsctl check cluster -all
+crsctl status resource -t
+olsnodes
+olsnodes -n`,
+      asm: `srvctl status asm`,
+      asmExpected: `PRCR-1001 : Resource ora.asm does not exist`,
+      listener: `srvctl status listener -n <node_name>`,
+      database: `sudo su - oracle
+. ./CDB01.env
+srvctl status database -d $ORACLE_UNQNAME`,
+      dbConfig: `srvctl config database -d $ORACLE_UNQNAME`,
+      service: `srvctl config service -d $ORACLE_UNQNAME
+srvctl status service -d $ORACLE_UNQNAME`,
+      sqlViews: `-- SQL health checks include these dynamic views
+gv$instance
+v$database
+gv$services
+gv$active_services
+gv$session
+v$services
+v$pdbs`,
+      connectivity: `tnsping CDB01_PDB01
+sqlplus system@CDB01_PDB01`,
+      tns: `cd $ORACLE_HOME/network/admin/CDB01
+cat tnsnames.ora`,
+      tnsDefaults: `CDB01=
+    (DESCRIPTION=
+      (ADDRESS=
+        (PROTOCOL=TCP)
+        (HOST=exasc01-scan-jjtmn.private.usw.oraclevcn.com)
+        (PORT=1521))
+      (CONNECT_DATA=
+        (SERVER=DEDICATED)
+        (SERVICE_NAME=CDB01_rcb_sjc.private.usw.oraclevcn.com)
+        (UR=A)
+        (FAILOVER_MODE=
+          (TYPE=select)
+          (METHOD=basic))))
+
+# Java JDBC Thin alias URL:
+# jdbc:oracle:thin:@CDB01
+# Java JDBC Thin descriptor URL with the same parameters:
+# jdbc:oracle:thin:@(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=exasc01-scan-jjtmn.private.usw.oraclevcn.com)(PORT=1521))(CONNECT_DATA=(SERVER=DEDICATED)(SERVICE_NAME=CDB01_rcb_sjc.private.usw.oraclevcn.com)(UR=A)(FAILOVER_MODE=(TYPE=select)(METHOD=basic))))
+
+CDB01_PDB01=
+    (DESCRIPTION=
+      (ADDRESS=
+        (PROTOCOL=TCP)
+        (HOST=exasc01-scan-jjtmn.private.usw.oraclevcn.com)
+        (PORT=1521))
+      (CONNECT_DATA=
+        (SERVER=DEDICATED)
+        (SERVICE_NAME=CDB01_PDB01.paas.oracle.com)
+        (UR=A)
+        (FAILOVER_MODE=
+          (TYPE=select)
+          (METHOD=basic))))
+
+# Java JDBC Thin alias URL:
+# jdbc:oracle:thin:@CDB01_PDB01
+# Java JDBC Thin descriptor URL with the same parameters:
+# jdbc:oracle:thin:@(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=exasc01-scan-jjtmn.private.usw.oraclevcn.com)(PORT=1521))(CONNECT_DATA=(SERVER=DEDICATED)(SERVICE_NAME=CDB01_PDB01.paas.oracle.com)(UR=A)(FAILOVER_MODE=(TYPE=select)(METHOD=basic))))`,
+      defaultService: `srvctl config service \\
+-d $ORACLE_UNQNAME \\
+-s CDB01_PDB01.paas.oracle.com`,
+      oltpModify: `srvctl modify service \\
+-d $ORACLE_UNQNAME \\
+-s CDB01_PDB01.paas.oracle.com \\
+-failovertype SESSION \\
+-failovermethod BASIC \\
+-failoverretry 30 \\
+-failoverdelay 5`,
+      tafModify: `srvctl modify service \\
+-d $ORACLE_UNQNAME \\
+-s CDB01_PDB01.paas.oracle.com \\
+-tafpolicy BASIC`,
+      oltpRlbService: `# Replace CDB01_1 and CDB01_2 with the RAC instances
+# that should run the OLTP service across node1 and node2.
+srvctl add service \\
+-d $ORACLE_UNQNAME \\
+-s CDB01_PDB01_OLTP.paas.oracle.com \\
+-pdb CDB01_PDB01 \\
+-preferred CDB01_1,CDB01_2 \\
+-clbgoal SHORT \\
+-rlbgoal SERVICE_TIME
+
+srvctl start service \\
+-d $ORACLE_UNQNAME \\
+-s CDB01_PDB01_OLTP.paas.oracle.com
+
+srvctl config service \\
+-d $ORACLE_UNQNAME \\
+-s CDB01_PDB01_OLTP.paas.oracle.com`,
+      oltpTnsAlias: `CDB01_PDB01_OLTP=
+    (DESCRIPTION=
+      (ADDRESS=
+        (PROTOCOL=TCP)
+        (HOST=exasc01-scan-jjtmn.private.usw.oraclevcn.com)
+        (PORT=1521))
+      (CONNECT_DATA=
+        (SERVER=DEDICATED)
+        (SERVICE_NAME=CDB01_PDB01.paas.oracle.com)
+        (UR=A)
+        (FAILOVER_MODE=
+          (TYPE=session)
+          (METHOD=basic)
+          (RETRIES=30)
+          (DELAY=5))))
+
+# Java JDBC Thin alias URL:
+# jdbc:oracle:thin:@CDB01_PDB01_OLTP
+# Java JDBC Thin descriptor URL with the same parameters:
+# jdbc:oracle:thin:@(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=exasc01-scan-jjtmn.private.usw.oraclevcn.com)(PORT=1521))(CONNECT_DATA=(SERVER=DEDICATED)(SERVICE_NAME=CDB01_PDB01.paas.oracle.com)(UR=A)(FAILOVER_MODE=(TYPE=session)(METHOD=basic)(RETRIES=30)(DELAY=5))))`,
+      tafTnsAlias: `CDB01_PDB01_TAF=
+    (DESCRIPTION=
+      (ADDRESS=
+        (PROTOCOL=TCP)
+        (HOST=exasc01-scan-jjtmn.private.usw.oraclevcn.com)
+        (PORT=1521))
+      (CONNECT_DATA=
+        (SERVER=DEDICATED)
+        (SERVICE_NAME=CDB01_PDB01.paas.oracle.com)
+        (UR=A)
+        (FAILOVER_MODE=
+          (TYPE=select)
+          (METHOD=basic)
+          (RETRIES=30)
+          (DELAY=5))))
+
+# Java JDBC Thin alias URL:
+# jdbc:oracle:thin:@CDB01_PDB01_TAF
+# Java JDBC Thin descriptor URL with the same parameters:
+# jdbc:oracle:thin:@(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=exasc01-scan-jjtmn.private.usw.oraclevcn.com)(PORT=1521))(CONNECT_DATA=(SERVER=DEDICATED)(SERVICE_NAME=CDB01_PDB01.paas.oracle.com)(UR=A)(FAILOVER_MODE=(TYPE=select)(METHOD=basic)(RETRIES=30)(DELAY=5))))`,
+      appFailoverPattern: `// UCP/JDBC failover-aware application pattern.
+// Replace credentials and pool sizing with application-specific values.
+import java.sql.Connection;
+import java.sql.SQLException;
+import oracle.ucp.jdbc.PoolDataSource;
+import oracle.ucp.jdbc.PoolDataSourceFactory;
+import oracle.ucp.jdbc.ValidConnection;
+
+PoolDataSource pds = PoolDataSourceFactory.getPoolDataSource();
+pds.setConnectionPoolName("CDB01_PDB01_HA_POOL");
+pds.setConnectionFactoryClassName("oracle.jdbc.datasource.impl.OracleDataSource");
+pds.setURL("jdbc:oracle:thin:@CDB01_PDB01_TAF");
+pds.setUser("<app_user>");
+pds.setPassword("<app_password>");
+pds.setFastConnectionFailoverEnabled(true);
+
+Connection conn = null;
+try {
+  conn = pds.getConnection();
+  // Execute one idempotent logical unit of work.
+} catch (SQLException ex) {
+  if (conn == null || !((ValidConnection) conn).isValid()) {
+    // Request a new connection and replay the application unit of work.
+    // Do not roll back the old transaction after a closed-connection event.
+  }
+} finally {
+  if (conn != null) {
+    conn.close();
+  }
+}`,
+      rlbTnsAlias: `CDB01_PDB01_RLB=
+    (DESCRIPTION=
+      (ADDRESS=
+        (PROTOCOL=TCP)
+        (HOST=exasc01-scan-jjtmn.private.usw.oraclevcn.com)
+        (PORT=1521))
+      (CONNECT_DATA=
+        (SERVER=DEDICATED)
+        (SERVICE_NAME=CDB01_PDB01_OLTP.paas.oracle.com)
+        (UR=A)))
+
+# Java JDBC Thin alias URL:
+# jdbc:oracle:thin:@CDB01_PDB01_RLB
+# Java JDBC Thin descriptor URL with the same parameters:
+# jdbc:oracle:thin:@(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=exasc01-scan-jjtmn.private.usw.oraclevcn.com)(PORT=1521))(CONNECT_DATA=(SERVER=DEDICATED)(SERVICE_NAME=CDB01_PDB01_OLTP.paas.oracle.com)(UR=A)))`,
+      batchService: `# Replace CDB01_1 with the instance running on node1.
+# Replace CDB01_2 with the instance running on node2.
+srvctl add service \\
+-d $ORACLE_UNQNAME \\
+-s CDB01_PDB01_BATCH.paas.oracle.com \\
+-pdb CDB01_PDB01 \\
+-preferred CDB01_1 \\
+-available CDB01_2 \\
+-clbgoal LONG \\
+-rlbgoal NONE \\
+-failovertype NONE
+
+srvctl start service \\
+-d $ORACLE_UNQNAME \\
+-s CDB01_PDB01_BATCH.paas.oracle.com
+
+srvctl config service \\
+-d $ORACLE_UNQNAME \\
+-s CDB01_PDB01_BATCH.paas.oracle.com`,
+      batchTnsAlias: `CDB01_PDB01_BATCH=
+    (DESCRIPTION=
+      (ADDRESS=
+        (PROTOCOL=TCP)
+        (HOST=exasc01-scan-jjtmn.private.usw.oraclevcn.com)
+        (PORT=1521))
+      (CONNECT_DATA=
+        (SERVER=DEDICATED)
+        (SERVICE_NAME=CDB01_PDB01_BATCH.paas.oracle.com)
+        (UR=A)))
+
+# Java JDBC Thin alias URL:
+# jdbc:oracle:thin:@CDB01_PDB01_BATCH
+# Java JDBC Thin descriptor URL with the same parameters:
+# jdbc:oracle:thin:@(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=exasc01-scan-jjtmn.private.usw.oraclevcn.com)(PORT=1521))(CONNECT_DATA=(SERVER=DEDICATED)(SERVICE_NAME=CDB01_PDB01_BATCH.paas.oracle.com)(UR=A)))`,
+      flow: `Health check scope
+
+Grid Infrastructure
+  |-- Oracle Clusterware resources
+  |-- Node membership
+  |-- Listener status
+        |
+        v
+RAC database
+  |-- Database status and configuration
+  |-- Services and default service attributes
+  |-- SQL dynamic performance views
+        |
+        v
+Connectivity
+  |-- TNS alias resolution
+  |-- SQL*Plus service connection
+
+Exascale note: customer-managed ASM is not expected for the 26ai Exascale path in this guide.`
+    };
+
+    const article = {
+      en: {
+        name: "English",
+        label: "EN",
+        title: "Exadata Exascale 26ai RAC Health Check Guide",
+        subtitle: "A consistent procedure to validate the health of an Oracle Exadata Exascale RAC deployment in OCI.",
+        eyebrow: "Oracle technical article",
+        updated: "Reference links checked June 3, 2026",
+        source: "Converted from Exadata_Exascale_26ai_RAC_Health_Check_Guide.md",
+        controls: {
+          language: "Language",
+          themeLight: "Light",
+          themeDark: "Dark",
+          copy: "Copy",
+          copied: "Copied",
+          toc: "Table of contents",
+          backTop: "Back to top",
+          refs: "Oracle references",
+          expected: "Expected",
+          command: "Command",
+          notes: "Notes",
+          highlights: "Key highlights",
+          sourceLabel: "Source",
+          oracleDocs: "Official Oracle documentation"
+        },
+        highlights: [
+          "Validate Oracle Clusterware, node membership, listeners, RAC database status, services, SQL views, connectivity, and TNS aliases.",
+          "Treat customer-managed ASM as not applicable for the Exascale 26ai path covered by this guide.",
+          "Keep command ownership explicit: Grid Infrastructure checks as grid, database checks as oracle, and database scope through $ORACLE_UNQNAME."
+        ],
+        sections: [
+          {
+            id: "overview",
+            title: "Overview",
+            kicker: "Purpose",
+            body: "Provide a consistent procedure to validate the health of an Exadata Exascale RAC deployment.",
+            notes: ["Run the sections in order when doing a baseline validation or a post-change check."]
+          },
+          {
+            id: "architecture",
+            title: "Architecture Context",
+            kicker: "Scope map",
+            body: "The guide checks the RAC stack from Grid Infrastructure through connectivity, while keeping the Exascale storage expectation explicit.",
+            code: { type: "diagram", label: "Text diagram", value: commands.flow }
+          },
+          {
+            id: "grid",
+            title: "1. Grid Infrastructure Health Checks",
+            kicker: "Clusterware and nodes",
+            body: "Verify Oracle Clusterware resources, node membership, listeners, and RAC infrastructure.",
+            code: { type: "bash", label: "Run as grid", value: commands.grid },
+            notes: ["The source guide notes that olsnodes -i is deprecated."]
+          },
+          {
+            id: "asm",
+            title: "2. ASM Checks (Not Applicable to Exascale)",
+            kicker: "Exascale storage expectation",
+            body: "Exascale uses Vault-based managed storage and does not deploy customer-managed ASM instances.",
+            code: { type: "bash", label: "ASM status check", value: commands.asm },
+            expected: commands.asmExpected
+          },
+          {
+            id: "listener",
+            title: "3. Listener Health Checks",
+            kicker: "Node listener",
+            body: "Check listener status on the target node.",
+            code: { type: "bash", label: "Listener status", value: commands.listener },
+            notes: ["Replace <node_name> with values returned by olsnodes."]
+          },
+          {
+            id: "database-health",
+            title: "4. Database Health Checks",
+            kicker: "Database owner context",
+            body: "Switch to the oracle user, source the database environment, and check the RAC database state through SRVCTL.",
+            code: { type: "bash", label: "Database status", value: commands.database }
+          },
+          {
+            id: "database-config",
+            title: "5. Database Configuration",
+            kicker: "Registered configuration",
+            body: "Review the database configuration registered with Oracle Clusterware.",
+            code: { type: "bash", label: "Database configuration", value: commands.dbConfig }
+          },
+          {
+            id: "service-validation",
+            title: "6. Service Validation",
+            kicker: "Service config and runtime",
+            body: "Validate service configuration and service runtime status for the database unique name.",
+            code: { type: "bash", label: "Service validation", value: commands.service }
+          },
+          {
+            id: "sql-health",
+            title: "7. SQL Health Checks",
+            kicker: "Dynamic views",
+            body: "Include the following SQL views in the health review.",
+            code: { type: "sql", label: "SQL view inventory", value: commands.sqlViews }
+          },
+          {
+            id: "connectivity",
+            title: "8. Connectivity Validation",
+            kicker: "TNS and SQL*Plus",
+            body: "Validate the service alias and then validate a database connection through SQL*Plus.",
+            code: { type: "bash", label: "Connectivity validation", value: commands.connectivity }
+          },
+          {
+            id: "tns-aliases",
+            title: "9. Review TNS Aliases",
+            kicker: "Network admin files",
+            body: "Review the TNS aliases under the database-specific network admin directory.",
+            code: { type: "bash", label: "TNS alias review", value: commands.tns },
+            extraCodes: [
+              { type: "text", label: "Default tnsnames.ora values", value: commands.tnsDefaults }
+            ]
+          },
+          {
+            id: "default-service",
+            title: "10. Review Default Connection Service Configuration",
+            kicker: "Connection service baseline",
+            body: "Review the default connection service configuration and compare its current characteristics.",
+            code: { type: "bash", label: "Default service config", value: commands.defaultService },
+            table: {
+              headers: ["Characteristic", "Value"],
+              rows: [
+                ["Failover type", "NONE"],
+                ["Runtime Load Balancing Goal", "NONE"],
+                ["Connection Load Balancing Goal", "LONG"]
+              ]
+            }
+          },
+          {
+            id: "oltp",
+            title: "11. Recommended OLTP Configuration (Memory Efficient)",
+            kicker: "Best-practice section",
+            body: "For the memory-efficient OLTP recommendation in this guide, use these values.",
+            collapsible: true,
+            code: { type: "bash", label: "OLTP failover service modification", value: commands.oltpModify },
+            extraCodes: [
+              { type: "text", label: "Recommended application-tier TNS alias", value: commands.oltpTnsAlias }
+            ],
+            table: {
+              headers: ["Attribute", "Recommended value"],
+              rows: [
+                ["Failover Type", "SESSION"],
+                ["Failover Method", "BASIC"],
+                ["Failover Retries", "30"],
+                ["Failover Delay", "5"]
+              ]
+            }
+          },
+          {
+            id: "taf",
+            title: "12. TAF Requirements",
+            kicker: "Application readiness",
+            body: "Modify the application tier so failover is handled at both the connection-pool layer and the unit-of-work layer. Use Oracle JDBC/UCP where possible, connect by service name rather than SID, enable Fast Connection Failover for UCP pools, and make exception handling request a fresh connection when a RAC event leaves the old connection closed. For Application Continuity, use an AC-capable Oracle JDBC data source and move session initialization into connection labeling or initialization callbacks so replay can recreate required state. For TAF/OCI-style clients, add a failover callback when the application must decide whether to retry, wait, or abort during failover events.",
+            collapsible: true,
+            code: { type: "bash", label: "TAF policy service modification", value: commands.tafModify },
+            extraCodes: [
+              { type: "text", label: "Recommended TAF-capable application-tier TNS alias", value: commands.tafTnsAlias },
+              { type: "java", label: "UCP/JDBC application failover pattern", value: commands.appFailoverPattern }
+            ],
+            notes: [
+              "When UCP Fast Connection Failover reports a closed connection, retry the connection request and replay the application unit of work. Oracle notes that the database has already rolled back the local transaction before the exception reaches the application.",
+              "For Application Continuity with UCP, keep connection-labeling or initialization callbacks idempotent because callbacks can execute during normal checkout and during replay.",
+              "For TAF, server-side service attributes are preferred over connect-string-only settings; application callbacks are optional but useful when the application needs retry or abort control."
+            ],
+            references: [
+              { label: "Oracle JDBC Transparent Application Failover", url: refs.taf },
+              { label: "UCP Fast Connection Failover", url: refs.fcf },
+              { label: "Application Continuity with UCP", url: refs.ucpAc },
+              { label: "Application Continuity for Java", url: refs.jdbcAc }
+            ]
+          },
+          {
+            id: "rlb",
+            title: "13. Recommended OLTP Runtime Load Balancing Configuration",
+            kicker: "Runtime balancing",
+            body: "Create a dedicated OLTP service for runtime load balancing instead of modifying the default application service. Run the OLTP service on both RAC instances as preferred placement, then point the application tier to the OLTP service alias.",
+            collapsible: true,
+            code: { type: "bash", label: "OLTP runtime load balancing service creation", value: commands.oltpRlbService },
+            extraCodes: [
+              { type: "text", label: "Recommended OLTP RLB service alias for the application tier", value: commands.rlbTnsAlias }
+            ],
+            notes: [
+              "Use database instance names in -preferred. Map CDB01_1 and CDB01_2 to the RAC instances running on node1 and node2 before running the command.",
+              "The OLTP service uses a distinct SERVICE_NAME so application OLTP traffic does not depend on the default service configuration."
+            ],
+            table: {
+              headers: ["Attribute", "Recommended value"],
+              rows: [
+                ["Connection Load Balancing Goal", "SHORT"],
+                ["Runtime Load Balancing Goal", "SERVICE_TIME"]
+              ]
+            }
+          },
+          {
+            id: "batch-jobs",
+            title: "14. Batch Job Service Isolation",
+            kicker: "Dedicated service for batch workloads",
+            body: "Create a separate service for batch jobs with the node1 instance as preferred and the node2 instance as available. This keeps batch sessions on the preferred instance during normal operation and reserves the available instance for service failover.",
+            collapsible: true,
+            code: { type: "bash", label: "Batch service creation and validation", value: commands.batchService },
+            extraCodes: [
+              { type: "text", label: "Application-tier TNS alias for batch jobs", value: commands.batchTnsAlias }
+            ],
+            notes: [
+              "Use database instance names in -preferred and -available. Map those instances to node1 and node2 before running the command.",
+              "The batch service uses a distinct SERVICE_NAME so application-tier batch jobs do not share the OLTP service."
+            ]
+          },
+          {
+            id: "operational-notes",
+            title: "Exascale Operational Notes",
+            kicker: "Execution context",
+            body: "Keep user context, database naming, and node substitution consistent throughout the check.",
+            bullets: [
+              "Grid commands as grid user.",
+              "Database commands as oracle user.",
+              "Use $ORACLE_UNQNAME.",
+              "Replace <node_name> with values from olsnodes."
+            ]
+          }
+        ],
+        calloutsTitle: "Continuity and Service Concepts",
+        calloutsIntro: "These concepts frame the service and failover terms that appear in RAC, load balancing, and application continuity discussions.",
+        callouts: [
+          { id: "scan", term: "SCAN", name: "Single Client Access Name", text: "A RAC feature that gives clients a single name for access to clustered databases.", ref: refs.scan },
+          { id: "rac", term: "RAC", name: "Real Application Clusters", text: "The clustered database architecture whose instances, services, and listeners are checked in this guide.", ref: refs.racListener },
+          { id: "fan", term: "FAN", name: "Fast Application Notification", text: "High availability event notifications used by integrated clients and pools to react quickly to service changes.", ref: refs.fan },
+          { id: "rlb", term: "RLB", name: "Runtime Load Balancing", text: "Connection pool behavior that uses RAC advisory information and service goals such as SERVICE_TIME.", ref: refs.rlb },
+          { id: "ac", term: "AC", name: "Application Continuity", text: "A high availability capability for recovering application work after recoverable outages when the service and client support it.", ref: refs.appContinuity },
+          { id: "tac", term: "TAC", name: "Transparent Application Continuity", text: "A mode of Application Continuity that can discover request boundaries for supported applications and clients.", ref: refs.appContinuity }
+        ],
+        glossaryTitle: "Glossary and Oracle Documentation References",
+        glossaryIntro: "Reference-backed glossary for the concepts, commands, views, and configuration files used in the guide.",
+        glossary: [
+          { term: "Exadata Database Service on Exascale Infrastructure", text: "OCI Exadata service family for Exascale deployments. Oracle documentation states that it supports Oracle Database 19c and Oracle AI Database 26ai.", ref: refs.exadbxs },
+          { term: "Exascale Storage Vault", text: "Logical Exascale storage container used for database files in the 26ai Exascale architecture.", ref: refs.vault },
+          { term: "Oracle AI Database 26ai", text: "The 26ai database release referenced by the Exascale guide and Oracle RAC documentation.", ref: refs.exadbxs },
+          { term: "Oracle RAC", text: "Clustered database deployment model with instances, services, listeners, and client connection routing.", ref: refs.racListener },
+          { term: "Oracle Grid Infrastructure / Oracle Clusterware", text: "Cluster infrastructure layer managed by CRSCTL and SRVCTL commands.", ref: refs.crsctl },
+          { term: "CRSCTL", text: "Oracle Clusterware control utility used here for cluster and resource checks.", ref: refs.crsctl },
+          { term: "crsctl check cluster -all", text: "Cluster health command used in the guide to check the cluster across nodes.", ref: refs.crsctl },
+          { term: "crsctl status resource -t", text: "Resource status command used in the guide to review Oracle Clusterware resources in tabular form.", ref: refs.crsctl },
+          { term: "OLSNODES", text: "Command used to list cluster nodes and node numbers; the guide uses olsnodes and olsnodes -n.", ref: refs.olsnodes },
+          { term: "SRVCTL", text: "Server Control utility used here to inspect ASM, listeners, databases, and services.", ref: refs.srvctl },
+          { term: "srvctl status asm", text: "ASM resource status command. In this Exascale 26ai path, the expected guide output is that ora.asm does not exist.", ref: refs.srvctl },
+          { term: "srvctl status listener -n", text: "Listener status command scoped to a cluster node.", ref: refs.srvctl },
+          { term: "srvctl status database -d", text: "Database status command scoped to the database unique name.", ref: refs.srvctl },
+          { term: "srvctl config database -d", text: "Database configuration command scoped to the database unique name.", ref: refs.srvctl },
+          { term: "srvctl config/status service -d", text: "Service configuration and runtime status commands for the database.", ref: refs.srvctl },
+          { term: "srvctl add service", text: "Service creation command used in the batch-job section to register a dedicated application service with Oracle Clusterware.", ref: refs.srvctl },
+          { term: "Preferred and available service instances", text: "RAC service placement lists used to run a service on preferred instances and reserve available instances for failover.", ref: refs.srvctl },
+          { term: "Dedicated OLTP service", text: "A distinct database service for OLTP application traffic, configured with SHORT connection load balancing and SERVICE_TIME runtime load balancing in this guide.", ref: refs.srvctl },
+          { term: "Batch job service", text: "A distinct database service for application-tier batch workloads, separate from the OLTP service name.", ref: refs.srvctl },
+          { term: "ASM", text: "Oracle Automatic Storage Management. The source guide marks customer-managed ASM checks as not applicable to this Exascale path.", ref: refs.exadbxs },
+          { term: "Listener", text: "Oracle Net listener process that receives incoming client connection requests and routes them to database instances or services.", ref: refs.racListener },
+          { term: "SCAN", text: "Single Client Access Name, a RAC feature that gives clients a single name for cluster database access.", ref: refs.scan },
+          { term: "FAN", text: "Fast Application Notification, a high availability event framework for RAC-aware clients and pools.", ref: refs.fan },
+          { term: "RLB", text: "Runtime Load Balancing, configured with service goals and a SHORT connection balancing goal for supported pools.", ref: refs.rlb },
+          { term: "TAF", text: "Transparent Application Failover. The guide requires applications to support TAF/UCP/JDBC failover handling.", ref: refs.taf },
+          { term: "UCP", text: "Oracle Universal Connection Pool, referenced in the guide as part of application failover handling.", ref: refs.ucpAc },
+          { term: "JDBC failover handling", text: "Oracle JDBC support for Application Continuity and related high availability behavior.", ref: refs.jdbcAc },
+          { term: "JDBC Thin connection string", text: "Java connection URL format used by Oracle JDBC, including TNS alias URLs such as jdbc:oracle:thin:@CDB01_PDB01_TAF and full DESCRIPTION descriptor URLs that carry the same parameters as tnsnames.ora aliases.", ref: refs.jdbcUrls },
+          { term: "AC", text: "Application Continuity, Oracle high availability capability for recovering application work after recoverable outages.", ref: refs.appContinuity },
+          { term: "TAC", text: "Transparent Application Continuity, a mode of Application Continuity for supported applications and clients.", ref: refs.appContinuity },
+          { term: "Runtime Load Balancing Goal SERVICE_TIME", text: "Service goal named in the guide for OLTP runtime load balancing.", ref: refs.rlb },
+          { term: "Connection Load Balancing Goal SHORT / LONG", text: "Service connection balancing settings compared by the guide for default and recommended service configuration.", ref: refs.rlb },
+          { term: "TNSPING", text: "Oracle Net utility used here to test whether the listener for a service can be reached.", ref: refs.tnsping },
+          { term: "SQL*Plus", text: "Oracle command-line client used here to validate a database service connection.", ref: refs.sqlplus },
+          { term: "tnsnames.ora / TNS alias", text: "Local naming file and aliases used to map service names to connect descriptors.", ref: refs.tnsnames },
+          { term: "FAILOVER_MODE", text: "Oracle Net parameter in CONNECT_DATA used by the guide's TNS aliases for TAF failover type, method, retries, and delay.", ref: refs.tnsnames },
+          { term: "RETRIES and DELAY", text: "TAF parameters in FAILOVER_MODE that control reconnect attempts and delay between attempts.", ref: refs.tnsnames },
+          { term: "$ORACLE_UNQNAME", text: "Database unique-name environment variable used by the guide to scope SRVCTL database and service checks.", ref: refs.srvctl },
+          { term: "CDB / PDB", text: "Container database and pluggable database concepts used by the sample service name CDB01_PDB01.", ref: refs.manageDb },
+          { term: "V$ and GV$ dynamic performance views", text: "SQL views used for health inspection; GV$ views retrieve V$ information from RAC instances.", ref: refs.dynamicViews },
+          { term: "gv$instance, v$database, gv$services, gv$active_services, gv$session, v$services, v$pdbs", text: "Specific dynamic views listed in the source guide for SQL health checks.", ref: refs.dynamicViews }
+        ]
+      },
+      es: {
+        name: "Español",
+        label: "ES",
+        title: "Guía de Health Check para Exadata Exascale 26ai RAC",
+        subtitle: "Un procedimiento consistente para validar la salud de una implementación Oracle Exadata Exascale RAC en OCI.",
+        eyebrow: "Artículo técnico Oracle",
+        updated: "Referencias revisadas el 3 de junio de 2026",
+        source: "Convertido desde Exadata_Exascale_26ai_RAC_Health_Check_Guide.md",
+        controls: {
+          language: "Idioma",
+          themeLight: "Claro",
+          themeDark: "Oscuro",
+          copy: "Copiar",
+          copied: "Copiado",
+          toc: "Tabla de contenido",
+          backTop: "Volver arriba",
+          refs: "Referencias Oracle",
+          expected: "Esperado",
+          command: "Comando",
+          notes: "Notas",
+          highlights: "Puntos clave",
+          sourceLabel: "Fuente",
+          oracleDocs: "Documentación oficial de Oracle"
+        },
+        highlights: [
+          "Validar Oracle Clusterware, membresía de nodos, listeners, estado de la base RAC, servicios, vistas SQL, conectividad y alias TNS.",
+          "Tratar ASM administrado por el cliente como no aplicable para la ruta Exascale 26ai cubierta por esta guía.",
+          "Mantener explícito el propietario de cada comando: verificaciones de Grid Infrastructure como grid, verificaciones de base de datos como oracle y alcance mediante $ORACLE_UNQNAME."
+        ],
+        sections: [
+          { id: "overview", title: "Overview", kicker: "Propósito", body: "Proporcionar un procedimiento consistente para validar la salud de una implementación Exadata Exascale RAC.", notes: ["Ejecuta las secciones en orden durante una validación base o una revisión posterior a cambios."] },
+          { id: "architecture", title: "Contexto de Arquitectura", kicker: "Mapa de alcance", body: "La guía verifica el stack RAC desde Grid Infrastructure hasta conectividad, manteniendo explícita la expectativa de almacenamiento Exascale.", code: { type: "diagram", label: "Diagrama de texto", value: commands.flow } },
+          { id: "grid", title: "1. Health Checks de Grid Infrastructure", kicker: "Clusterware y nodos", body: "Verificar recursos de Oracle Clusterware, membresía de nodos, listeners e infraestructura RAC.", code: { type: "bash", label: "Ejecutar como grid", value: commands.grid }, notes: ["La guía fuente indica que olsnodes -i está deprecado."] },
+          { id: "asm", title: "2. Verificaciones ASM (No Aplicable a Exascale)", kicker: "Expectativa de almacenamiento Exascale", body: "Exascale usa almacenamiento administrado basado en Vault y no despliega instancias ASM administradas por el cliente.", code: { type: "bash", label: "Verificación de estado ASM", value: commands.asm }, expected: commands.asmExpected },
+          { id: "listener", title: "3. Health Checks de Listener", kicker: "Listener de nodo", body: "Verificar el estado del listener en el nodo objetivo.", code: { type: "bash", label: "Estado del listener", value: commands.listener }, notes: ["Reemplaza <node_name> con valores devueltos por olsnodes."] },
+          { id: "database-health", title: "4. Health Checks de Base de Datos", kicker: "Contexto del propietario de base de datos", body: "Cambiar al usuario oracle, cargar el entorno de la base de datos y revisar el estado de la base RAC con SRVCTL.", code: { type: "bash", label: "Estado de base de datos", value: commands.database } },
+          { id: "database-config", title: "5. Configuración de Base de Datos", kicker: "Configuración registrada", body: "Revisar la configuración de base de datos registrada en Oracle Clusterware.", code: { type: "bash", label: "Configuración de base de datos", value: commands.dbConfig } },
+          { id: "service-validation", title: "6. Validación de Servicios", kicker: "Configuración y ejecución de servicios", body: "Validar la configuración y el estado runtime de los servicios para el database unique name.", code: { type: "bash", label: "Validación de servicios", value: commands.service } },
+          { id: "sql-health", title: "7. Health Checks SQL", kicker: "Vistas dinámicas", body: "Incluir las siguientes vistas SQL en la revisión de salud.", code: { type: "sql", label: "Inventario de vistas SQL", value: commands.sqlViews } },
+          { id: "connectivity", title: "8. Validación de Conectividad", kicker: "TNS y SQL*Plus", body: "Validar el alias de servicio y luego validar una conexión de base de datos mediante SQL*Plus.", code: { type: "bash", label: "Validación de conectividad", value: commands.connectivity } },
+          { id: "tns-aliases", title: "9. Revisión de Alias TNS", kicker: "Archivos de administración de red", body: "Revisar los alias TNS bajo el directorio network admin específico de la base de datos.", code: { type: "bash", label: "Revisión de alias TNS", value: commands.tns }, extraCodes: [{ type: "text", label: "Valores por defecto de tnsnames.ora", value: commands.tnsDefaults }] },
+          { id: "default-service", title: "10. Revisión de Configuración del Servicio de Conexión por Defecto", kicker: "Línea base del servicio de conexión", body: "Revisar la configuración del servicio de conexión por defecto y comparar sus características actuales.", code: { type: "bash", label: "Configuración del servicio por defecto", value: commands.defaultService }, table: { headers: ["Característica", "Valor"], rows: [["Failover type", "NONE"], ["Runtime Load Balancing Goal", "NONE"], ["Connection Load Balancing Goal", "LONG"]] } },
+          { id: "oltp", title: "11. Configuración OLTP Recomendada (Eficiente en Memoria)", kicker: "Sección de mejores prácticas", body: "Para la recomendación OLTP eficiente en memoria de esta guía, usa estos valores.", collapsible: true, code: { type: "bash", label: "Modificación de servicio para failover OLTP", value: commands.oltpModify }, extraCodes: [{ type: "text", label: "Alias TNS recomendado para la capa de aplicación", value: commands.oltpTnsAlias }], table: { headers: ["Atributo", "Valor recomendado"], rows: [["Failover Type", "SESSION"], ["Failover Method", "BASIC"], ["Failover Retries", "30"], ["Failover Delay", "5"]] } },
+          { id: "taf", title: "12. Requisitos TAF", kicker: "Preparación de aplicación", body: "Modifica la capa de aplicación para que el failover se maneje tanto en el pool de conexiones como en la unidad lógica de trabajo. Usa Oracle JDBC/UCP cuando sea posible, conecta por nombre de servicio en lugar de SID, habilita Fast Connection Failover para pools UCP y ajusta el manejo de excepciones para solicitar una conexión nueva cuando un evento RAC deje cerrada la conexión anterior. Para Application Continuity, usa un data source Oracle JDBC compatible con AC y mueve la inicialización de sesión a connection labeling o initialization callbacks para que replay pueda recrear el estado requerido. Para clientes TAF/OCI, agrega un failover callback cuando la aplicación deba decidir si reintentar, esperar o abortar durante eventos de failover.", collapsible: true, code: { type: "bash", label: "Modificación de servicio para política TAF", value: commands.tafModify }, extraCodes: [{ type: "text", label: "Alias TNS recomendado para aplicaciones con TAF", value: commands.tafTnsAlias }, { type: "java", label: "Patrón de failover de aplicación UCP/JDBC", value: commands.appFailoverPattern }], notes: ["Cuando UCP Fast Connection Failover reporte una conexión cerrada, reintenta la solicitud de conexión y repite la unidad lógica de trabajo de la aplicación. Oracle indica que la base de datos ya hizo rollback de la transacción local antes de que la excepción llegue a la aplicación.", "Para Application Continuity con UCP, mantén idempotentes los callbacks de connection labeling o initialization porque pueden ejecutarse durante checkout normal y durante replay.", "Para TAF, los atributos de servicio del lado servidor son preferibles a configurar solo el connect string; los callbacks de aplicación son opcionales, pero útiles cuando la aplicación necesita controlar reintentos o abortar."], references: [{ label: "Oracle JDBC Transparent Application Failover", url: refs.taf }, { label: "UCP Fast Connection Failover", url: refs.fcf }, { label: "Application Continuity with UCP", url: refs.ucpAc }, { label: "Application Continuity for Java", url: refs.jdbcAc }] },
+          { id: "rlb", title: "13. Configuración OLTP Recomendada para Runtime Load Balancing", kicker: "Balanceo runtime", body: "Crear un servicio OLTP dedicado para runtime load balancing en lugar de modificar el servicio de aplicación por defecto. Ejecuta el servicio OLTP en ambas instancias RAC como ubicación preferred y apunta la capa de aplicación al alias del servicio OLTP.", collapsible: true, code: { type: "bash", label: "Creación de servicio OLTP para runtime load balancing", value: commands.oltpRlbService }, extraCodes: [{ type: "text", label: "Alias de servicio OLTP RLB recomendado para la capa de aplicación", value: commands.rlbTnsAlias }], notes: ["Usa nombres de instancia de base de datos en -preferred. Mapea CDB01_1 y CDB01_2 a las instancias RAC que corren en node1 y node2 antes de ejecutar el comando.", "El servicio OLTP usa un SERVICE_NAME distinto para que el tráfico OLTP de la aplicación no dependa de la configuración del servicio por defecto."], table: { headers: ["Atributo", "Valor recomendado"], rows: [["Connection Load Balancing Goal", "SHORT"], ["Runtime Load Balancing Goal", "SERVICE_TIME"]] } },
+          { id: "batch-jobs", title: "14. Aislamiento de Servicios para Batch Jobs", kicker: "Servicio dedicado para cargas batch", body: "Crear un servicio separado para batch jobs con la instancia de node1 como preferred y la instancia de node2 como available. Esto mantiene las sesiones batch en la instancia preferred durante operación normal y reserva la instancia available para failover del servicio.", collapsible: true, code: { type: "bash", label: "Creación y validación del servicio batch", value: commands.batchService }, extraCodes: [{ type: "text", label: "Alias TNS de capa de aplicación para batch jobs", value: commands.batchTnsAlias }], notes: ["Usa nombres de instancia de base de datos en -preferred y -available. Mapea esas instancias a node1 y node2 antes de ejecutar el comando.", "El servicio batch usa un SERVICE_NAME distinto para que los batch jobs de la capa de aplicación no compartan el servicio OLTP."] },
+          { id: "operational-notes", title: "Notas Operativas de Exascale", kicker: "Contexto de ejecución", body: "Mantén consistente el contexto de usuario, el nombre de base de datos y la sustitución de nodo durante toda la revisión.", bullets: ["Comandos de Grid como usuario grid.", "Comandos de base de datos como usuario oracle.", "Usar $ORACLE_UNQNAME.", "Reemplazar <node_name> con valores de olsnodes."] }
+        ],
+        calloutsTitle: "Conceptos de Continuidad y Servicios",
+        calloutsIntro: "Estos conceptos enmarcan los términos de servicio y failover que aparecen en discusiones de RAC, balanceo de carga y continuidad de aplicaciones.",
+        callouts: [
+          { id: "scan", term: "SCAN", name: "Single Client Access Name", text: "Función de RAC que ofrece a los clientes un nombre único para acceder a bases de datos en cluster.", ref: refs.scan },
+          { id: "rac", term: "RAC", name: "Real Application Clusters", text: "Arquitectura de base de datos en cluster cuyas instancias, servicios y listeners se verifican en esta guía.", ref: refs.racListener },
+          { id: "fan", term: "FAN", name: "Fast Application Notification", text: "Notificaciones de alta disponibilidad usadas por clientes y pools integrados para reaccionar rápido a cambios de servicio.", ref: refs.fan },
+          { id: "rlb", term: "RLB", name: "Runtime Load Balancing", text: "Comportamiento de pool de conexiones que usa información RAC advisory y objetivos de servicio como SERVICE_TIME.", ref: refs.rlb },
+          { id: "ac", term: "AC", name: "Application Continuity", text: "Capacidad de alta disponibilidad para recuperar trabajo de aplicación tras interrupciones recuperables cuando el servicio y el cliente lo soportan.", ref: refs.appContinuity },
+          { id: "tac", term: "TAC", name: "Transparent Application Continuity", text: "Modo de Application Continuity que puede descubrir límites de petición en aplicaciones y clientes soportados.", ref: refs.appContinuity }
+        ],
+        glossaryTitle: "Glosario y Referencias de Documentación Oracle",
+        glossaryIntro: "Glosario con referencias para conceptos, comandos, vistas y archivos de configuración usados en la guía.",
+        glossary: []
+      },
+      pt: {
+        name: "Português",
+        label: "PT",
+        title: "Guia de Health Check para Exadata Exascale 26ai RAC",
+        subtitle: "Um procedimento consistente para validar a saúde de uma implantação Oracle Exadata Exascale RAC no OCI.",
+        eyebrow: "Artigo técnico Oracle",
+        updated: "Referências verificadas em 3 de junho de 2026",
+        source: "Convertido de Exadata_Exascale_26ai_RAC_Health_Check_Guide.md",
+        controls: {
+          language: "Idioma",
+          themeLight: "Claro",
+          themeDark: "Escuro",
+          copy: "Copiar",
+          copied: "Copiado",
+          toc: "Sumário",
+          backTop: "Voltar ao topo",
+          refs: "Referências Oracle",
+          expected: "Esperado",
+          command: "Comando",
+          notes: "Notas",
+          highlights: "Destaques",
+          sourceLabel: "Fonte",
+          oracleDocs: "Documentação oficial da Oracle"
+        },
+        highlights: [
+          "Validar Oracle Clusterware, associação de nós, listeners, estado da base RAC, serviços, views SQL, conectividade e aliases TNS.",
+          "Tratar ASM gerenciado pelo cliente como não aplicável para o caminho Exascale 26ai coberto por este guia.",
+          "Manter explícito o proprietário de cada comando: verificações de Grid Infrastructure como grid, verificações de banco como oracle e escopo via $ORACLE_UNQNAME."
+        ],
+        sections: [
+          { id: "overview", title: "Overview", kicker: "Propósito", body: "Fornecer um procedimento consistente para validar a saúde de uma implantação Exadata Exascale RAC.", notes: ["Execute as seções em ordem durante uma validação base ou uma revisão após mudanças."] },
+          { id: "architecture", title: "Contexto de Arquitetura", kicker: "Mapa de escopo", body: "O guia verifica o stack RAC desde Grid Infrastructure até conectividade, mantendo explícita a expectativa de armazenamento Exascale.", code: { type: "diagram", label: "Diagrama de texto", value: commands.flow } },
+          { id: "grid", title: "1. Health Checks de Grid Infrastructure", kicker: "Clusterware e nós", body: "Verificar recursos do Oracle Clusterware, associação de nós, listeners e infraestrutura RAC.", code: { type: "bash", label: "Executar como grid", value: commands.grid }, notes: ["O guia fonte observa que olsnodes -i está obsoleto."] },
+          { id: "asm", title: "2. Verificações ASM (Não Aplicável ao Exascale)", kicker: "Expectativa de armazenamento Exascale", body: "Exascale usa armazenamento gerenciado baseado em Vault e não implanta instâncias ASM gerenciadas pelo cliente.", code: { type: "bash", label: "Verificação de status ASM", value: commands.asm }, expected: commands.asmExpected },
+          { id: "listener", title: "3. Health Checks de Listener", kicker: "Listener de nó", body: "Verificar o status do listener no nó alvo.", code: { type: "bash", label: "Status do listener", value: commands.listener }, notes: ["Substitua <node_name> por valores retornados por olsnodes."] },
+          { id: "database-health", title: "4. Health Checks de Banco de Dados", kicker: "Contexto do proprietário do banco", body: "Alternar para o usuário oracle, carregar o ambiente do banco e verificar o estado da base RAC com SRVCTL.", code: { type: "bash", label: "Status do banco", value: commands.database } },
+          { id: "database-config", title: "5. Configuração de Banco de Dados", kicker: "Configuração registrada", body: "Revisar a configuração do banco registrada no Oracle Clusterware.", code: { type: "bash", label: "Configuração do banco", value: commands.dbConfig } },
+          { id: "service-validation", title: "6. Validação de Serviços", kicker: "Configuração e execução de serviços", body: "Validar a configuração e o status runtime dos serviços para o database unique name.", code: { type: "bash", label: "Validação de serviços", value: commands.service } },
+          { id: "sql-health", title: "7. Health Checks SQL", kicker: "Views dinâmicas", body: "Incluir as seguintes views SQL na revisão de saúde.", code: { type: "sql", label: "Inventário de views SQL", value: commands.sqlViews } },
+          { id: "connectivity", title: "8. Validação de Conectividade", kicker: "TNS e SQL*Plus", body: "Validar o alias de serviço e depois validar uma conexão de banco por SQL*Plus.", code: { type: "bash", label: "Validação de conectividade", value: commands.connectivity } },
+          { id: "tns-aliases", title: "9. Revisão de Aliases TNS", kicker: "Arquivos de administração de rede", body: "Revisar os aliases TNS no diretório network admin específico do banco.", code: { type: "bash", label: "Revisão de aliases TNS", value: commands.tns }, extraCodes: [{ type: "text", label: "Valores padrão de tnsnames.ora", value: commands.tnsDefaults }] },
+          { id: "default-service", title: "10. Revisão da Configuração do Serviço de Conexão Padrão", kicker: "Linha base do serviço de conexão", body: "Revisar a configuração do serviço de conexão padrão e comparar suas características atuais.", code: { type: "bash", label: "Configuração do serviço padrão", value: commands.defaultService }, table: { headers: ["Característica", "Valor"], rows: [["Failover type", "NONE"], ["Runtime Load Balancing Goal", "NONE"], ["Connection Load Balancing Goal", "LONG"]] } },
+          { id: "oltp", title: "11. Configuração OLTP Recomendada (Eficiente em Memória)", kicker: "Seção de melhores práticas", body: "Para a recomendação OLTP eficiente em memória deste guia, use estes valores.", collapsible: true, code: { type: "bash", label: "Modificação de serviço para failover OLTP", value: commands.oltpModify }, extraCodes: [{ type: "text", label: "Alias TNS recomendado para a camada de aplicação", value: commands.oltpTnsAlias }], table: { headers: ["Atributo", "Valor recomendado"], rows: [["Failover Type", "SESSION"], ["Failover Method", "BASIC"], ["Failover Retries", "30"], ["Failover Delay", "5"]] } },
+          { id: "taf", title: "12. Requisitos TAF", kicker: "Prontidão da aplicação", body: "Modifique a camada de aplicação para que o failover seja tratado tanto no pool de conexões quanto na unidade lógica de trabalho. Use Oracle JDBC/UCP quando possível, conecte por nome de serviço em vez de SID, habilite Fast Connection Failover para pools UCP e ajuste o tratamento de exceções para solicitar uma nova conexão quando um evento RAC deixar a conexão anterior fechada. Para Application Continuity, use um data source Oracle JDBC compatível com AC e mova a inicialização de sessão para connection labeling ou initialization callbacks para que o replay possa recriar o estado necessário. Para clientes TAF/OCI, adicione um failover callback quando a aplicação precisar decidir se deve tentar novamente, aguardar ou abortar durante eventos de failover.", collapsible: true, code: { type: "bash", label: "Modificação de serviço para política TAF", value: commands.tafModify }, extraCodes: [{ type: "text", label: "Alias TNS recomendado para aplicações com TAF", value: commands.tafTnsAlias }, { type: "java", label: "Padrão de failover de aplicação UCP/JDBC", value: commands.appFailoverPattern }], notes: ["Quando o UCP Fast Connection Failover reportar uma conexão fechada, tente novamente a solicitação de conexão e repita a unidade lógica de trabalho da aplicação. A Oracle indica que o banco já fez rollback da transação local antes que a exceção chegue à aplicação.", "Para Application Continuity com UCP, mantenha idempotentes os callbacks de connection labeling ou initialization porque eles podem executar durante checkout normal e durante replay.", "Para TAF, os atributos de serviço do lado servidor são preferíveis a configurar somente o connect string; callbacks de aplicação são opcionais, mas úteis quando a aplicação precisa controlar nova tentativa ou abortar."], references: [{ label: "Oracle JDBC Transparent Application Failover", url: refs.taf }, { label: "UCP Fast Connection Failover", url: refs.fcf }, { label: "Application Continuity with UCP", url: refs.ucpAc }, { label: "Application Continuity for Java", url: refs.jdbcAc }] },
+          { id: "rlb", title: "13. Configuração OLTP Recomendada para Runtime Load Balancing", kicker: "Balanceamento runtime", body: "Criar um serviço OLTP dedicado para runtime load balancing em vez de modificar o serviço de aplicação padrão. Execute o serviço OLTP nas duas instâncias RAC como localização preferred e aponte a camada de aplicação para o alias do serviço OLTP.", collapsible: true, code: { type: "bash", label: "Criação de serviço OLTP para runtime load balancing", value: commands.oltpRlbService }, extraCodes: [{ type: "text", label: "Alias de serviço OLTP RLB recomendado para a camada de aplicação", value: commands.rlbTnsAlias }], notes: ["Use nomes de instância de banco em -preferred. Mapeie CDB01_1 e CDB01_2 para as instâncias RAC que executam em node1 e node2 antes de executar o comando.", "O serviço OLTP usa um SERVICE_NAME distinto para que o tráfego OLTP da aplicação não dependa da configuração do serviço padrão."], table: { headers: ["Atributo", "Valor recomendado"], rows: [["Connection Load Balancing Goal", "SHORT"], ["Runtime Load Balancing Goal", "SERVICE_TIME"]] } },
+          { id: "batch-jobs", title: "14. Isolamento de Serviço para Batch Jobs", kicker: "Serviço dedicado para cargas batch", body: "Criar um serviço separado para batch jobs com a instância do node1 como preferred e a instância do node2 como available. Isso mantém as sessões batch na instância preferred durante operação normal e reserva a instância available para failover do serviço.", collapsible: true, code: { type: "bash", label: "Criação e validação do serviço batch", value: commands.batchService }, extraCodes: [{ type: "text", label: "Alias TNS da camada de aplicação para batch jobs", value: commands.batchTnsAlias }], notes: ["Use nomes de instância de banco em -preferred e -available. Mapeie essas instâncias para node1 e node2 antes de executar o comando.", "O serviço batch usa um SERVICE_NAME distinto para que os batch jobs da camada de aplicação não compartilhem o serviço OLTP."] },
+          { id: "operational-notes", title: "Notas Operacionais Exascale", kicker: "Contexto de execução", body: "Mantenha consistente o contexto de usuário, o nome do banco e a substituição de nó durante toda a revisão.", bullets: ["Comandos de Grid como usuário grid.", "Comandos de banco como usuário oracle.", "Usar $ORACLE_UNQNAME.", "Substituir <node_name> por valores de olsnodes."] }
+        ],
+        calloutsTitle: "Conceitos de Continuidade e Serviços",
+        calloutsIntro: "Estes conceitos contextualizam os termos de serviço e failover que aparecem em discussões de RAC, balanceamento de carga e continuidade de aplicações.",
+        callouts: [
+          { id: "scan", term: "SCAN", name: "Single Client Access Name", text: "Recurso de RAC que oferece aos clientes um nome único para acessar bancos em cluster.", ref: refs.scan },
+          { id: "rac", term: "RAC", name: "Real Application Clusters", text: "Arquitetura de banco em cluster cujas instâncias, serviços e listeners são verificados neste guia.", ref: refs.racListener },
+          { id: "fan", term: "FAN", name: "Fast Application Notification", text: "Notificações de alta disponibilidade usadas por clientes e pools integrados para reagir rapidamente a mudanças de serviço.", ref: refs.fan },
+          { id: "rlb", term: "RLB", name: "Runtime Load Balancing", text: "Comportamento de pool de conexões que usa informações RAC advisory e objetivos de serviço como SERVICE_TIME.", ref: refs.rlb },
+          { id: "ac", term: "AC", name: "Application Continuity", text: "Capacidade de alta disponibilidade para recuperar trabalho de aplicação após interrupções recuperáveis quando serviço e cliente oferecem suporte.", ref: refs.appContinuity },
+          { id: "tac", term: "TAC", name: "Transparent Application Continuity", text: "Modo de Application Continuity que pode descobrir limites de requisição em aplicações e clientes suportados.", ref: refs.appContinuity }
+        ],
+        glossaryTitle: "Glossário e Referências de Documentação Oracle",
+        glossaryIntro: "Glossário com referências para conceitos, comandos, views e arquivos de configuração usados no guia.",
+        glossary: []
+      }
+    };
+
+    article.es.glossary = article.en.glossary.map((entry) => ({
+      ...entry,
+      text: {
+        "Exadata Database Service on Exascale Infrastructure": "Familia de servicio OCI Exadata para implementaciones Exascale. La documentación Oracle indica soporte para Oracle Database 19c y Oracle AI Database 26ai.",
+        "Exascale Storage Vault": "Contenedor lógico de almacenamiento Exascale usado para archivos de base de datos en la arquitectura Exascale 26ai.",
+        "Oracle AI Database 26ai": "Versión de base de datos 26ai referenciada por la guía Exascale y la documentación de Oracle RAC.",
+        "Oracle RAC": "Modelo de despliegue de base de datos en cluster con instancias, servicios, listeners y enrutamiento de conexiones cliente.",
+        "Oracle Grid Infrastructure / Oracle Clusterware": "Capa de infraestructura de cluster administrada con comandos CRSCTL y SRVCTL.",
+        "CRSCTL": "Utilidad de control de Oracle Clusterware usada aquí para verificaciones de cluster y recursos.",
+        "crsctl check cluster -all": "Comando de salud de cluster usado en la guía para revisar el cluster en los nodos.",
+        "crsctl status resource -t": "Comando de estado de recursos usado para revisar recursos de Oracle Clusterware en formato tabular.",
+        "OLSNODES": "Comando usado para listar nodos del cluster y números de nodo; la guía usa olsnodes y olsnodes -n.",
+        "SRVCTL": "Utilidad Server Control usada aquí para inspeccionar ASM, listeners, bases de datos y servicios.",
+        "srvctl status asm": "Comando de estado del recurso ASM. En esta ruta Exascale 26ai, la salida esperada de la guía es que ora.asm no existe.",
+        "srvctl status listener -n": "Comando de estado de listener limitado a un nodo de cluster.",
+        "srvctl status database -d": "Comando de estado de base de datos limitado al database unique name.",
+        "srvctl config database -d": "Comando de configuración de base de datos limitado al database unique name.",
+        "srvctl config/status service -d": "Comandos de configuración y estado runtime de servicios para la base de datos.",
+        "srvctl add service": "Comando de creación de servicio usado en la sección de batch jobs para registrar un servicio dedicado de aplicación en Oracle Clusterware.",
+        "Preferred and available service instances": "Listas de colocación de servicios RAC usadas para ejecutar un servicio en instancias preferred y reservar instancias available para failover.",
+        "Dedicated OLTP service": "Servicio de base de datos distinto para tráfico OLTP de aplicación, configurado en esta guía con connection load balancing SHORT y runtime load balancing SERVICE_TIME.",
+        "Batch job service": "Servicio de base de datos distinto para cargas batch de la capa de aplicación, separado del nombre de servicio OLTP.",
+        "ASM": "Oracle Automatic Storage Management. La guía fuente marca ASM administrado por el cliente como no aplicable a esta ruta Exascale.",
+        "Listener": "Proceso Oracle Net listener que recibe solicitudes de conexión cliente y las enruta a instancias o servicios de base de datos.",
+        "SCAN": "Single Client Access Name, función RAC que proporciona un nombre único para acceso cliente al cluster.",
+        "FAN": "Fast Application Notification, framework de eventos de alta disponibilidad para clientes y pools conscientes de RAC.",
+        "RLB": "Runtime Load Balancing, configurado con objetivos de servicio y un objetivo de balanceo de conexión SHORT para pools soportados.",
+        "TAF": "Transparent Application Failover. La guía requiere que las aplicaciones soporten manejo de failover TAF/UCP/JDBC.",
+        "UCP": "Oracle Universal Connection Pool, referenciado en la guía como parte del manejo de failover de aplicación.",
+        "JDBC failover handling": "Soporte Oracle JDBC para Application Continuity y comportamientos relacionados de alta disponibilidad.",
+        "JDBC Thin connection string": "Formato de URL de conexión Java usado por Oracle JDBC, incluyendo URLs por alias TNS como jdbc:oracle:thin:@CDB01_PDB01_TAF y URLs descriptor DESCRIPTION completas que llevan los mismos parámetros que los alias de tnsnames.ora.",
+        "AC": "Application Continuity, capacidad Oracle de alta disponibilidad para recuperar trabajo de aplicación tras interrupciones recuperables.",
+        "TAC": "Transparent Application Continuity, modo de Application Continuity para aplicaciones y clientes soportados.",
+        "Runtime Load Balancing Goal SERVICE_TIME": "Objetivo de servicio nombrado en la guía para runtime load balancing OLTP.",
+        "Connection Load Balancing Goal SHORT / LONG": "Configuraciones de balanceo de conexión de servicio comparadas por la guía para configuración por defecto y recomendada.",
+        "TNSPING": "Utilidad Oracle Net usada aquí para probar si el listener de un servicio puede alcanzarse.",
+        "SQL*Plus": "Cliente de línea de comandos Oracle usado aquí para validar una conexión al servicio de base de datos.",
+        "tnsnames.ora / TNS alias": "Archivo de nombres locales y alias usados para mapear nombres de servicio a descriptores de conexión.",
+        "FAILOVER_MODE": "Parámetro Oracle Net en CONNECT_DATA usado por los alias TNS de la guía para tipo, método, reintentos y demora de failover TAF.",
+        "RETRIES and DELAY": "Parámetros TAF en FAILOVER_MODE que controlan los intentos de reconexión y la demora entre intentos.",
+        "$ORACLE_UNQNAME": "Variable de entorno de database unique name usada por la guía para delimitar verificaciones SRVCTL de base y servicios.",
+        "CDB / PDB": "Conceptos de container database y pluggable database usados por el nombre de servicio de ejemplo CDB01_PDB01.",
+        "V$ and GV$ dynamic performance views": "Vistas SQL usadas para inspección de salud; las vistas GV$ recuperan información V$ desde instancias RAC.",
+        "gv$instance, v$database, gv$services, gv$active_services, gv$session, v$services, v$pdbs": "Vistas dinámicas específicas listadas en la guía fuente para health checks SQL."
+      }[entry.term] || entry.text
+    }));
+
+    article.pt.glossary = article.en.glossary.map((entry) => ({
+      ...entry,
+      text: {
+        "Exadata Database Service on Exascale Infrastructure": "Família de serviço OCI Exadata para implantações Exascale. A documentação Oracle informa suporte a Oracle Database 19c e Oracle AI Database 26ai.",
+        "Exascale Storage Vault": "Contêiner lógico de armazenamento Exascale usado para arquivos de banco de dados na arquitetura Exascale 26ai.",
+        "Oracle AI Database 26ai": "Versão de banco de dados 26ai referenciada pelo guia Exascale e pela documentação Oracle RAC.",
+        "Oracle RAC": "Modelo de implantação de banco em cluster com instâncias, serviços, listeners e roteamento de conexões cliente.",
+        "Oracle Grid Infrastructure / Oracle Clusterware": "Camada de infraestrutura de cluster administrada com comandos CRSCTL e SRVCTL.",
+        "CRSCTL": "Utilitário de controle do Oracle Clusterware usado aqui para verificações de cluster e recursos.",
+        "crsctl check cluster -all": "Comando de saúde de cluster usado no guia para verificar o cluster nos nós.",
+        "crsctl status resource -t": "Comando de status de recursos usado para revisar recursos Oracle Clusterware em formato tabular.",
+        "OLSNODES": "Comando usado para listar nós do cluster e números de nó; o guia usa olsnodes e olsnodes -n.",
+        "SRVCTL": "Utilitário Server Control usado aqui para inspecionar ASM, listeners, bancos de dados e serviços.",
+        "srvctl status asm": "Comando de status do recurso ASM. Neste caminho Exascale 26ai, a saída esperada do guia é que ora.asm não existe.",
+        "srvctl status listener -n": "Comando de status do listener limitado a um nó do cluster.",
+        "srvctl status database -d": "Comando de status do banco limitado ao database unique name.",
+        "srvctl config database -d": "Comando de configuração do banco limitado ao database unique name.",
+        "srvctl config/status service -d": "Comandos de configuração e status runtime de serviços para o banco.",
+        "srvctl add service": "Comando de criação de serviço usado na seção de batch jobs para registrar um serviço dedicado de aplicação no Oracle Clusterware.",
+        "Preferred and available service instances": "Listas de posicionamento de serviços RAC usadas para executar um serviço em instâncias preferred e reservar instâncias available para failover.",
+        "Dedicated OLTP service": "Serviço de banco distinto para tráfego OLTP de aplicação, configurado neste guia com connection load balancing SHORT e runtime load balancing SERVICE_TIME.",
+        "Batch job service": "Serviço de banco distinto para cargas batch da camada de aplicação, separado do nome de serviço OLTP.",
+        "ASM": "Oracle Automatic Storage Management. O guia fonte marca ASM gerenciado pelo cliente como não aplicável a este caminho Exascale.",
+        "Listener": "Processo Oracle Net listener que recebe solicitações de conexão cliente e as roteia para instâncias ou serviços de banco.",
+        "SCAN": "Single Client Access Name, recurso RAC que oferece um nome único para acesso cliente ao cluster.",
+        "FAN": "Fast Application Notification, framework de eventos de alta disponibilidade para clientes e pools conscientes de RAC.",
+        "RLB": "Runtime Load Balancing, configurado com objetivos de serviço e objetivo de balanceamento de conexão SHORT para pools suportados.",
+        "TAF": "Transparent Application Failover. O guia exige que aplicações suportem tratamento de failover TAF/UCP/JDBC.",
+        "UCP": "Oracle Universal Connection Pool, referenciado no guia como parte do tratamento de failover de aplicação.",
+        "JDBC failover handling": "Suporte Oracle JDBC a Application Continuity e comportamentos relacionados de alta disponibilidade.",
+        "JDBC Thin connection string": "Formato de URL de conexão Java usado pelo Oracle JDBC, incluindo URLs por alias TNS como jdbc:oracle:thin:@CDB01_PDB01_TAF e URLs descriptor DESCRIPTION completas que carregam os mesmos parâmetros dos aliases de tnsnames.ora.",
+        "AC": "Application Continuity, capacidade Oracle de alta disponibilidade para recuperar trabalho de aplicação após interrupções recuperáveis.",
+        "TAC": "Transparent Application Continuity, modo de Application Continuity para aplicações e clientes suportados.",
+        "Runtime Load Balancing Goal SERVICE_TIME": "Objetivo de serviço nomeado no guia para runtime load balancing OLTP.",
+        "Connection Load Balancing Goal SHORT / LONG": "Configurações de balanceamento de conexão de serviço comparadas pelo guia para configuração padrão e recomendada.",
+        "TNSPING": "Utilitário Oracle Net usado aqui para testar se o listener de um serviço pode ser alcançado.",
+        "SQL*Plus": "Cliente Oracle de linha de comando usado aqui para validar uma conexão ao serviço de banco de dados.",
+        "tnsnames.ora / TNS alias": "Arquivo de nomes locais e aliases usados para mapear nomes de serviço para descritores de conexão.",
+        "FAILOVER_MODE": "Parâmetro Oracle Net em CONNECT_DATA usado pelos aliases TNS do guia para tipo, método, tentativas e atraso de failover TAF.",
+        "RETRIES and DELAY": "Parâmetros TAF em FAILOVER_MODE que controlam tentativas de reconexão e atraso entre tentativas.",
+        "$ORACLE_UNQNAME": "Variável de ambiente de database unique name usada pelo guia para delimitar verificações SRVCTL de banco e serviços.",
+        "CDB / PDB": "Conceitos de container database e pluggable database usados pelo nome de serviço de exemplo CDB01_PDB01.",
+        "V$ and GV$ dynamic performance views": "Views SQL usadas para inspeção de saúde; views GV$ recuperam informações V$ de instâncias RAC.",
+        "gv$instance, v$database, gv$services, gv$active_services, gv$session, v$services, v$pdbs": "Views dinâmicas específicas listadas no guia fonte para health checks SQL."
+      }[entry.term] || entry.text
+    }));
+
+    function cx(...classes) {
+      return classes.filter(Boolean).join(" ");
+    }
+
+    function CodePanel({ block, controls }) {
+      const [copied, setCopied] = useState(false);
+      const palette = {
+        bash: "border-emerald-500/35 bg-[#111917]",
+        java: "border-amber-500/35 bg-[#17130d]",
+        sql: "border-sky-500/35 bg-[#101922]",
+        text: "border-stone-500/35 bg-[#171412]",
+        diagram: "border-orange-400/35 bg-[#191511]"
+      };
+
+      function legacyCopy(text) {
+        const textarea = document.createElement("textarea");
+        textarea.value = text;
+        textarea.setAttribute("readonly", "");
+        textarea.style.position = "fixed";
+        textarea.style.top = "0";
+        textarea.style.left = "0";
+        textarea.style.width = "1px";
+        textarea.style.height = "1px";
+        textarea.style.opacity = "0";
+        document.body.appendChild(textarea);
+        textarea.focus();
+        textarea.select();
+        let ok = false;
+        try {
+          ok = document.execCommand("copy");
+        } finally {
+          document.body.removeChild(textarea);
+        }
+        return ok;
+      }
+
+      async function copyCode() {
+        let ok = false;
+        if (navigator.clipboard && navigator.clipboard.writeText && window.isSecureContext) {
+          try {
+            await navigator.clipboard.writeText(block.value);
+            ok = true;
+          } catch (error) {
+            ok = false;
+          }
+        }
+        if (!ok) {
+          ok = legacyCopy(block.value);
+        }
+        setCopied(ok);
+        if (ok) {
+          window.setTimeout(() => setCopied(false), 1500);
+        }
+      }
+
+      return (
+        <figure className={cx("overflow-hidden rounded-lg border shadow-sm", palette[block.type] || palette.text)}>
+          <div className="flex items-center justify-between gap-4 border-b border-white/10 px-4 py-2">
+            <figcaption className="text-xs font-semibold uppercase tracking-wide text-stone-200">
+              {block.label || controls.command}
+            </figcaption>
+            <button
+              type="button"
+              onClick={copyCode}
+              className="rounded-md border border-white/15 bg-white/10 px-3 py-1 text-xs font-semibold text-white transition hover:bg-white/18 focus:outline-none focus:ring-2 focus:ring-white/60"
+              aria-label={`${controls.copy}: ${block.label || controls.command}`}
+            >
+              {copied ? controls.copied : controls.copy}
+            </button>
+          </div>
+          <pre className="code-scroll overflow-x-auto p-4 text-[13px] leading-6 text-stone-100"><code>{block.value}</code></pre>
+        </figure>
+      );
+    }
+
+    function ReferenceLinks({ links, controls }) {
+      if (!links || !links.length) return null;
+
+      return (
+        <div className="rounded-lg border border-stone-200 bg-stone-50 p-4 dark:border-stone-700 dark:bg-stone-900/45">
+          <p className="text-sm font-semibold text-stone-950 dark:text-stone-100">{controls.oracleDocs}</p>
+          <div className="mt-3 flex flex-wrap gap-2">
+            {links.map((link) => (
+              <a
+                key={link.url}
+                href={link.url}
+                target="_blank"
+                rel="noreferrer"
+                className="rounded-md border border-oracle-red/30 bg-white px-3 py-2 text-sm font-semibold text-oracle-red underline-offset-4 hover:underline dark:border-orange-300/30 dark:bg-[#211d1b] dark:text-orange-300"
+              >
+                {link.label}
+              </a>
+            ))}
+          </div>
+        </div>
+      );
+    }
+
+    function DataTable({ table }) {
+      return (
+        <div className="overflow-hidden rounded-lg border border-stone-200 bg-white dark:border-stone-700 dark:bg-[#211d1b]">
+          <table className="min-w-full border-collapse text-left text-sm">
+            <thead className="bg-stone-100 text-stone-700 dark:bg-stone-800 dark:text-stone-200">
+              <tr>
+                {table.headers.map((header) => (
+                  <th key={header} scope="col" className="px-4 py-3 font-semibold">{header}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-stone-200 dark:divide-stone-700">
+              {table.rows.map((row) => (
+                <tr key={row.join("-")} className="hover:bg-stone-50 dark:hover:bg-stone-800/70">
+                  {row.map((cell, index) => (
+                    <td key={cell} className={cx("px-4 py-3 align-top", index === 0 && "font-medium text-stone-900 dark:text-stone-100")}>
+                      <code className={index === 1 ? "rounded bg-stone-100 px-2 py-1 text-xs font-semibold text-oracle-deep dark:bg-stone-800 dark:text-orange-200" : ""}>{cell}</code>
+                    </td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      );
+    }
+
+    function ArticleSection({ section, controls }) {
+      const content = (
+        <div className="space-y-5">
+          <div className="space-y-2">
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-oracle-red dark:text-orange-300">{section.kicker}</p>
+            <h2 className="text-2xl font-bold tracking-tight text-stone-950 dark:text-white sm:text-3xl">{section.title}</h2>
+            <p className="max-w-3xl text-base leading-7 text-stone-700 dark:text-stone-300">{section.body}</p>
+          </div>
+          {section.bullets && (
+            <ul className="grid gap-3 sm:grid-cols-2">
+              {section.bullets.map((bullet) => (
+                <li key={bullet} className="rounded-lg border border-stone-200 bg-stone-50 px-4 py-3 text-sm text-stone-700 dark:border-stone-700 dark:bg-stone-900/45 dark:text-stone-300">
+                  {bullet}
+                </li>
+              ))}
+            </ul>
+          )}
+          {section.code && <CodePanel block={section.code} controls={controls} />}
+          {section.extraCodes && section.extraCodes.map((block) => (
+            <CodePanel key={`${section.id}-${block.label}`} block={block} controls={controls} />
+          ))}
+          <ReferenceLinks links={section.references} controls={controls} />
+          {section.expected && (
+            <div className="space-y-2">
+              <p className="text-sm font-semibold text-stone-700 dark:text-stone-200">{controls.expected}</p>
+              <CodePanel block={{ type: "text", label: controls.expected, value: section.expected }} controls={controls} />
+            </div>
+          )}
+          {section.table && <DataTable table={section.table} />}
+          {section.notes && (
+            <div className="rounded-lg border-l-4 border-oracle-red bg-red-50 px-4 py-3 text-sm text-stone-700 dark:border-orange-300 dark:bg-orange-950/20 dark:text-stone-300">
+              <p className="mb-2 font-semibold text-stone-950 dark:text-stone-100">{controls.notes}</p>
+              <ul className="list-disc space-y-1 pl-5">
+                {section.notes.map((note) => <li key={note}>{note}</li>)}
+              </ul>
+            </div>
+          )}
+        </div>
+      );
+
+      return (
+        <section id={section.id} className="border-t border-stone-200 py-10 dark:border-stone-800">
+          {section.collapsible ? (
+            <details open className="group">
+              <summary className="cursor-pointer list-none rounded-lg outline-none focus:ring-2 focus:ring-oracle-red/50">
+                <div className="flex items-start justify-between gap-4">
+                  <div>
+                    <p className="text-xs font-semibold uppercase tracking-[0.16em] text-oracle-red dark:text-orange-300">{section.kicker}</p>
+                    <h2 className="mt-2 text-2xl font-bold tracking-tight text-stone-950 dark:text-white sm:text-3xl">{section.title}</h2>
+                  </div>
+                  <span className="mt-2 rounded-md border border-stone-300 px-3 py-1 text-sm font-semibold text-stone-600 group-open:hidden dark:border-stone-700 dark:text-stone-300">+</span>
+                  <span className="mt-2 hidden rounded-md border border-stone-300 px-3 py-1 text-sm font-semibold text-stone-600 group-open:block dark:border-stone-700 dark:text-stone-300">-</span>
+                </div>
+              </summary>
+              <div className="mt-4 space-y-5">
+                <p className="max-w-3xl text-base leading-7 text-stone-700 dark:text-stone-300">{section.body}</p>
+                {section.code && <CodePanel block={section.code} controls={controls} />}
+                {section.extraCodes && section.extraCodes.map((block) => (
+                  <CodePanel key={`${section.id}-${block.label}`} block={block} controls={controls} />
+                ))}
+                <ReferenceLinks links={section.references} controls={controls} />
+                {section.table && <DataTable table={section.table} />}
+                {section.notes && (
+                  <div className="rounded-lg border-l-4 border-oracle-red bg-red-50 px-4 py-3 text-sm text-stone-700 dark:border-orange-300 dark:bg-orange-950/20 dark:text-stone-300">
+                    <p className="mb-2 font-semibold text-stone-950 dark:text-stone-100">{controls.notes}</p>
+                    <ul className="list-disc space-y-1 pl-5">
+                      {section.notes.map((note) => <li key={note}>{note}</li>)}
+                    </ul>
+                  </div>
+                )}
+              </div>
+            </details>
+          ) : content}
+        </section>
+      );
+    }
+
+    function App() {
+      const [lang, setLang] = useState("en");
+      const [dark, setDark] = useState(() => document.documentElement.classList.contains("dark"));
+      const t = article[lang];
+
+      useEffect(() => {
+        document.documentElement.lang = lang;
+      }, [lang]);
+
+      useEffect(() => {
+        document.documentElement.classList.toggle("dark", dark);
+        localStorage.setItem("exascale-theme", dark ? "dark" : "light");
+      }, [dark]);
+
+      const toc = useMemo(() => [
+        ...t.sections.map(({ id, title }) => ({ id, title })),
+        { id: "concepts", title: t.calloutsTitle },
+        { id: "glossary", title: t.glossaryTitle }
+      ], [t]);
+
+      return (
+        <div className="min-h-screen">
+          <header id="top" className="article-gradient border-b border-stone-200 dark:border-stone-800">
+            <div className="mx-auto max-w-7xl px-5 py-6 sm:px-8">
+              <nav className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between" aria-label="Page controls">
+                <div className="flex items-center gap-3">
+                  <div className="h-9 w-9 rounded-md bg-oracle-red shadow-sm" aria-hidden="true"></div>
+                  <div>
+                    <p className="text-sm font-semibold text-stone-900 dark:text-white">Oracle Exadata Exascale</p>
+                    <p className="text-xs text-stone-600 dark:text-stone-400">26ai RAC Health Check</p>
+                  </div>
+                </div>
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="sr-only">{t.controls.language}</span>
+                  <div className="flex rounded-lg border border-stone-300 bg-white p-1 shadow-sm dark:border-stone-700 dark:bg-stone-900">
+                    {Object.entries(article).map(([key, value]) => (
+                      <button
+                        key={key}
+                        type="button"
+                        onClick={() => setLang(key)}
+                        className={cx(
+                          "rounded-md px-3 py-1.5 text-sm font-semibold transition focus:outline-none focus:ring-2 focus:ring-oracle-red/60",
+                          lang === key ? "bg-oracle-red text-white" : "text-stone-700 hover:bg-stone-100 dark:text-stone-300 dark:hover:bg-stone-800"
+                        )}
+                        aria-pressed={lang === key}
+                      >
+                        {value.label}
+                      </button>
+                    ))}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setDark((value) => !value)}
+                    className="rounded-lg border border-stone-300 bg-white px-3 py-2 text-sm font-semibold text-stone-700 shadow-sm transition hover:bg-stone-100 focus:outline-none focus:ring-2 focus:ring-oracle-red/60 dark:border-stone-700 dark:bg-stone-900 dark:text-stone-200 dark:hover:bg-stone-800"
+                    aria-pressed={dark}
+                  >
+                    {dark ? t.controls.themeLight : t.controls.themeDark}
+                  </button>
+                </div>
+              </nav>
+
+              <div className="grid gap-5 py-6 sm:gap-6 sm:py-10 lg:grid-cols-[minmax(0,1fr)_360px] lg:items-end lg:gap-8 lg:py-12">
+                <div className="max-w-4xl">
+                  <p className="text-sm font-semibold uppercase tracking-[0.18em] text-oracle-red dark:text-orange-300">{t.eyebrow}</p>
+                  <h1 className="mt-4 text-3xl font-bold leading-tight tracking-tight text-stone-950 dark:text-white sm:text-5xl lg:text-6xl">{t.title}</h1>
+                  <p className="mt-4 max-w-3xl text-base leading-7 text-stone-700 dark:text-stone-300 sm:text-lg sm:leading-8">{t.subtitle}</p>
+                  <div className="mt-5 flex min-w-0 flex-wrap gap-3 text-sm text-stone-600 dark:text-stone-400">
+                    <span className="max-w-full rounded-md border border-stone-300 bg-white px-3 py-1.5 break-words dark:border-stone-700 dark:bg-stone-900">{t.updated}</span>
+                  </div>
+                </div>
+                <aside className="rounded-lg border border-stone-200 bg-white p-4 shadow-subtle dark:border-stone-700 dark:bg-[#211d1b] sm:p-5">
+                  <h2 className="text-sm font-bold uppercase tracking-[0.16em] text-stone-500 dark:text-stone-400">{t.controls.highlights}</h2>
+                  <ul className="mt-3 space-y-1.5 sm:mt-4 sm:space-y-3">
+                    {t.highlights.map((item) => (
+                      <li key={item} className="flex gap-3 text-sm leading-5 text-stone-700 dark:text-stone-300 sm:leading-6">
+                        <span className="mt-2 h-2 w-2 flex-none rounded-full bg-oracle-red" aria-hidden="true"></span>
+                        <span>{item}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </aside>
+              </div>
+            </div>
+          </header>
+
+          <div className="sticky top-0 z-30 border-b border-stone-200 bg-white/95 backdrop-blur lg:hidden dark:border-stone-800 dark:bg-[#171412]/95">
+            <nav className="mx-auto flex max-w-7xl gap-2 overflow-x-auto px-5 py-3" aria-label={t.controls.toc}>
+              {toc.map((item) => (
+                <a key={item.id} href={`#${item.id}`} className="whitespace-nowrap rounded-md border border-stone-200 px-3 py-1.5 text-sm font-medium text-stone-700 dark:border-stone-700 dark:text-stone-300">
+                  {item.title.replace(/^\d+\.\s*/, "")}
+                </a>
+              ))}
+            </nav>
+          </div>
+
+          <main className="mx-auto grid max-w-7xl gap-8 px-5 py-8 sm:px-8 lg:grid-cols-[280px_minmax(0,1fr)] lg:py-12">
+            <aside className="hidden lg:block">
+              <div className="sticky top-6 rounded-lg border border-stone-200 bg-white p-4 shadow-sm dark:border-stone-800 dark:bg-[#211d1b]">
+                <h2 className="text-xs font-bold uppercase tracking-[0.16em] text-stone-500 dark:text-stone-400">{t.controls.toc}</h2>
+                <nav className="mt-4 space-y-1" aria-label={t.controls.toc}>
+                  {toc.map((item) => (
+                    <a key={item.id} href={`#${item.id}`} className="block rounded-md px-3 py-2 text-sm font-medium text-stone-700 transition hover:bg-stone-100 hover:text-oracle-red focus:outline-none focus:ring-2 focus:ring-oracle-red/40 dark:text-stone-300 dark:hover:bg-stone-800 dark:hover:text-orange-200">
+                      {item.title}
+                    </a>
+                  ))}
+                </nav>
+              </div>
+            </aside>
+
+            <article className="min-w-0">
+              {t.sections.map((section) => (
+                <ArticleSection key={section.id} section={section} controls={t.controls} />
+              ))}
+
+              <section id="concepts" className="border-t border-stone-200 py-10 dark:border-stone-800">
+                <div className="space-y-3">
+                  <p className="text-xs font-semibold uppercase tracking-[0.16em] text-oracle-red dark:text-orange-300">RAC context</p>
+                  <h2 className="text-2xl font-bold tracking-tight text-stone-950 dark:text-white sm:text-3xl">{t.calloutsTitle}</h2>
+                  <p className="max-w-3xl text-base leading-7 text-stone-700 dark:text-stone-300">{t.calloutsIntro}</p>
+                </div>
+                <div className="mt-7 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+                  {t.callouts.map((item) => (
+                    <a key={item.id} href={item.ref} target="_blank" rel="noreferrer" className="group rounded-lg border border-stone-200 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:border-oracle-red/60 hover:shadow-subtle dark:border-stone-700 dark:bg-[#211d1b]">
+                      <div className="flex items-center justify-between gap-3">
+                        <span className="rounded-md bg-oracle-red px-3 py-1 text-lg font-black tracking-wide text-white">{item.term}</span>
+                        <span className="text-xs font-semibold uppercase tracking-[0.16em] text-stone-400 group-hover:text-oracle-red dark:group-hover:text-orange-300">{t.controls.refs}</span>
+                      </div>
+                      <h3 className="mt-4 text-lg font-bold text-stone-950 dark:text-white">{item.name}</h3>
+                      <p className="mt-2 text-sm leading-6 text-stone-700 dark:text-stone-300">{item.text}</p>
+                    </a>
+                  ))}
+                </div>
+              </section>
+
+              <section id="glossary" className="border-t border-stone-200 py-10 dark:border-stone-800">
+                <div className="space-y-3">
+                  <p className="text-xs font-semibold uppercase tracking-[0.16em] text-oracle-red dark:text-orange-300">{t.controls.refs}</p>
+                  <h2 className="text-2xl font-bold tracking-tight text-stone-950 dark:text-white sm:text-3xl">{t.glossaryTitle}</h2>
+                  <p className="max-w-3xl text-base leading-7 text-stone-700 dark:text-stone-300">{t.glossaryIntro}</p>
+                </div>
+                <div className="mt-7 grid gap-4 md:grid-cols-2">
+                  {t.glossary.map((entry) => (
+                    <div key={entry.term} className="rounded-lg border border-stone-200 bg-white p-5 dark:border-stone-700 dark:bg-[#211d1b]">
+                      <h3 className="text-base font-bold text-stone-950 dark:text-white">{entry.term}</h3>
+                      <p className="mt-2 text-sm leading-6 text-stone-700 dark:text-stone-300">{entry.text}</p>
+                      <a href={entry.ref} target="_blank" rel="noreferrer" className="mt-3 inline-flex rounded-md text-sm font-semibold text-oracle-red underline-offset-4 hover:underline dark:text-orange-300">
+                        {t.controls.refs}
+                      </a>
+                    </div>
+                  ))}
+                </div>
+              </section>
+            </article>
+          </main>
+
+          <footer className="border-t border-stone-200 bg-stone-50 px-5 py-8 text-center text-sm text-stone-600 dark:border-stone-800 dark:bg-[#12100f] dark:text-stone-400">
+            <p>{t.updated}</p>
+          </footer>
+
+          <button
+            type="button"
+            onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+            className="fixed bottom-5 right-5 rounded-lg border border-stone-300 bg-white px-4 py-3 text-sm font-bold text-stone-800 shadow-subtle transition hover:border-oracle-red hover:text-oracle-red focus:outline-none focus:ring-2 focus:ring-oracle-red/50 dark:border-stone-700 dark:bg-stone-900 dark:text-stone-100 dark:hover:text-orange-300"
+          >
+            {t.controls.backTop}
+          </button>
+        </div>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+  </script>
+</body>
+</html>
