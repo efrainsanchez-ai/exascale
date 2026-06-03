@@ -360,6 +360,8 @@ Exascale note: customer-managed ASM is not expected for the 26ai Exascale path i
         eyebrow: "Oracle technical article",
         updated: "Reference links checked June 3, 2026",
         source: "Converted from Exadata_Exascale_26ai_RAC_Health_Check_Guide.md",
+        disclaimerTitle: "Educational use and validation required",
+        disclaimer: "This content is for educational and planning purposes only. Apply every command and configuration first in a non-production test environment that mirrors your RAC, service, client driver, workload, and failover requirements. The recommended values shown here may not work in your specific environment, may require change-control approval, and can affect availability, connection routing, transaction behavior, memory use, and batch workload placement. Validate with application owners, DBAs, network teams, and Oracle Support guidance before using any setting in production.",
         controls: {
           language: "Language",
           themeLight: "Light",
@@ -647,6 +649,8 @@ Exascale note: customer-managed ASM is not expected for the 26ai Exascale path i
         eyebrow: "Artículo técnico Oracle",
         updated: "Referencias revisadas el 3 de junio de 2026",
         source: "Convertido desde Exadata_Exascale_26ai_RAC_Health_Check_Guide.md",
+        disclaimerTitle: "Uso educativo y validación obligatoria",
+        disclaimer: "Este contenido es solo para fines educativos y de planeación. Aplica cada comando y configuración primero en un ambiente de prueba no productivo que refleje tus requisitos de RAC, servicios, drivers cliente, carga de trabajo y failover. Los valores recomendados aquí podrían no funcionar en tu entorno específico, pueden requerir aprobación de change-control y pueden afectar disponibilidad, enrutamiento de conexiones, comportamiento transaccional, uso de memoria y ubicación de cargas batch. Valida con dueños de aplicación, DBAs, equipos de red y la guía de Oracle Support antes de usar cualquier ajuste en producción.",
         controls: {
           language: "Idioma",
           themeLight: "Claro",
@@ -709,6 +713,8 @@ Exascale note: customer-managed ASM is not expected for the 26ai Exascale path i
         eyebrow: "Artigo técnico Oracle",
         updated: "Referências verificadas em 3 de junho de 2026",
         source: "Convertido de Exadata_Exascale_26ai_RAC_Health_Check_Guide.md",
+        disclaimerTitle: "Uso educacional e validação obrigatória",
+        disclaimer: "Este conteúdo é apenas para fins educacionais e de planejamento. Aplique cada comando e configuração primeiro em um ambiente de teste não produtivo que reflita seus requisitos de RAC, serviços, drivers cliente, carga de trabalho e failover. Os valores recomendados aqui podem não funcionar no seu ambiente específico, podem exigir aprovação de change-control e podem afetar disponibilidade, roteamento de conexões, comportamento transacional, uso de memória e posicionamento de cargas batch. Valide com responsáveis pela aplicação, DBAs, equipes de rede e orientação do Oracle Support antes de usar qualquer ajuste em produção.",
         controls: {
           language: "Idioma",
           themeLight: "Claro",
@@ -957,6 +963,22 @@ Exascale note: customer-managed ASM is not expected for the 26ai Exascale path i
       );
     }
 
+    function Disclaimer(props) {
+      const title = props.title;
+      const text = props.text;
+      const compact = Boolean(props.compact);
+
+      return (
+        <aside className={cx(
+          "rounded-lg border border-amber-300 bg-amber-50 text-amber-950 dark:border-amber-500/40 dark:bg-amber-950/25 dark:text-amber-100",
+          compact ? "p-4 text-left" : "p-5"
+        )}>
+          <p className="text-sm font-bold uppercase tracking-[0.14em]">{title}</p>
+          <p className="mt-2 text-sm leading-6">{text}</p>
+        </aside>
+      );
+    }
+
     function DataTable({ table }) {
       return (
         <div className="overflow-x-auto rounded-lg border border-stone-200 bg-white dark:border-stone-700 dark:bg-[#211d1b]">
@@ -1130,6 +1152,9 @@ Exascale note: customer-managed ASM is not expected for the 26ai Exascale path i
                   <div className="mt-5 flex min-w-0 flex-wrap gap-3 text-sm text-stone-600 dark:text-stone-400">
                     <span className="max-w-full rounded-md border border-stone-300 bg-white px-3 py-1.5 break-words dark:border-stone-700 dark:bg-stone-900">{t.updated}</span>
                   </div>
+                  <div className="mt-5 max-w-3xl">
+                    <Disclaimer title={t.disclaimerTitle} text={t.disclaimer} />
+                  </div>
                 </div>
                 <aside className="rounded-lg border border-stone-200 bg-white p-4 shadow-subtle dark:border-stone-700 dark:bg-[#211d1b] sm:p-5">
                   <h2 className="text-sm font-bold uppercase tracking-[0.16em] text-stone-500 dark:text-stone-400">{t.controls.highlights}</h2>
@@ -1217,7 +1242,10 @@ Exascale note: customer-managed ASM is not expected for the 26ai Exascale path i
           </main>
 
           <footer className="border-t border-stone-200 bg-stone-50 px-5 py-8 text-center text-sm text-stone-600 dark:border-stone-800 dark:bg-[#12100f] dark:text-stone-400">
-            <p>{t.updated}</p>
+            <div className="mx-auto max-w-4xl">
+              <Disclaimer title={t.disclaimerTitle} text={t.disclaimer} compact />
+              <p className="mt-5">{t.updated}</p>
+            </div>
           </footer>
 
           <button
