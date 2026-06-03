@@ -371,14 +371,14 @@ Exascale note: customer-managed ASM is not expected for the 26ai Exascale path i
           expected: "Expected",
           command: "Command",
           notes: "Notes",
-          highlights: "Key highlights",
+          highlights: "Latest guide coverage",
           sourceLabel: "Source",
           oracleDocs: "Official Oracle documentation"
         },
         highlights: [
-          "Validate Oracle Clusterware, node membership, listeners, RAC database status, services, SQL views, connectivity, and TNS aliases.",
-          "Treat customer-managed ASM as not applicable for the Exascale 26ai path covered by this guide.",
-          "Keep command ownership explicit: Grid Infrastructure checks as grid, database checks as oracle, and database scope through $ORACLE_UNQNAME."
+          "Dedicated OLTP service flow creates CDB01_PDB01_OLTP.paas.oracle.com with SHORT connection load balancing and SERVICE_TIME runtime load balancing.",
+          "Batch job isolation creates CDB01_PDB01_BATCH.paas.oracle.com with node1 preferred and node2 available placement to reduce cross-node contention.",
+          "Application-tier examples now include TNS aliases, full JDBC Thin DESCRIPTION URLs, and TAF/UCP/JDBC failover handling guidance."
         ],
         sections: [
           {
@@ -648,14 +648,14 @@ Exascale note: customer-managed ASM is not expected for the 26ai Exascale path i
           expected: "Esperado",
           command: "Comando",
           notes: "Notas",
-          highlights: "Puntos clave",
+          highlights: "Cobertura actualizada",
           sourceLabel: "Fuente",
           oracleDocs: "Documentación oficial de Oracle"
         },
         highlights: [
-          "Validar Oracle Clusterware, membresía de nodos, listeners, estado de la base RAC, servicios, vistas SQL, conectividad y alias TNS.",
-          "Tratar ASM administrado por el cliente como no aplicable para la ruta Exascale 26ai cubierta por esta guía.",
-          "Mantener explícito el propietario de cada comando: verificaciones de Grid Infrastructure como grid, verificaciones de base de datos como oracle y alcance mediante $ORACLE_UNQNAME."
+          "El flujo de servicio OLTP dedicado crea CDB01_PDB01_OLTP.paas.oracle.com con connection load balancing SHORT y runtime load balancing SERVICE_TIME.",
+          "El aislamiento de batch jobs crea CDB01_PDB01_BATCH.paas.oracle.com con node1 como preferred y node2 como available para reducir contención entre nodos.",
+          "Los ejemplos de capa de aplicación ahora incluyen alias TNS, URLs JDBC Thin DESCRIPTION completas y guía de manejo de failover TAF/UCP/JDBC."
         ],
         sections: [
           { id: "overview", title: "Overview", kicker: "Propósito", body: "Proporcionar un procedimiento consistente para validar la salud de una implementación Exadata Exascale RAC.", notes: ["Ejecuta las secciones en orden durante una validación base o una revisión posterior a cambios."] },
@@ -710,14 +710,14 @@ Exascale note: customer-managed ASM is not expected for the 26ai Exascale path i
           expected: "Esperado",
           command: "Comando",
           notes: "Notas",
-          highlights: "Destaques",
+          highlights: "Cobertura atualizada",
           sourceLabel: "Fonte",
           oracleDocs: "Documentação oficial da Oracle"
         },
         highlights: [
-          "Validar Oracle Clusterware, associação de nós, listeners, estado da base RAC, serviços, views SQL, conectividade e aliases TNS.",
-          "Tratar ASM gerenciado pelo cliente como não aplicável para o caminho Exascale 26ai coberto por este guia.",
-          "Manter explícito o proprietário de cada comando: verificações de Grid Infrastructure como grid, verificações de banco como oracle e escopo via $ORACLE_UNQNAME."
+          "O fluxo de serviço OLTP dedicado cria CDB01_PDB01_OLTP.paas.oracle.com com connection load balancing SHORT e runtime load balancing SERVICE_TIME.",
+          "O isolamento de batch jobs cria CDB01_PDB01_BATCH.paas.oracle.com com node1 como preferred e node2 como available para reduzir contenção entre nós.",
+          "Os exemplos da camada de aplicação agora incluem aliases TNS, URLs JDBC Thin DESCRIPTION completas e orientação de failover TAF/UCP/JDBC."
         ],
         sections: [
           { id: "overview", title: "Overview", kicker: "Propósito", body: "Fornecer um procedimento consistente para validar a saúde de uma implantação Exadata Exascale RAC.", notes: ["Execute as seções em ordem durante uma validação base ou uma revisão após mudanças."] },
