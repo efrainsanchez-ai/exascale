@@ -1423,7 +1423,6 @@
         <ol>
           <li><a href="#en-introduction">Introduction</a></li>
           <li><a href="#en-architecture">Architecture Evolution</a></li>
-          <li><a href="#en-scan">Single Client Access Architecture</a></li>
           <li><a href="#en-ha">High Availability Components</a></li>
           <li><a href="#en-validation">Cluster Validation Commands</a></li>
           <li><a href="#en-service-validation">Service Validation Before Changes</a></li>
@@ -1530,35 +1529,6 @@
               <div class="acronym-card"><strong>TAC — Transparent Application Continuity</strong><span>A mode of Application Continuity that automatically tracks session state and discovers request boundaries.</span></div>
             </div>
           </div>
-        </section>
-
-        <section id="en-scan" class="article-section">
-          <h2>SCAN Architecture Deep Dive</h2>
-          <div class="code-card code-diagram">
-            <div class="code-toolbar"><span>Text diagram</span><button class="copy-btn" type="button">Copy</button></div>
-            <pre><code>Client
-   |
-SCAN DNS
-   |
-SCAN Listener
-   |
-Service Lookup
-   |
-Local Listener
-   |
-Database Instance</code></pre>
-          </div>
-          <h3>Components</h3>
-          <ul class="component-list">
-            <li>SCAN Name</li>
-            <li>SCAN VIPs</li>
-            <li>SCAN Listeners</li>
-            <li>Node VIPs</li>
-            <li>Local Listeners</li>
-            <li>Services</li>
-            <li>FAN</li>
-            <li>ONS</li>
-          </ul>
         </section>
 
         <section id="en-ha" class="article-section">
@@ -2015,7 +1985,6 @@ ORDER BY c.name,s.inst_id;</code></pre>
         <ol>
           <li><a href="#es-introduction">Introducción</a></li>
           <li><a href="#es-architecture">Evolución de la arquitectura</a></li>
-          <li><a href="#es-scan">Arquitectura de acceso cliente</a></li>
           <li><a href="#es-ha">Componentes de alta disponibilidad</a></li>
           <li><a href="#es-validation">Comandos de validación de clúster</a></li>
           <li><a href="#es-service-validation">Validación de servicio antes de cambios</a></li>
@@ -2122,35 +2091,6 @@ ORDER BY c.name,s.inst_id;</code></pre>
               <div class="acronym-card"><strong>TAC — Transparent Application Continuity</strong><span>Modo de Application Continuity que rastrea automáticamente el estado de sesión y descubre límites de petición.</span></div>
             </div>
           </div>
-        </section>
-
-        <section id="es-scan" class="article-section">
-          <h2>Análisis detallado de arquitectura SCAN</h2>
-          <div class="code-card code-diagram">
-            <div class="code-toolbar"><span>Diagrama de texto</span><button class="copy-btn" type="button">Copiar</button></div>
-            <pre><code>Client
-   |
-SCAN DNS
-   |
-SCAN Listener
-   |
-Service Lookup
-   |
-Local Listener
-   |
-Database Instance</code></pre>
-          </div>
-          <h3>Componentes</h3>
-          <ul class="component-list">
-            <li>Nombre SCAN</li>
-            <li>VIPs de SCAN</li>
-            <li>Listeners SCAN</li>
-            <li>VIPs de nodo</li>
-            <li>Listeners locales</li>
-            <li>Servicios</li>
-            <li>FAN</li>
-            <li>ONS</li>
-          </ul>
         </section>
 
         <section id="es-ha" class="article-section">
@@ -2607,7 +2547,6 @@ ORDER BY c.name,s.inst_id;</code></pre>
         <ol>
           <li><a href="#pt-introduction">Introdução</a></li>
           <li><a href="#pt-architecture">Evolução da arquitetura</a></li>
-          <li><a href="#pt-scan">Arquitetura de acesso cliente</a></li>
           <li><a href="#pt-ha">Componentes de alta disponibilidade</a></li>
           <li><a href="#pt-validation">Comandos de validação de cluster</a></li>
           <li><a href="#pt-service-validation">Validação de serviço antes de mudanças</a></li>
@@ -2714,35 +2653,6 @@ ORDER BY c.name,s.inst_id;</code></pre>
               <div class="acronym-card"><strong>TAC — Transparent Application Continuity</strong><span>Modo de Application Continuity que rastreia automaticamente o estado da sessão e descobre limites de requisição.</span></div>
             </div>
           </div>
-        </section>
-
-        <section id="pt-scan" class="article-section">
-          <h2>Análise detalhada da arquitetura SCAN</h2>
-          <div class="code-card code-diagram">
-            <div class="code-toolbar"><span>Diagrama de texto</span><button class="copy-btn" type="button">Copiar</button></div>
-            <pre><code>Client
-   |
-SCAN DNS
-   |
-SCAN Listener
-   |
-Service Lookup
-   |
-Local Listener
-   |
-Database Instance</code></pre>
-          </div>
-          <h3>Componentes</h3>
-          <ul class="component-list">
-            <li>Nome SCAN</li>
-            <li>VIPs do SCAN</li>
-            <li>Listeners SCAN</li>
-            <li>VIPs dos nós</li>
-            <li>Listeners locais</li>
-            <li>Serviços</li>
-            <li>FAN</li>
-            <li>ONS</li>
-          </ul>
         </section>
 
         <section id="pt-ha" class="article-section">
