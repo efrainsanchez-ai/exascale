@@ -293,6 +293,8 @@ select
 from dual;`,
       oltpTnsAlias: `CDB01_PDB01_OLTP=
     (DESCRIPTION=
+      (LOAD_BALANCE = ON)
+      (FAILOVER = ON)
       (ADDRESS=
         (PROTOCOL=TCP)
         (HOST=exasc01-scan-jjtmn.private.usw.oraclevcn.com)
@@ -300,7 +302,6 @@ from dual;`,
       (CONNECT_DATA=
         (SERVER=DEDICATED)
         (SERVICE_NAME=CDB01_PDB01.paas.oracle.com)
-        (UR=A)
         (FAILOVER_MODE=
           (TYPE=session)
           (METHOD=basic)
@@ -311,7 +312,7 @@ from dual;`,
 # jdbc:oracle:thin:@CDB01_PDB01_OLTP
 
 # Java JDBC Thin descriptor URL with the same parameters:
-# jdbc:oracle:thin:@(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=exasc01-scan-jjtmn.private.usw.oraclevcn.com)(PORT=1521))(CONNECT_DATA=(SERVER=DEDICATED)(SERVICE_NAME=CDB01_PDB01.paas.oracle.com)(UR=A)(FAILOVER_MODE=(TYPE=session)(METHOD=basic)(RETRIES=30)(DELAY=5))))`,
+# jdbc:oracle:thin:@(DESCRIPTION=(LOAD_BALANCE=ON)(FAILOVER=ON)(ADDRESS=(PROTOCOL=TCP)(HOST=exasc01-scan-jjtmn.private.usw.oraclevcn.com)(PORT=1521))(CONNECT_DATA=(SERVER=DEDICATED)(SERVICE_NAME=CDB01_PDB01.paas.oracle.com)(FAILOVER_MODE=(TYPE=session)(METHOD=basic)(RETRIES=30)(DELAY=5))))`,
       reportsService: `# Reporting-preferred RAC instance: CDB012
 # Alternate instance for service failover: CDB011
 srvctl add service \\
@@ -390,36 +391,195 @@ srvctl config service \\
 
 # Java JDBC Thin descriptor URL with the same parameters:
 # jdbc:oracle:thin:@(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=exasc01-scan-jjtmn.private.usw.oraclevcn.com)(PORT=1521))(CONNECT_DATA=(SERVER=DEDICATED)(SERVICE_NAME=CDB01_PDB01_BATCH.paas.oracle.com)(UR=A)))`,
-      flow: `Health check scope
+      sessionsPerInstance: `set linesize 120
+column inst_id format 999
+column sessions format 999999
 
-Grid Infrastructure
-  |-- Oracle Clusterware resources
-  |-- Node membership
-  |-- Listener status
-        |
-        v
-RAC database
-  |-- Database status and configuration
-  |-- Default PDB service baseline
-  |     |-- Review CDB01_PDB01.paas.oracle.com
-  |     |-- Update CLB goal to SHORT
-  |     |-- Update RLB goal to THROUGHPUT
-  |-- Dedicated workload services
-  |     |-- Reports: CDB01_PDB01_REPORTS.paas.oracle.com
-  |     |     |-- Preferred CDB012
-  |     |     |-- Available CDB011
-  |     |-- Batch: CDB01_PDB01_BATCH.paas.oracle.com
-  |           |-- Preferred CDB011
-  |           |-- Available CDB012
-  |-- SQL dynamic performance views
-        |
-        v
-Connectivity
-  |-- TNS alias resolution
-  |-- SQL*Plus service connection
-  |-- Application-tier aliases for OLTP, reports, and batch
+SELECT inst_id, COUNT(*) sessions
+FROM gv$session
+GROUP BY inst_id;`,
+      sessionsPerPdbInstance: `set linesize 200
+column inst_id format 999
+column pdb_name format a30
+column network_name format a45
+column sessions format 999999
 
-Exascale note: customer-managed ASM is not expected for the 26ai Exascale path in this guide.`
+SELECT s.inst_id,
+       p.name pdb_name,
+       svc.network_name,
+       COUNT(*) sessions
+FROM gv$session s
+JOIN v$containers p
+  ON s.con_id=p.con_id
+JOIN gv$services svc
+  ON svc.inst_id=s.inst_id
+ AND svc.con_id=s.con_id
+ AND svc.name=s.service_name
+WHERE s.type='USER'
+GROUP BY s.inst_id,p.name,svc.network_name
+ORDER BY p.name,svc.network_name,s.inst_id;`,
+      memoryPerPdbInstance: `set linesize 180
+column inst_id format 999
+column pdb_name format a30
+column pga_mb format 999999990.99
+column sessions format 999999
+
+SELECT
+    s.inst_id,
+    c.name pdb_name,
+    ROUND(SUM(p.pga_alloc_mem)/1024/1024,2) pga_mb,
+    COUNT(*) sessions
+FROM gv$session s
+JOIN gv$process p
+  ON s.inst_id=p.inst_id
+ AND s.paddr=p.addr
+JOIN v$containers c
+  ON s.con_id=c.con_id
+WHERE s.type='USER'
+GROUP BY s.inst_id,c.name
+ORDER BY c.name,s.inst_id;`,
+      clusterMemoryDistribution: `set linesize 160
+column pdb_name format a30
+column total_pga_mb format 999999990.99
+column sessions format 999999
+
+SELECT
+    c.name pdb_name,
+    ROUND(SUM(p.pga_alloc_mem)/1024/1024,2) total_pga_mb,
+    COUNT(*) sessions
+FROM gv$session s
+JOIN gv$process p
+  ON s.inst_id=p.inst_id
+ AND s.paddr=p.addr
+JOIN v$containers c
+  ON s.con_id=c.con_id
+WHERE s.type='USER'
+GROUP BY c.name
+ORDER BY total_pga_mb DESC;`,
+      racWorkloadDashboard: `set linesize 200
+column inst_id format 999
+column pdb_name format a30
+column sessions format 999999
+column total_pga_mb format 999999990.99
+column avg_pga_mb_per_session format 999999990.99
+
+SELECT
+    s.inst_id,
+    c.name pdb_name,
+    COUNT(*) sessions,
+    ROUND(SUM(p.pga_alloc_mem)/1024/1024,2) total_pga_mb,
+    ROUND(SUM(p.pga_alloc_mem)/COUNT(*)/1024/1024,2) avg_pga_mb_per_session
+FROM gv$session s
+JOIN gv$process p
+  ON s.inst_id=p.inst_id
+ AND s.paddr=p.addr
+JOIN v$containers c
+  ON s.con_id=c.con_id
+WHERE s.type='USER'
+GROUP BY s.inst_id,c.name
+ORDER BY c.name,s.inst_id;`
+    };
+
+    const architectureInfographics = {
+      en: {
+        title: "Two-node Exadata Exascale RAC health-check map",
+        subtitle: "Components validated in this guide, from client connection descriptors through RAC services, Clusterware placement, SQL views, and Exascale storage.",
+        clientsTitle: "Application and validation clients",
+        clients: ["TNS aliases", "JDBC Thin DESCRIPTION URLs", "SQL*Plus checks", "UCP / integrated pools"],
+        scanTitle: "SCAN and Oracle Net listeners",
+        scanItems: ["SCAN name resolution", "Node listeners", "Connect-time load balancing", "Failover to another address"],
+        clusterTitle: "Oracle RAC database CDB01 / PDB01",
+        nodes: [
+          {
+            name: "Node 1",
+            instance: "CDB011",
+            role: "Batch preferred / reports available",
+            items: ["Oracle Clusterware resources", "Database instance CDB011", "Node listener", "PDB01 sessions", "GV$SESSION / GV$PROCESS rows"]
+          },
+          {
+            name: "Node 2",
+            instance: "CDB012",
+            role: "Reports preferred / batch available",
+            items: ["Oracle Clusterware resources", "Database instance CDB012", "Node listener", "PDB01 sessions", "GV$SERVICES / GV$ACTIVE_SERVICES rows"]
+          }
+        ],
+        servicesTitle: "Service placement and workload routing",
+        services: [
+          { name: "Default / OLTP service", value: "CDB01_PDB01.paas.oracle.com", detail: "Preferred on CDB011 and CDB012; updated to CLB SHORT and RLB THROUGHPUT for integrated pools." },
+          { name: "Reports service", value: "CDB01_PDB01_REPORTS.paas.oracle.com", detail: "Preferred CDB012, available CDB011; LONG connection balancing and restartable workload behavior." },
+          { name: "Batch service", value: "CDB01_PDB01_BATCH.paas.oracle.com", detail: "Preferred CDB011, available CDB012; scheduled workload isolation with restartable jobs." }
+        ],
+        storageTitle: "Exascale storage path",
+        storageItems: ["Exascale Storage Vault", "Database files managed through Exascale infrastructure", "Customer-managed ASM resource is not expected"],
+        validationTitle: "Health-check evidence",
+        validationItems: ["crsctl / olsnodes", "srvctl database and service status", "tnsping and SQL*Plus connection checks", "GV$ service, session, process, and container queries", "TAF, CLB, RLB, FAN, and service attribute review"]
+      },
+      es: {
+        title: "Mapa de health check RAC Exadata Exascale de dos nodos",
+        subtitle: "Componentes validados en esta guía, desde descriptores de conexión cliente hasta servicios RAC, colocación de Clusterware, vistas SQL y almacenamiento Exascale.",
+        clientsTitle: "Clientes de aplicación y validación",
+        clients: ["Alias TNS", "URLs JDBC Thin DESCRIPTION", "Revisiones SQL*Plus", "UCP / pools integrados"],
+        scanTitle: "SCAN y listeners Oracle Net",
+        scanItems: ["Resolución de nombre SCAN", "Listeners de nodo", "Load balancing en connect time", "Failover a otra dirección"],
+        clusterTitle: "Base de datos Oracle RAC CDB01 / PDB01",
+        nodes: [
+          {
+            name: "Nodo 1",
+            instance: "CDB011",
+            role: "Batch preferred / reportes available",
+            items: ["Recursos Oracle Clusterware", "Instancia de base CDB011", "Listener de nodo", "Sesiones PDB01", "Filas GV$SESSION / GV$PROCESS"]
+          },
+          {
+            name: "Nodo 2",
+            instance: "CDB012",
+            role: "Reportes preferred / batch available",
+            items: ["Recursos Oracle Clusterware", "Instancia de base CDB012", "Listener de nodo", "Sesiones PDB01", "Filas GV$SERVICES / GV$ACTIVE_SERVICES"]
+          }
+        ],
+        servicesTitle: "Colocación de servicios y ruteo de carga",
+        services: [
+          { name: "Servicio default / OLTP", value: "CDB01_PDB01.paas.oracle.com", detail: "Preferred en CDB011 y CDB012; actualizado a CLB SHORT y RLB THROUGHPUT para pools integrados." },
+          { name: "Servicio de reportes", value: "CDB01_PDB01_REPORTS.paas.oracle.com", detail: "Preferred CDB012, available CDB011; connection balancing LONG y comportamiento de carga reiniciable." },
+          { name: "Servicio batch", value: "CDB01_PDB01_BATCH.paas.oracle.com", detail: "Preferred CDB011, available CDB012; aislamiento de carga programada con jobs reiniciables." }
+        ],
+        storageTitle: "Ruta de almacenamiento Exascale",
+        storageItems: ["Exascale Storage Vault", "Archivos de base administrados mediante infraestructura Exascale", "No se espera recurso ASM administrado por el cliente"],
+        validationTitle: "Evidencia del health check",
+        validationItems: ["crsctl / olsnodes", "Estado de base y servicios con srvctl", "Pruebas de conexión con tnsping y SQL*Plus", "Consultas GV$ de servicios, sesiones, procesos y contenedores", "Revisión de TAF, CLB, RLB, FAN y atributos de servicio"]
+      },
+      pt: {
+        title: "Mapa de health check RAC Exadata Exascale de dois nós",
+        subtitle: "Componentes validados nesta guia, desde descritores de conexão cliente até serviços RAC, posicionamento do Clusterware, views SQL e armazenamento Exascale.",
+        clientsTitle: "Clientes de aplicação e validação",
+        clients: ["Aliases TNS", "URLs JDBC Thin DESCRIPTION", "Verificações SQL*Plus", "UCP / pools integrados"],
+        scanTitle: "SCAN e listeners Oracle Net",
+        scanItems: ["Resolução de nome SCAN", "Listeners de nó", "Load balancing em connect time", "Failover para outro endereço"],
+        clusterTitle: "Banco Oracle RAC CDB01 / PDB01",
+        nodes: [
+          {
+            name: "Nó 1",
+            instance: "CDB011",
+            role: "Batch preferred / relatórios available",
+            items: ["Recursos Oracle Clusterware", "Instância de banco CDB011", "Listener de nó", "Sessões PDB01", "Linhas GV$SESSION / GV$PROCESS"]
+          },
+          {
+            name: "Nó 2",
+            instance: "CDB012",
+            role: "Relatórios preferred / batch available",
+            items: ["Recursos Oracle Clusterware", "Instância de banco CDB012", "Listener de nó", "Sessões PDB01", "Linhas GV$SERVICES / GV$ACTIVE_SERVICES"]
+          }
+        ],
+        servicesTitle: "Posicionamento de serviços e roteamento de carga",
+        services: [
+          { name: "Serviço padrão / OLTP", value: "CDB01_PDB01.paas.oracle.com", detail: "Preferred em CDB011 e CDB012; atualizado para CLB SHORT e RLB THROUGHPUT para pools integrados." },
+          { name: "Serviço de relatórios", value: "CDB01_PDB01_REPORTS.paas.oracle.com", detail: "Preferred CDB012, available CDB011; connection balancing LONG e comportamento de carga reiniciável." },
+          { name: "Serviço batch", value: "CDB01_PDB01_BATCH.paas.oracle.com", detail: "Preferred CDB011, available CDB012; isolamento de carga programada com jobs reiniciáveis." }
+        ],
+        storageTitle: "Caminho de armazenamento Exascale",
+        storageItems: ["Exascale Storage Vault", "Arquivos de banco gerenciados pela infraestrutura Exascale", "Não se espera recurso ASM gerenciado pelo cliente"],
+        validationTitle: "Evidência do health check",
+        validationItems: ["crsctl / olsnodes", "Status de banco e serviços com srvctl", "Testes de conexão com tnsping e SQL*Plus", "Consultas GV$ de serviços, sessões, processos e containers", "Revisão de TAF, CLB, RLB, FAN e atributos de serviço"]
+      }
     };
 
     const article = {
@@ -447,7 +607,31 @@ Exascale note: customer-managed ASM is not expected for the 26ai Exascale path i
           notes: "Notes",
           highlights: "Latest guide coverage",
           sourceLabel: "Source",
-          oracleDocs: "Official Oracle documentation"
+          oracleDocs: "Official Oracle documentation",
+          snippetObjectives: {
+            "Run as grid": "Objective: validate Clusterware status, resource state, and node membership from the Grid Infrastructure owner before checking database resources.",
+            "ASM status check": "Objective: confirm the Exascale expectation that customer-managed ASM is not present for this deployment path.",
+            "Expected": "Objective: show the expected output so the live command result can be compared with the documented baseline.",
+            "Listener status": "Objective: verify that the node listener resource is online on the target cluster node.",
+            "Database status": "Objective: load the database owner environment and confirm RAC database instance status through SRVCTL.",
+            "Database configuration": "Objective: review the database configuration registered in Oracle Clusterware, including instance placement and management attributes.",
+            "Service validation": "Objective: list service configuration and runtime status for the database, then check the default PDB service explicitly.",
+            "SQL view inventory": "Objective: document the dynamic performance views used by the SQL health checks.",
+            "Connectivity validation": "Objective: test client naming resolution with tnsping and validate an actual SQL*Plus connection.",
+            "TNS alias review": "Objective: open the database-specific network admin directory and inspect the TNS aliases used by clients.",
+            "Default tnsnames.ora values": "Objective: capture the current local naming descriptors before recommending application-tier aliases.",
+            "Default service config": "Objective: inspect the default PDB service attributes that become the baseline for failover and load-balancing changes.",
+            "OLTP failover service modification": "Objective: update the existing OLTP service with session failover retry behavior while preserving the same service name.",
+            "Recommended application-tier TNS alias": "Objective: provide the application-facing OLTP alias and equivalent JDBC Thin descriptor used by clients.",
+            "SQL*Plus connected instance check": "Objective: show the actual RAC instance and service name used by the connected application session.",
+            "Report service creation and validation": "Objective: create and validate a dedicated reporting service with preferred placement for long-running report workload isolation.",
+            "Application-tier TNS alias for reports": "Objective: provide the reporting alias clients should use to connect through the dedicated reporting service.",
+            "Batch service creation and validation": "Objective: create and validate a dedicated batch service with explicit preferred and available instance placement.",
+            "Application-tier TNS alias for batch jobs": "Objective: provide the batch alias schedulers or applications should use for restartable batch workloads.",
+            "Apply runtime load balancing service update": "Objective: modify the existing OLTP service to publish connection and runtime load-balancing goals for integrated pools.",
+            "Validate updated service configuration": "Objective: confirm SRVCTL reports the expected connection and runtime load-balancing service attributes after the change.",
+            "Verify service settings from GV$SERVICES": "Objective: validate the service load-balancing attributes from inside the RAC database by instance."
+          }
         },
         highlights: [
           "OLTP runtime load balancing now updates CDB01_PDB01.paas.oracle.com with SHORT connection load balancing and THROUGHPUT runtime load balancing.",
@@ -460,21 +644,21 @@ Exascale note: customer-managed ASM is not expected for the 26ai Exascale path i
             id: "overview",
             title: "Overview",
             kicker: "Purpose",
-            body: "Provide a consistent procedure to validate the health of an Exadata Exascale RAC deployment.",
+            body: "A RAC health check is a layered review of cluster membership, Oracle-managed resources, database services, client naming, and service-based workload placement. This guide keeps those layers separate so each finding can be tied to the right owner and Oracle component.",
             notes: ["Run the sections in order when doing a baseline validation or a post-change check."]
           },
           {
             id: "architecture",
             title: "Architecture Context",
             kicker: "Scope map",
-            body: "The guide checks the RAC stack from Grid Infrastructure through connectivity, while keeping the Exascale storage expectation explicit.",
-            code: { type: "diagram", label: "Text diagram", value: commands.flow }
+            body: "In Oracle Multitenant, the container database (CDB) is the root database container that can host multiple pluggable databases (PDBs). Each PDB has its own default connection service, so applications should connect to the PDB service instead of targeting an individual RAC instance. Oracle RAC availability then depends on Clusterware, database instances, services, listeners, and client connect descriptors working together. The architecture map shows those dependencies and separates default service behavior from dedicated reporting and batch services.",
+            infographic: architectureInfographics.en
           },
           {
             id: "grid",
             title: "1. Grid Infrastructure Health Checks",
             kicker: "Clusterware and nodes",
-            body: "Verify Oracle Clusterware resources, node membership, listeners, and RAC infrastructure.",
+            body: "Oracle Clusterware provides the cluster-aware resource framework used by RAC. CRSCTL is the Clusterware interface for checking cluster health, resource state, and node membership before database-level checks begin.",
             code: { type: "bash", label: "Run as grid", value: commands.grid },
             notes: ["The source guide notes that olsnodes -i is deprecated."]
           },
@@ -482,7 +666,7 @@ Exascale note: customer-managed ASM is not expected for the 26ai Exascale path i
             id: "asm",
             title: "2. ASM Checks (Not Applicable to Exascale)",
             kicker: "Exascale storage expectation",
-            body: "Exascale uses Vault-based managed storage and does not deploy customer-managed ASM instances.",
+            body: "In the Exadata Exascale path used by this guide, storage is presented through Exascale-managed infrastructure rather than customer-managed ASM instances. An absent ora.asm resource is therefore an expected characteristic, not automatically a fault.",
             code: { type: "bash", label: "ASM status check", value: commands.asm },
             expected: commands.asmExpected
           },
@@ -490,7 +674,7 @@ Exascale note: customer-managed ASM is not expected for the 26ai Exascale path i
             id: "listener",
             title: "3. Listener Health Checks",
             kicker: "Node listener",
-            body: "Check listener status on the target node.",
+            body: "Oracle Net listeners receive client connection requests and route them to registered database services. In RAC, listener health is part of the path between SCAN or node addresses and the database service selected by the client.",
             code: { type: "bash", label: "Listener status", value: commands.listener },
             notes: ["Replace <node_name> with values returned by olsnodes."]
           },
@@ -498,42 +682,42 @@ Exascale note: customer-managed ASM is not expected for the 26ai Exascale path i
             id: "database-health",
             title: "4. Database Health Checks",
             kicker: "Database owner context",
-            body: "Switch to the oracle user, source the database environment, and check the RAC database state through SRVCTL.",
+            body: "SRVCTL is the management utility Oracle expects for Oracle-managed RAC entities such as databases, instances, listeners, and services. Database status checks confirm whether each RAC instance is running under Clusterware control.",
             code: { type: "bash", label: "Database status", value: commands.database }
           },
           {
             id: "database-config",
             title: "5. Database Configuration",
             kicker: "Registered configuration",
-            body: "Review the database configuration registered with Oracle Clusterware.",
+            body: "The database configuration is the Clusterware metadata that describes how the RAC database is managed, including instance names, Oracle homes, startup policy, and placement information used by SRVCTL.",
             code: { type: "bash", label: "Database configuration", value: commands.dbConfig }
           },
           {
             id: "service-validation",
             title: "6. Service Validation",
             kicker: "Service config and runtime",
-            body: "Validate service configuration and service runtime status for the database unique name.",
+            body: "RAC services are logical workload entry points. They decouple application connection names from individual instances and carry placement, failover, and load-balancing attributes used by clients and pools.",
             code: { type: "bash", label: "Service validation", value: commands.service }
           },
           {
             id: "sql-health",
             title: "7. SQL Health Checks",
             kicker: "Dynamic views",
-            body: "Include the following SQL views in the health review.",
+            body: "Dynamic performance views expose current database and instance state. In RAC, GV$ views return instance-scoped rows so the same query can compare status, services, and sessions across nodes.",
             code: { type: "sql", label: "SQL view inventory", value: commands.sqlViews }
           },
           {
             id: "connectivity",
             title: "8. Connectivity Validation",
             kicker: "TNS and SQL*Plus",
-            body: "Validate the service alias and then validate a database connection through SQL*Plus.",
+            body: "Connectivity validation covers both name resolution and session creation. A TNS alias can resolve correctly while the final database service connection still fails, so both layers need to be checked.",
             code: { type: "bash", label: "Connectivity validation", value: commands.connectivity }
           },
           {
             id: "tns-aliases",
             title: "9. Review TNS Aliases",
             kicker: "Network admin files",
-            body: "Review the TNS aliases under the database-specific network admin directory.",
+            body: "Local naming uses tnsnames.ora aliases to map friendly service names to connect descriptors. Those descriptors define addresses, service names, failover options, and load-balancing behavior seen by clients.",
             code: { type: "bash", label: "TNS alias review", value: commands.tns },
             extraCodes: [
               { type: "text", label: "Default tnsnames.ora values", value: commands.tnsDefaults }
@@ -543,9 +727,8 @@ Exascale note: customer-managed ASM is not expected for the 26ai Exascale path i
             id: "default-service",
             title: "10. Review Default Connection Service Configuration",
             kicker: "Connection service baseline",
-            body: "Review the default connection service configuration and compare its current characteristics.",
+            body: "The default PDB service is the baseline application entry point for this environment. Its SRVCTL attributes show current placement, failover type, connection load-balancing goal, and runtime load-balancing goal before recommended changes are applied.",
             code: { type: "bash", label: "Default service config", value: commands.defaultService },
-            expected: commands.defaultServiceOutput,
             table: {
               headers: ["Characteristic", "Value", "Oracle documented values"],
               rows: [
@@ -560,6 +743,15 @@ Exascale note: customer-managed ASM is not expected for the 26ai Exascale path i
               "Failover type NONE, failover method NONE, TAF policy NONE, Commit Outcome FALSE, and Failover restore NONE mean this default service is not configured for server-side TAF, Transaction Guard, or Application Continuity-style replay behavior.",
               "Connection Load Balancing Goal LONG favors session-count balancing for longer-lived connections, while Runtime Load Balancing Goal NONE means the service is not publishing runtime load balancing advisory goals such as SERVICE_TIME or THROUGHPUT."
             ],
+            postNoteCodes: [
+              {
+                type: "text",
+                label: "Default service output",
+                description: "Objective: review the captured SRVCTL output from the notes and focus on the failover and load-balancing attributes that define the default service behavior.",
+                value: commands.defaultServiceOutput,
+                highlightPatterns: ["Failover type:", "Runtime Load Balancing Goal:", "Connection Load Balancing Goal:"]
+              }
+            ],
             references: [
               { label: "SRVCTL service command reference", url: refs.srvctl }
             ]
@@ -568,12 +760,21 @@ Exascale note: customer-managed ASM is not expected for the 26ai Exascale path i
             id: "oltp",
             title: "11. Recommended OLTP Configuration (Memory Efficient)",
             kicker: "Best-practice section",
-            body: "For the memory-efficient OLTP recommendation in this guide, use these values.",
+            body: "OLTP services usually prioritize short transactions, predictable reconnect behavior, and low operational overhead. This section explains a session-failover configuration that keeps the existing service name and avoids creating extra database services.",
             collapsible: true,
             code: { type: "bash", label: "OLTP failover service modification", value: commands.oltpModify },
+            afterCodeNotes: [
+              "-failovertype SESSION changes the service from the captured default Failover type NONE to session-level failover for supported clients. With NONE, the service does not request TAF-style session failover; a connection loss is returned to the application or pool to handle. With SESSION, the client can reconnect to an available instance and restore the database session context, but in-flight work is not replayed automatically.",
+              "-failovertype SELECT is the TAF option for read-only cursor continuity. For supported OCI clients, SELECT can let a session with open cursors continue fetching rows after reconnecting on another instance, while SESSION only recreates the session and does not attempt to recover select operations. SELECT adds normal-operation client-side overhead for select processing, so reserve it for workloads that benefit from continuing long fetches. With BASIC failover, the second node does not hold pre-established backup sessions; it must have the service available and enough CPU, memory, and process capacity to accept reconnects when failover occurs. Preconnected failover would be faster, but it allocates backup sessions in advance and requires the backup instance to support those extra connections."
+            ],
             extraCodes: [
-              { type: "text", label: "Recommended application-tier TNS alias", value: commands.oltpTnsAlias },
+              { type: "text", label: "Recommended application-tier TNS alias", value: commands.oltpTnsAlias }
+            ],
+            postNoteCodes: [
               { type: "sql", label: "SQL*Plus connected instance check", value: commands.oltpInstanceCheck }
+            ],
+            postNoteText: [
+              "The SQL*Plus output shows the actual RAC instance and service name used by the connected session, which confirms where the client landed after resolving the OLTP alias."
             ],
             table: {
               headers: ["Attribute", "Recommended value", "Oracle documented values"],
@@ -584,55 +785,22 @@ Exascale note: customer-managed ASM is not expected for the 26ai Exascale path i
               ]
             },
             notes: [
-              "Oracle AI Database 26ai deprecates the SRVCTL -failovermethod option, so SRVCTL warns that it is ignored. Remove -failovermethod from service-modification scripts.",
-              "For TAF-style session failover, keep -failovertype SESSION with retry and delay values. For replay-capable clients and pools, prefer Transparent Application Continuity or Application Continuity, which use -failovertype AUTO or TRANSACTION with commit outcome and replay settings."
+              "Place LOAD_BALANCE=ON and FAILOVER=ON directly under DESCRIPTION because they are connect descriptor options. LOAD_BALANCE randomizes the address path when multiple listener or SCAN addresses are available, and FAILOVER lets the client try another address if the chosen address is unavailable during connect time.",
+              "The alias omits UR=A for this OLTP example because the connection should use normal service registration and listener routing for CDB01_PDB01.paas.oracle.com."
             ],
-            references: [
+            postNoteReferences: [
               { label: "SRVCTL service command reference", url: refs.srvctl },
               { label: "SRVCTL deprecated parameters", url: refs.srvctlCluster },
               { label: "Application Continuity", url: refs.appContinuity },
+              { label: "Oracle Net local naming parameters", url: refs.tnsnames },
               { label: "Oracle Net FAILOVER_MODE parameters", url: refs.failoverMode }
-            ]
-          },
-          {
-            id: "rlb",
-            title: "12. Recommended OLTP Runtime Load Balancing Configuration",
-            kicker: "Runtime balancing",
-            body: "Enable runtime load balancing on the existing CDB01_PDB01.paas.oracle.com service so integrated pools can route new work toward the RAC instance with better current throughput. This keeps the same service name and avoids the operational overhead of an additional service, while the database-side CPU and memory impact is minimal because the change uses RAC service advisory metadata rather than starting extra database processes. The benefit is better use of both instances, fewer sessions pinned to a slower node, and smoother response under changing workload conditions.",
-            collapsible: true,
-            code: { type: "bash", label: "Apply runtime load balancing service update", value: commands.oltpRlbModify },
-            extraCodes: [
-              { type: "bash", label: "Validate updated service configuration", value: commands.oltpRlbVerify },
-              { type: "sql", label: "Verify service settings from GV$SERVICES", value: commands.rlbServiceSettingsSql },
-              { type: "sql", label: "SQL*Plus connected instance check", value: commands.rlbInstanceCheck }
-            ],
-            notes: [
-              "This change keeps the existing SERVICE_NAME, so application clients can continue using CDB01_PDB01.paas.oracle.com.",
-              "Run the validation command after the modify command to confirm that SRVCTL reports Connection Load Balancing Goal SHORT and Runtime Load Balancing Goal THROUGHPUT for the service.",
-              "Use the GV$SERVICES query from a DBA or monitoring account to confirm per-instance service rows where CLB_GOAL is SHORT and GOAL is THROUGHPUT from inside the database.",
-              "No separate application-tier alias is required for this section. Runtime load balancing is controlled by service attributes, so existing aliases from section 9 or section 11 that resolve to CDB01_PDB01.paas.oracle.com inherit the updated service behavior.",
-              "Compared with the OLTP alias in section 11, the connection syntax can remain simpler here because runtime load balancing is driven by the service configuration and integrated pool advisories, not by adding a client-side FAILOVER_MODE block to the TNS descriptor.",
-              "Connection Load Balancing Goal SHORT is the recommended connection goal for integrated pools that use runtime load balancing advisories.",
-              "Runtime Load Balancing Goal THROUGHPUT routes work toward the instance completing work at the highest rate. Use SERVICE_TIME instead when response time for short OLTP transactions is the primary goal; use LONG connection balancing mainly for closed or batch-style workloads."
-            ],
-            table: {
-              headers: ["Attribute", "Recommended value", "Default value", "Oracle documented values"],
-              rows: [
-                ["Connection Load Balancing Goal", "SHORT", "LONG", "SHORT, LONG"],
-                ["Runtime Load Balancing Goal", "THROUGHPUT", "NONE", "NONE, SERVICE_TIME, THROUGHPUT"]
-              ]
-            },
-            references: [
-              { label: "SRVCTL service command reference", url: refs.srvctl },
-              { label: "Run-time connection load balancing", url: refs.rlb },
-              { label: "GV$SERVICES reference", url: refs.gvservices }
             ]
           },
           {
             id: "report-service",
             title: "13. Reporting Service Isolation",
             kicker: "Dedicated service for reporting workloads",
-            body: "Create a separate reporting service for long-running read-heavy report sessions and prefer it on one RAC instance. Pinning the normal reporting path to one preferred instance keeps large scans, sorts, temporary-space usage, and buffer-cache churn away from the OLTP-facing instance, while still making the second instance available if the preferred node or service placement fails. This is a workload isolation pattern, not a capacity limit: the available instance preserves service availability, but day-to-day report load remains predictable and easier to measure with AWR service metrics.",
+            body: "Reporting workloads are often read-heavy, longer running, and more likely to drive scans, sorts, temporary-space usage, and buffer-cache churn. A dedicated service gives that workload its own service name, placement policy, and monitoring identity without changing the PDB itself.",
             collapsible: true,
             code: { type: "bash", label: "Report service creation and validation", value: commands.reportsService },
             extraCodes: [
@@ -665,7 +833,7 @@ Exascale note: customer-managed ASM is not expected for the 26ai Exascale path i
             id: "batch-jobs",
             title: "14. Batch Job Service Isolation",
             kicker: "Dedicated service for batch workloads",
-            body: "Create a separate batch service for scheduled, restartable jobs and prefer it on one RAC instance. Pinning the normal batch path to CDB011 keeps ETL, maintenance, and background processing away from the OLTP-facing service path, while CDB012 remains available if the preferred batch node or service placement fails. This is a workload isolation pattern, not a capacity limit: batch load remains predictable during normal windows, and the available instance preserves service availability without making every running batch step depend on session failover.",
+            body: "Batch jobs are usually scheduled, resource-intensive, and restartable. A dedicated batch service gives schedulers a stable endpoint for this workload while keeping its normal placement and service-level metrics separate from OLTP and reporting traffic.",
             collapsible: true,
             code: { type: "bash", label: "Batch service creation and validation", value: commands.batchService },
             extraCodes: [
@@ -693,10 +861,69 @@ Exascale note: customer-managed ASM is not expected for the 26ai Exascale path i
             ]
           },
           {
+            id: "session-memory",
+            title: "15. Session and Memory Distribution Queries",
+            kicker: "RAC session and memory validation",
+            body: "Session and memory distribution is the runtime evidence for whether service placement is working as intended. GV$SESSION, GV$PROCESS, GV$SERVICES, and container metadata let the review compare connected workload and PGA use by instance, PDB, and service.",
+            collapsible: true,
+            code: { type: "sql", label: "Sessions per Instance", description: "Objective: get a fast RAC-level count of sessions on each instance. Use this as the first balance check after service changes or failover testing to see whether one instance is carrying most of the connected workload.", value: commands.sessionsPerInstance },
+            extraCodes: [
+              { type: "sql", label: "Sessions per PDB and Instance", description: "Objective: break the session count down by PDB, RAC instance, and connection service name. This shows which service endpoint is placing sessions on each instance and helps confirm whether OLTP, reporting, or batch connections are landing where expected.", value: commands.sessionsPerPdbInstance },
+              { type: "sql", label: "Memory Usage per PDB and RAC Instance", description: "Objective: estimate PGA memory allocated by user sessions for each PDB on each RAC instance. Use it to spot memory pressure, skewed service placement, or a workload class consuming more process memory on one node.", value: commands.memoryPerPdbInstance },
+              { type: "sql", label: "Cluster-Wide Memory Distribution", description: "Objective: aggregate PGA usage by PDB across the whole RAC database. This highlights which PDB is the largest memory consumer regardless of instance placement and helps prioritize deeper session or SQL analysis.", value: commands.clusterMemoryDistribution },
+              { type: "sql", label: "RAC Workload Dashboard", description: "Objective: combine session count, total PGA, and average PGA per session by PDB and instance. Use it as a compact workload dashboard to compare volume and memory intensity across RAC nodes before and after service configuration changes.", value: commands.racWorkloadDashboard }
+            ],
+            notes: [
+              "Run these queries from a DBA or monitoring account with access to GV$SESSION, GV$PROCESS, and V$CONTAINERS.",
+              "Use the output after service changes, failover tests, or workload isolation changes to confirm that sessions and PGA memory are distributed as expected."
+            ],
+            references: [
+              { label: "Dynamic performance views", url: refs.dynamicViews }
+            ]
+          },
+          {
+            id: "rlb",
+            title: "16. Recommended OLTP Runtime Load Balancing Configuration",
+            kicker: "Runtime balancing",
+            body: "Runtime load balancing is a service advisory mechanism consumed by integrated connection pools. It helps new requests favor the instance currently offering the best service goal, but the application connection model must be compatible with pool-based routing.",
+            collapsible: true,
+            code: { type: "bash", label: "Apply runtime load balancing service update", value: commands.oltpRlbModify },
+            extraCodes: [
+              { type: "bash", label: "Validate updated service configuration", value: commands.oltpRlbVerify },
+              { type: "sql", label: "Verify service settings from GV$SERVICES", value: commands.rlbServiceSettingsSql },
+              { type: "sql", label: "SQL*Plus connected instance check", value: commands.rlbInstanceCheck }
+            ],
+            notes: [
+              "This change keeps the existing SERVICE_NAME, so application clients can continue using CDB01_PDB01.paas.oracle.com.",
+              "Run the validation command after the modify command to confirm that SRVCTL reports Connection Load Balancing Goal SHORT and Runtime Load Balancing Goal THROUGHPUT for the service.",
+              "Use the GV$SERVICES query from a DBA or monitoring account to confirm per-instance service rows where CLB_GOAL is SHORT and GOAL is THROUGHPUT from inside the database.",
+              "No separate application-tier alias is required for this section. Runtime load balancing is controlled by service attributes, so existing aliases from section 9 or section 11 that resolve to CDB01_PDB01.paas.oracle.com inherit the updated service behavior.",
+              "Compared with the OLTP alias in section 11, the connection syntax can remain simpler here because runtime load balancing is driven by the service configuration and integrated pool advisories, not by adding a client-side FAILOVER_MODE block to the TNS descriptor.",
+              "Runtime load balancing works best for stateless request models where pooled connections can be borrowed, used for a short request, and returned to the pool. Enable Fast Connection Failover and use UCP, WebLogic, OCI, or ODP.NET pools that consume FAN and RAC load balancing advisory events.",
+              "For stateful applications, review before enabling THROUGHPUT globally. Long conversations, package globals, temporary tables, altered session state, open cursors, or affinity assumptions can reduce the benefit because the pool cannot freely route each new request. Move conversational state to the application tier or a table, reset session state when returning connections to the pool, mark request boundaries, and validate Application Continuity or Transparent Application Continuity coverage before relying on replay behavior.",
+              "Connection Load Balancing Goal SHORT is the recommended connection goal for integrated pools that use runtime load balancing advisories.",
+              "Runtime Load Balancing Goal THROUGHPUT routes work toward the instance completing work at the highest rate. Use SERVICE_TIME instead when response time for short OLTP transactions is the primary goal; use LONG connection balancing mainly for closed or batch-style workloads."
+            ],
+            table: {
+              headers: ["Attribute", "Recommended value", "Default value", "Oracle documented values"],
+              rows: [
+                ["Connection Load Balancing Goal", "SHORT", "LONG", "SHORT, LONG"],
+                ["Runtime Load Balancing Goal", "THROUGHPUT", "NONE", "NONE, SERVICE_TIME, THROUGHPUT"]
+              ]
+            },
+            references: [
+              { label: "SRVCTL service command reference", url: refs.srvctl },
+              { label: "Run-time connection load balancing", url: refs.rlb },
+              { label: "Fast Connection Failover", url: refs.fcf },
+              { label: "Application Continuity", url: refs.appContinuity },
+              { label: "GV$SERVICES reference", url: refs.gvservices }
+            ]
+          },
+          {
             id: "operational-notes",
             title: "Exascale Operational Notes",
             kicker: "Execution context",
-            body: "Keep user context, database naming, and node substitution consistent throughout the check.",
+            body: "Operational consistency matters because RAC checks cross operating-system users, Oracle homes, environment variables, node names, and service names. Keeping those substitutions explicit reduces false findings during post-change validation.",
             bullets: [
               "Grid commands as grid user.",
               "Database commands as oracle user.",
@@ -788,7 +1015,31 @@ Exascale note: customer-managed ASM is not expected for the 26ai Exascale path i
           notes: "Notas",
           highlights: "Cobertura actualizada",
           sourceLabel: "Fuente",
-          oracleDocs: "Documentación oficial de Oracle"
+          oracleDocs: "Documentación oficial de Oracle",
+          snippetObjectives: {
+            "Ejecutar como grid": "Objetivo: validar estado de Clusterware, recursos y membresía de nodos desde el propietario de Grid Infrastructure antes de revisar recursos de base de datos.",
+            "Verificación de estado ASM": "Objetivo: confirmar la expectativa Exascale de que ASM administrado por el cliente no está presente en esta ruta de despliegue.",
+            "Esperado": "Objetivo: mostrar la salida esperada para comparar el resultado real del comando con la línea base documentada.",
+            "Estado del listener": "Objetivo: verificar que el recurso listener del nodo esté en línea en el nodo de clúster objetivo.",
+            "Estado de base de datos": "Objetivo: cargar el entorno del propietario de base de datos y confirmar el estado de las instancias RAC mediante SRVCTL.",
+            "Configuración de base de datos": "Objetivo: revisar la configuración de base de datos registrada en Oracle Clusterware, incluyendo colocación de instancias y atributos de administración.",
+            "Validación de servicios": "Objetivo: listar configuración y estado runtime de servicios para la base de datos y luego revisar explícitamente el servicio PDB por defecto.",
+            "Inventario de vistas SQL": "Objetivo: documentar las vistas dinámicas de rendimiento usadas por los health checks SQL.",
+            "Validación de conectividad": "Objetivo: probar resolución de nombres cliente con tnsping y validar una conexión real con SQL*Plus.",
+            "Revisión de alias TNS": "Objetivo: abrir el directorio network admin específico de la base de datos e inspeccionar los alias TNS usados por clientes.",
+            "Valores por defecto de tnsnames.ora": "Objetivo: capturar los descriptores local naming actuales antes de recomendar alias de capa de aplicación.",
+            "Configuración del servicio por defecto": "Objetivo: inspeccionar los atributos del servicio PDB por defecto que sirven como línea base para cambios de failover y balanceo.",
+            "Modificación de servicio para failover OLTP": "Objetivo: actualizar el servicio OLTP existente con comportamiento de reintento de failover de sesión conservando el mismo nombre de servicio.",
+            "Alias TNS recomendado para la capa de aplicación": "Objetivo: proporcionar el alias OLTP de cara a la aplicación y el descriptor JDBC Thin equivalente usado por clientes.",
+            "Verificación de instancia conectada con SQL*Plus": "Objetivo: mostrar la instancia RAC real y el nombre de servicio usado por la sesión de aplicación conectada.",
+            "Creación y validación del servicio de reportes": "Objetivo: crear y validar un servicio dedicado para reportes con colocación preferred para aislar cargas largas de reportes.",
+            "Alias TNS de capa de aplicación para reportes": "Objetivo: proporcionar el alias de reportes que los clientes deben usar para conectarse mediante el servicio dedicado de reportes.",
+            "Creación y validación del servicio batch": "Objetivo: crear y validar un servicio batch dedicado con colocación explícita de instancia preferred y available.",
+            "Alias TNS de capa de aplicación para batch jobs": "Objetivo: proporcionar el alias batch que schedulers o aplicaciones deben usar para cargas batch reiniciables.",
+            "Aplicar actualización de servicio para runtime load balancing": "Objetivo: modificar el servicio OLTP existente para publicar objetivos de connection y runtime load balancing para pools integrados.",
+            "Validar configuración actualizada del servicio": "Objetivo: confirmar que SRVCTL reporta los atributos esperados de connection y runtime load balancing después del cambio.",
+            "Verificar configuración del servicio desde GV$SERVICES": "Objetivo: validar desde dentro de la base RAC los atributos de load balancing del servicio por instancia."
+          }
         },
         highlights: [
           "Runtime load balancing OLTP ahora actualiza CDB01_PDB01.paas.oracle.com con connection load balancing SHORT y runtime load balancing THROUGHPUT.",
@@ -797,23 +1048,25 @@ Exascale note: customer-managed ASM is not expected for the 26ai Exascale path i
           "Los ejemplos de capa de aplicación incluyen alias TNS, URLs JDBC Thin DESCRIPTION completas, failover de servicio y runtime load balancing."
         ],
         sections: [
-          { id: "overview", title: "Overview", kicker: "Propósito", body: "Proporcionar un procedimiento consistente para validar la salud de una implementación Exadata Exascale RAC.", notes: ["Ejecuta las secciones en orden durante una validación base o una revisión posterior a cambios."] },
-          { id: "architecture", title: "Contexto de Arquitectura", kicker: "Mapa de alcance", body: "La guía verifica el stack RAC desde Grid Infrastructure hasta conectividad, manteniendo explícita la expectativa de almacenamiento Exascale.", code: { type: "diagram", label: "Diagrama de texto", value: commands.flow } },
-          { id: "grid", title: "1. Health Checks de Grid Infrastructure", kicker: "Clusterware y nodos", body: "Verificar recursos de Oracle Clusterware, membresía de nodos, listeners e infraestructura RAC.", code: { type: "bash", label: "Ejecutar como grid", value: commands.grid }, notes: ["La guía fuente indica que olsnodes -i está deprecado."] },
-          { id: "asm", title: "2. Verificaciones ASM (No Aplicable a Exascale)", kicker: "Expectativa de almacenamiento Exascale", body: "Exascale usa almacenamiento administrado basado en Vault y no despliega instancias ASM administradas por el cliente.", code: { type: "bash", label: "Verificación de estado ASM", value: commands.asm }, expected: commands.asmExpected },
-          { id: "listener", title: "3. Health Checks de Listener", kicker: "Listener de nodo", body: "Verificar el estado del listener en el nodo objetivo.", code: { type: "bash", label: "Estado del listener", value: commands.listener }, notes: ["Reemplaza <node_name> con valores devueltos por olsnodes."] },
-          { id: "database-health", title: "4. Health Checks de Base de Datos", kicker: "Contexto del propietario de base de datos", body: "Cambiar al usuario oracle, cargar el entorno de la base de datos y revisar el estado de la base RAC con SRVCTL.", code: { type: "bash", label: "Estado de base de datos", value: commands.database } },
-          { id: "database-config", title: "5. Configuración de Base de Datos", kicker: "Configuración registrada", body: "Revisar la configuración de base de datos registrada en Oracle Clusterware.", code: { type: "bash", label: "Configuración de base de datos", value: commands.dbConfig } },
-          { id: "service-validation", title: "6. Validación de Servicios", kicker: "Configuración y ejecución de servicios", body: "Validar la configuración y el estado runtime de los servicios para el database unique name.", code: { type: "bash", label: "Validación de servicios", value: commands.service } },
-          { id: "sql-health", title: "7. Health Checks SQL", kicker: "Vistas dinámicas", body: "Incluir las siguientes vistas SQL en la revisión de salud.", code: { type: "sql", label: "Inventario de vistas SQL", value: commands.sqlViews } },
-          { id: "connectivity", title: "8. Validación de Conectividad", kicker: "TNS y SQL*Plus", body: "Validar el alias de servicio y luego validar una conexión de base de datos mediante SQL*Plus.", code: { type: "bash", label: "Validación de conectividad", value: commands.connectivity } },
-          { id: "tns-aliases", title: "9. Revisión de Alias TNS", kicker: "Archivos de administración de red", body: "Revisar los alias TNS bajo el directorio network admin específico de la base de datos.", code: { type: "bash", label: "Revisión de alias TNS", value: commands.tns }, extraCodes: [{ type: "text", label: "Valores por defecto de tnsnames.ora", value: commands.tnsDefaults }] },
-          { id: "default-service", title: "10. Revisión de Configuración del Servicio de Conexión por Defecto", kicker: "Línea base del servicio de conexión", body: "Revisar la configuración del servicio de conexión por defecto y comparar sus características actuales.", code: { type: "bash", label: "Configuración del servicio por defecto", value: commands.defaultService }, expected: commands.defaultServiceOutput, table: { headers: ["Característica", "Valor", "Valores documentados por Oracle"], rows: [["Failover type", "NONE", "NONE, SESSION, SELECT, TRANSACTION, AUTO"], ["Runtime Load Balancing Goal", "NONE", "NONE, SERVICE_TIME, THROUGHPUT"], ["Connection Load Balancing Goal", "LONG", "SHORT, LONG"]] }, notes: ["Esta salida muestra que el servicio PDB por defecto CDB01_PDB01.paas.oracle.com está habilitado para el rol PRIMARY y mapeado a PDB01.", "Cardinality 2 con instancias preferred CDB011,CDB012 significa que el servicio se ubica en ambas instancias RAC durante operación normal; no hay instancias available listadas para ubicación alterna.", "Failover type NONE, failover method NONE, TAF policy NONE, Commit Outcome FALSE y Failover restore NONE significan que este servicio por defecto no está configurado para TAF del lado servidor, Transaction Guard ni comportamiento de replay estilo Application Continuity.", "Connection Load Balancing Goal LONG favorece balanceo por conteo de sesiones para conexiones de mayor duración, mientras que Runtime Load Balancing Goal NONE significa que el servicio no publica objetivos de runtime load balancing advisory como SERVICE_TIME o THROUGHPUT."], references: [{ label: "Referencia de comandos SRVCTL service", url: refs.srvctl }] },
-          { id: "oltp", title: "11. Configuración OLTP Recomendada (Eficiente en Memoria)", kicker: "Sección de mejores prácticas", body: "Para la recomendación OLTP eficiente en memoria de esta guía, usa estos valores.", collapsible: true, code: { type: "bash", label: "Modificación de servicio para failover OLTP", value: commands.oltpModify }, extraCodes: [{ type: "text", label: "Alias TNS recomendado para la capa de aplicación", value: commands.oltpTnsAlias }, { type: "sql", label: "Verificación de instancia conectada con SQL*Plus", value: commands.oltpInstanceCheck }], table: { headers: ["Atributo", "Valor recomendado", "Valores documentados por Oracle"], rows: [["Failover Type", "SESSION", "SRVCTL: NONE, SESSION, SELECT, TRANSACTION, AUTO; TNS FAILOVER_MODE TYPE: session, select, none"], ["Failover Retries", "30", "Cantidad entera de reintentos"], ["Failover Delay", "5", "Demora entera en segundos"]] }, notes: ["Oracle AI Database 26ai depreca la opción SRVCTL -failovermethod, por lo que SRVCTL advierte que será ignorada. Elimina -failovermethod de los scripts de modificación de servicio.", "Para failover de sesión estilo TAF, conserva -failovertype SESSION con valores de retry y delay. Para clientes y pools con capacidad de replay, prefiere Transparent Application Continuity o Application Continuity, que usan -failovertype AUTO o TRANSACTION con commit outcome y parámetros de replay."], references: [{ label: "Referencia de comandos SRVCTL service", url: refs.srvctl }, { label: "Parámetros SRVCTL deprecados", url: refs.srvctlCluster }, { label: "Application Continuity", url: refs.appContinuity }, { label: "Parámetros Oracle Net FAILOVER_MODE", url: refs.failoverMode }] },
-          { id: "rlb", title: "12. Configuración OLTP Recomendada para Runtime Load Balancing", kicker: "Balanceo runtime", body: "Habilitar runtime load balancing en el servicio existente CDB01_PDB01.paas.oracle.com para que los pools integrados puedan enrutar trabajo nuevo hacia la instancia RAC con mejor throughput actual. Esto conserva el mismo nombre de servicio y evita la sobrecarga operativa de un servicio adicional, mientras que el impacto de CPU y memoria del lado de la base de datos es mínimo porque el cambio usa metadata de RAC service advisory en lugar de iniciar procesos de base de datos adicionales. El beneficio es mejor uso de ambas instancias, menos sesiones ancladas a un nodo más lento y respuesta más uniforme bajo condiciones cambiantes de carga.", collapsible: true, code: { type: "bash", label: "Aplicar actualización de servicio para runtime load balancing", value: commands.oltpRlbModify }, extraCodes: [{ type: "bash", label: "Validar configuración actualizada del servicio", value: commands.oltpRlbVerify }, { type: "sql", label: "Verificar configuración del servicio desde GV$SERVICES", value: commands.rlbServiceSettingsSql }, { type: "sql", label: "Verificación de instancia conectada con SQL*Plus", value: commands.rlbInstanceCheck }], notes: ["Este cambio mantiene el SERVICE_NAME existente, por lo que los clientes de aplicación pueden seguir usando CDB01_PDB01.paas.oracle.com.", "Ejecuta el comando de validación después del comando modify para confirmar que SRVCTL reporta Connection Load Balancing Goal SHORT y Runtime Load Balancing Goal THROUGHPUT para el servicio.", "Usa la consulta GV$SERVICES desde una cuenta DBA o de monitoreo para confirmar filas por instancia donde CLB_GOAL es SHORT y GOAL es THROUGHPUT desde dentro de la base de datos.", "No se requiere un alias separado de capa de aplicación para esta sección. Runtime load balancing se controla mediante atributos del servicio, por lo que los alias existentes de la sección 9 o la sección 11 que resuelven a CDB01_PDB01.paas.oracle.com heredan el comportamiento actualizado del servicio.", "Comparado con el alias OLTP de la sección 11, la sintaxis de conexión puede mantenerse más simple aquí porque runtime load balancing se controla mediante la configuración del servicio y advisories de pools integrados, no agregando un bloque FAILOVER_MODE del lado cliente al descriptor TNS.", "Connection Load Balancing Goal SHORT es el objetivo de conexión recomendado para pools integrados que usan advisories de runtime load balancing.", "Runtime Load Balancing Goal THROUGHPUT enruta trabajo hacia la instancia que completa trabajo a la tasa más alta. Usa SERVICE_TIME cuando el objetivo principal sea el tiempo de respuesta de transacciones OLTP cortas; usa connection balancing LONG principalmente para cargas cerradas o estilo batch."], table: { headers: ["Atributo", "Valor recomendado", "Valor por defecto", "Valores documentados por Oracle"], rows: [["Connection Load Balancing Goal", "SHORT", "LONG", "SHORT, LONG"], ["Runtime Load Balancing Goal", "THROUGHPUT", "NONE", "NONE, SERVICE_TIME, THROUGHPUT"]] }, references: [{ label: "Referencia de comandos SRVCTL service", url: refs.srvctl }, { label: "Run-time connection load balancing", url: refs.rlb }, { label: "Referencia GV$SERVICES", url: refs.gvservices }] },
-          { id: "report-service", title: "13. Aislamiento de Servicio para Reportes", kicker: "Servicio dedicado para cargas de reportes", body: "Crear un servicio separado para sesiones de reportes de lectura intensiva y larga duración y preferirlo en una sola instancia RAC. Fijar la ruta normal de reportes a una instancia preferred mantiene escaneos grandes, ordenamientos, uso de espacio temporal y churn de buffer cache lejos de la instancia orientada a OLTP, mientras la segunda instancia sigue disponible si falla el nodo preferred o la colocación del servicio. Es un patrón de aislamiento de carga, no un límite de capacidad: la instancia available preserva disponibilidad del servicio, pero la carga diaria de reportes permanece predecible y más fácil de medir con métricas AWR por servicio.", collapsible: true, code: { type: "bash", label: "Creación y validación del servicio de reportes", value: commands.reportsService }, extraCodes: [{ type: "text", label: "Alias TNS de capa de aplicación para reportes", value: commands.reportsTnsAlias }, { type: "sql", label: "Verificación de instancia conectada con SQL*Plus", value: commands.reportsInstanceCheck }], notes: ["Usa nombres de instancia de base de datos en -preferred y -available. Este ejemplo envía la carga normal de reportes a CDB012 y mantiene CDB011 disponible solo cuando el servicio de reportes no pueda ejecutarse en la instancia preferred.", "Mantener reportes en una instancia preferred reduce churn de cache entre nodos y protege el servicio OLTP de escaneos o agregaciones grandes de reportes. Si falla el nodo preferred de reportes, Oracle Clusterware puede iniciar el servicio en la instancia available para que los usuarios conserven un endpoint de servicio.", "El alias TNS de reportes es intencionalmente más simple que el alias OLTP de la sección 11. Omite el bloque FAILOVER_MODE del lado cliente porque este servicio de reportes usa colocación explícita del servicio y comportamiento de carga reiniciable en lugar de failover de sesión estilo TAF.", "Connection Load Balancing Goal LONG es apropiado para sesiones de reportes que tienden a ser largas y deben balancearse por conteo de sesiones en lugar de feedback runtime advisory.", "Runtime Load Balancing Goal NONE evita publicar objetivos runtime advisory para cargas de reportes. Mantén el ruteo de reportes explícito para que escaneos o agregaciones grandes no compitan directamente con el servicio OLTP.", "Failover Type NONE es intencional para reportes porque esta carga normalmente es reiniciable. Si un nodo falla durante un reporte, la aplicación o herramienta de reportes debe reejecutar la consulta o job en lugar de intentar continuar una sentencia larga ejecutada parcialmente."], table: { headers: ["Atributo", "Valor recomendado", "Razón"], rows: [["Connection Load Balancing Goal", "LONG", "Las sesiones largas de reportes se balancean mejor por conteo de sesiones."], ["Runtime Load Balancing Goal", "NONE", "Las cargas de reportes se enrutan explícitamente en lugar de usar objetivos RLB advisory."], ["Instancias preferred / available", "CDB012 / CDB011", "La carga normal de reportes permanece en una instancia, mientras la otra queda reservada para failover del servicio."], ["Failover Type", "NONE", "Los reportes son reiniciables y deben reejecutarse desde la aplicación o capa de reportes después de una falla."]] }, references: [{ label: "Referencia de comandos SRVCTL service", url: refs.srvctl }, { label: "Workload management with services", url: refs.srvctlCluster }] },
-          { id: "batch-jobs", title: "14. Aislamiento de Servicios para Batch Jobs", kicker: "Servicio dedicado para cargas batch", body: "Crear un servicio batch separado para jobs programados y reiniciables y preferirlo en una sola instancia RAC. Fijar la ruta normal de batch a CDB011 mantiene ETL, mantenimiento y procesamiento en segundo plano lejos de la ruta del servicio orientado a OLTP, mientras CDB012 sigue disponible si falla el nodo batch preferred o la colocación del servicio. Es un patrón de aislamiento de carga, no un límite de capacidad: la carga batch permanece predecible durante ventanas normales, y la instancia available preserva disponibilidad del servicio sin hacer que cada paso batch en ejecución dependa de failover de sesión.", collapsible: true, code: { type: "bash", label: "Creación y validación del servicio batch", value: commands.batchService }, extraCodes: [{ type: "text", label: "Alias TNS de capa de aplicación para batch jobs", value: commands.batchTnsAlias }], notes: ["Usa nombres de instancia de base de datos en -preferred y -available. Este ejemplo envía la carga normal batch a CDB011 y mantiene CDB012 disponible solo cuando el servicio batch no pueda ejecutarse en la instancia preferred.", "Mantener batch jobs en una instancia preferred reduce churn de cache entre nodos y facilita medir la carga programada con métricas AWR por servicio. Si falla el nodo preferred de batch, Oracle Clusterware puede iniciar el servicio en la instancia available para que el scheduler conserve un endpoint de servicio.", "Connection Load Balancing Goal LONG es apropiado para sesiones batch que tienden a ser largas y deben balancearse por conteo de sesiones en lugar de feedback runtime advisory.", "Runtime Load Balancing Goal NONE mantiene el ruteo batch explícito para que jobs grandes no compitan directamente con decisiones de runtime load balancing de OLTP.", "Failover Type NONE es intencional para batch jobs porque esta carga normalmente es reiniciable. Si un nodo falla durante un paso batch, el scheduler o la aplicación debe reejecutar el paso del job en lugar de intentar continuar una sentencia larga ejecutada parcialmente."], table: { headers: ["Atributo", "Valor recomendado", "Razón"], rows: [["Connection Load Balancing Goal", "LONG", "Las sesiones batch largas se balancean mejor por conteo de sesiones."], ["Runtime Load Balancing Goal", "NONE", "Las cargas batch se enrutan explícitamente en lugar de usar objetivos RLB advisory."], ["Instancias preferred / available", "CDB011 / CDB012", "La carga normal batch permanece en una instancia, mientras la otra queda reservada para failover del servicio."], ["Failover Type", "NONE", "Los batch jobs son reiniciables y deben reejecutarse desde el scheduler o la aplicación después de una falla."]] }, references: [{ label: "Referencia de comandos SRVCTL service", url: refs.srvctl }, { label: "Workload management with services", url: refs.srvctlCluster }] },
-          { id: "operational-notes", title: "Notas Operativas de Exascale", kicker: "Contexto de ejecución", body: "Mantén consistente el contexto de usuario, el nombre de base de datos y la sustitución de nodo durante toda la revisión.", bullets: ["Comandos de Grid como usuario grid.", "Comandos de base de datos como usuario oracle.", "Usar $ORACLE_UNQNAME.", "Reemplazar <node_name> con valores de olsnodes."] }
+          { id: "overview", title: "Overview", kicker: "Propósito", body: "Un health check RAC es una revisión por capas de membresía de clúster, recursos administrados por Oracle, servicios de base de datos, naming cliente y colocación de cargas basada en servicios. Esta guía separa esas capas para asociar cada hallazgo con el componente y dueño correctos.", notes: ["Ejecuta las secciones en orden durante una validación base o una revisión posterior a cambios."] },
+          { id: "architecture", title: "Contexto de Arquitectura", kicker: "Mapa de alcance", body: "En Oracle Multitenant, la container database (CDB) es el contenedor raíz de base de datos que puede alojar múltiples pluggable databases (PDBs). Cada PDB tiene su propio servicio de conexión por defecto, por lo que las aplicaciones deben conectarse al servicio de la PDB en lugar de apuntar a una instancia RAC individual. Después, la disponibilidad de Oracle RAC depende de Clusterware, instancias de base de datos, servicios, listeners y descriptores de conexión cliente trabajando juntos. El mapa de arquitectura muestra esas dependencias y separa el comportamiento del servicio por defecto de los servicios dedicados para reportes y batch.", infographic: architectureInfographics.es },
+          { id: "grid", title: "1. Health Checks de Grid Infrastructure", kicker: "Clusterware y nodos", body: "Oracle Clusterware proporciona el marco de recursos cluster-aware usado por RAC. CRSCTL es la interfaz de Clusterware para revisar salud del clúster, estado de recursos y membresía de nodos antes de comenzar revisiones de base de datos.", code: { type: "bash", label: "Ejecutar como grid", value: commands.grid }, notes: ["La guía fuente indica que olsnodes -i está deprecado."] },
+          { id: "asm", title: "2. Verificaciones ASM (No Aplicable a Exascale)", kicker: "Expectativa de almacenamiento Exascale", body: "En la ruta Exadata Exascale usada por esta guía, el almacenamiento se presenta mediante infraestructura administrada por Exascale y no mediante instancias ASM administradas por el cliente. Un recurso ora.asm ausente es una característica esperada, no necesariamente una falla.", code: { type: "bash", label: "Verificación de estado ASM", value: commands.asm }, expected: commands.asmExpected },
+          { id: "listener", title: "3. Health Checks de Listener", kicker: "Listener de nodo", body: "Los listeners de Oracle Net reciben solicitudes de conexión cliente y las enrutan a servicios de base de datos registrados. En RAC, la salud del listener forma parte de la ruta entre direcciones SCAN o de nodo y el servicio elegido por el cliente.", code: { type: "bash", label: "Estado del listener", value: commands.listener }, notes: ["Reemplaza <node_name> con valores devueltos por olsnodes."] },
+          { id: "database-health", title: "4. Health Checks de Base de Datos", kicker: "Contexto del propietario de base de datos", body: "SRVCTL es la utilidad de administración esperada para entidades RAC administradas por Oracle como bases de datos, instancias, listeners y servicios. La revisión de estado confirma si cada instancia RAC está ejecutándose bajo control de Clusterware.", code: { type: "bash", label: "Estado de base de datos", value: commands.database } },
+          { id: "database-config", title: "5. Configuración de Base de Datos", kicker: "Configuración registrada", body: "La configuración de base de datos es la metadata de Clusterware que describe cómo se administra la base RAC, incluyendo nombres de instancia, Oracle homes, política de arranque e información de colocación usada por SRVCTL.", code: { type: "bash", label: "Configuración de base de datos", value: commands.dbConfig } },
+          { id: "service-validation", title: "6. Validación de Servicios", kicker: "Configuración y ejecución de servicios", body: "Los servicios RAC son puntos lógicos de entrada para cargas de trabajo. Separan los nombres de conexión de aplicación de instancias individuales y contienen atributos de colocación, failover y load balancing usados por clientes y pools.", code: { type: "bash", label: "Validación de servicios", value: commands.service } },
+          { id: "sql-health", title: "7. Health Checks SQL", kicker: "Vistas dinámicas", body: "Las vistas dinámicas de rendimiento exponen estado actual de la base y de las instancias. En RAC, las vistas GV$ devuelven filas por instancia para comparar estado, servicios y sesiones entre nodos.", code: { type: "sql", label: "Inventario de vistas SQL", value: commands.sqlViews } },
+          { id: "connectivity", title: "8. Validación de Conectividad", kicker: "TNS y SQL*Plus", body: "La validación de conectividad cubre resolución de nombres y creación de sesión. Un alias TNS puede resolver correctamente aunque la conexión final al servicio falle, por lo que ambas capas deben revisarse.", code: { type: "bash", label: "Validación de conectividad", value: commands.connectivity } },
+          { id: "tns-aliases", title: "9. Revisión de Alias TNS", kicker: "Archivos de administración de red", body: "Local naming usa alias de tnsnames.ora para mapear nombres amigables a connect descriptors. Esos descriptores definen direcciones, nombres de servicio, opciones de failover y comportamiento de load balancing visto por clientes.", code: { type: "bash", label: "Revisión de alias TNS", value: commands.tns }, extraCodes: [{ type: "text", label: "Valores por defecto de tnsnames.ora", value: commands.tnsDefaults }] },
+{ id: "default-service", title: "10. Revisión de Configuración del Servicio de Conexión por Defecto", kicker: "Línea base del servicio de conexión", body: "El servicio PDB por defecto es la línea base de entrada de aplicación para este ambiente. Sus atributos SRVCTL muestran colocación, tipo de failover, objetivo de connection load balancing y objetivo de runtime load balancing antes de aplicar recomendaciones.", code: { type: "bash", label: "Configuración del servicio por defecto", value: commands.defaultService }, table: { headers: ["Característica", "Valor", "Valores documentados por Oracle"], rows: [["Failover type", "NONE", "NONE, SESSION, SELECT, TRANSACTION, AUTO"], ["Runtime Load Balancing Goal", "NONE", "NONE, SERVICE_TIME, THROUGHPUT"], ["Connection Load Balancing Goal", "LONG", "SHORT, LONG"]] }, notes: ["Esta salida muestra que el servicio PDB por defecto CDB01_PDB01.paas.oracle.com está habilitado para el rol PRIMARY y mapeado a PDB01.", "Cardinality 2 con instancias preferred CDB011,CDB012 significa que el servicio se ubica en ambas instancias RAC durante operación normal; no hay instancias available listadas para ubicación alterna.", "Failover type NONE, failover method NONE, TAF policy NONE, Commit Outcome FALSE y Failover restore NONE significan que este servicio por defecto no está configurado para TAF del lado servidor, Transaction Guard ni comportamiento de replay estilo Application Continuity.", "Connection Load Balancing Goal LONG favorece balanceo por conteo de sesiones para conexiones de mayor duración, mientras que Runtime Load Balancing Goal NONE significa que el servicio no publica objetivos de runtime load balancing advisory como SERVICE_TIME o THROUGHPUT."], postNoteCodes: [{ type: "text", label: "Salida del servicio por defecto", description: "Objetivo: revisar la salida SRVCTL capturada en las notas y enfocarse en los atributos de failover y balanceo de carga que definen el comportamiento del servicio por defecto.", value: commands.defaultServiceOutput, highlightPatterns: ["Failover type:", "Runtime Load Balancing Goal:", "Connection Load Balancing Goal:"] }], references: [{ label: "Referencia de comandos SRVCTL service", url: refs.srvctl }] },
+          { id: "oltp", title: "11. Configuración OLTP Recomendada (Eficiente en Memoria)", kicker: "Sección de mejores prácticas", body: "Los servicios OLTP suelen priorizar transacciones cortas, comportamiento de reconexión predecible y bajo overhead operativo. Esta sección explica una configuración de failover de sesión que conserva el mismo nombre de servicio y evita crear servicios adicionales.", collapsible: true, code: { type: "bash", label: "Modificación de servicio para failover OLTP", value: commands.oltpModify }, afterCodeNotes: ["-failovertype SESSION cambia el servicio desde el valor por defecto capturado Failover type NONE hacia failover de sesión para clientes compatibles. Con NONE, el servicio no solicita failover de sesión estilo TAF; una pérdida de conexión se devuelve a la aplicación o al pool para su manejo. Con SESSION, el cliente puede reconectar a una instancia disponible y restaurar el contexto de sesión de base de datos, pero el trabajo en curso no se reproduce automáticamente.",
+              "-failovertype SELECT es la opción TAF para continuidad de cursores de solo lectura. Para clientes OCI compatibles, SELECT puede permitir que una sesión con cursores abiertos siga haciendo fetch de filas después de reconectar en otra instancia, mientras SESSION solo recrea la sesión y no intenta recuperar operaciones select. SELECT agrega overhead del lado cliente durante el procesamiento normal de selects, por lo que conviene reservarlo para cargas que se benefician de continuar fetches largos. Con failover BASIC, el segundo nodo no mantiene sesiones backup preestablecidas; debe tener el servicio disponible y suficiente capacidad de CPU, memoria y procesos para aceptar reconexiones cuando ocurra el failover. El failover preconectado sería más rápido, pero asigna sesiones backup por adelantado y requiere que la instancia backup soporte esas conexiones adicionales."], extraCodes: [{ type: "text", label: "Alias TNS recomendado para la capa de aplicación", value: commands.oltpTnsAlias }], postNoteCodes: [{ type: "sql", label: "Verificación de instancia conectada con SQL*Plus", value: commands.oltpInstanceCheck }], postNoteText: ["La salida de SQL*Plus muestra la instancia RAC real y el nombre de servicio usado por la sesión conectada, lo que confirma dónde aterrizó el cliente después de resolver el alias OLTP."], table: { headers: ["Atributo", "Valor recomendado", "Valores documentados por Oracle"], rows: [["Failover Type", "SESSION", "SRVCTL: NONE, SESSION, SELECT, TRANSACTION, AUTO; TNS FAILOVER_MODE TYPE: session, select, none"], ["Failover Retries", "30", "Cantidad entera de reintentos"], ["Failover Delay", "5", "Demora entera en segundos"]] }, notes: ["Coloca LOAD_BALANCE=ON y FAILOVER=ON directamente bajo DESCRIPTION porque son opciones del connect descriptor. LOAD_BALANCE aleatoriza la ruta de direcciones cuando hay varias direcciones listener o SCAN disponibles, y FAILOVER permite que el cliente pruebe otra dirección si la elegida no está disponible durante el connect time.", "El alias omite UR=A en este ejemplo OLTP porque la conexión debe usar el registro normal de servicio y el ruteo del listener para CDB01_PDB01.paas.oracle.com."], postNoteReferences: [{ label: "Referencia de comandos SRVCTL service", url: refs.srvctl }, { label: "Parámetros SRVCTL deprecados", url: refs.srvctlCluster }, { label: "Application Continuity", url: refs.appContinuity }, { label: "Parámetros Oracle Net local naming", url: refs.tnsnames }, { label: "Parámetros Oracle Net FAILOVER_MODE", url: refs.failoverMode }] },
+          { id: "report-service", title: "13. Aislamiento de Servicio para Reportes", kicker: "Servicio dedicado para cargas de reportes", body: "Las cargas de reportes suelen ser de lectura intensiva, más largas y más propensas a generar escaneos, ordenamientos, uso de espacio temporal y churn de buffer cache. Un servicio dedicado da a esa carga su propio nombre de servicio, política de colocación e identidad de monitoreo sin cambiar la PDB.", collapsible: true, code: { type: "bash", label: "Creación y validación del servicio de reportes", value: commands.reportsService }, extraCodes: [{ type: "text", label: "Alias TNS de capa de aplicación para reportes", value: commands.reportsTnsAlias }, { type: "sql", label: "Verificación de instancia conectada con SQL*Plus", value: commands.reportsInstanceCheck }], notes: ["Usa nombres de instancia de base de datos en -preferred y -available. Este ejemplo envía la carga normal de reportes a CDB012 y mantiene CDB011 disponible solo cuando el servicio de reportes no pueda ejecutarse en la instancia preferred.", "Mantener reportes en una instancia preferred reduce churn de cache entre nodos y protege el servicio OLTP de escaneos o agregaciones grandes de reportes. Si falla el nodo preferred de reportes, Oracle Clusterware puede iniciar el servicio en la instancia available para que los usuarios conserven un endpoint de servicio.", "El alias TNS de reportes es intencionalmente más simple que el alias OLTP de la sección 11. Omite el bloque FAILOVER_MODE del lado cliente porque este servicio de reportes usa colocación explícita del servicio y comportamiento de carga reiniciable en lugar de failover de sesión estilo TAF.", "Connection Load Balancing Goal LONG es apropiado para sesiones de reportes que tienden a ser largas y deben balancearse por conteo de sesiones en lugar de feedback runtime advisory.", "Runtime Load Balancing Goal NONE evita publicar objetivos runtime advisory para cargas de reportes. Mantén el ruteo de reportes explícito para que escaneos o agregaciones grandes no compitan directamente con el servicio OLTP.", "Failover Type NONE es intencional para reportes porque esta carga normalmente es reiniciable. Si un nodo falla durante un reporte, la aplicación o herramienta de reportes debe reejecutar la consulta o job en lugar de intentar continuar una sentencia larga ejecutada parcialmente."], table: { headers: ["Atributo", "Valor recomendado", "Razón"], rows: [["Connection Load Balancing Goal", "LONG", "Las sesiones largas de reportes se balancean mejor por conteo de sesiones."], ["Runtime Load Balancing Goal", "NONE", "Las cargas de reportes se enrutan explícitamente en lugar de usar objetivos RLB advisory."], ["Instancias preferred / available", "CDB012 / CDB011", "La carga normal de reportes permanece en una instancia, mientras la otra queda reservada para failover del servicio."], ["Failover Type", "NONE", "Los reportes son reiniciables y deben reejecutarse desde la aplicación o capa de reportes después de una falla."]] }, references: [{ label: "Referencia de comandos SRVCTL service", url: refs.srvctl }, { label: "Workload management with services", url: refs.srvctlCluster }] },
+          { id: "batch-jobs", title: "14. Aislamiento de Servicios para Batch Jobs", kicker: "Servicio dedicado para cargas batch", body: "Los batch jobs suelen ser programados, consumir recursos y ser reiniciables. Un servicio batch dedicado da a los schedulers un endpoint estable para esta carga mientras separa su colocación normal y métricas de servicio del tráfico OLTP y de reportes.", collapsible: true, code: { type: "bash", label: "Creación y validación del servicio batch", value: commands.batchService }, extraCodes: [{ type: "text", label: "Alias TNS de capa de aplicación para batch jobs", value: commands.batchTnsAlias }], notes: ["Usa nombres de instancia de base de datos en -preferred y -available. Este ejemplo envía la carga normal batch a CDB011 y mantiene CDB012 disponible solo cuando el servicio batch no pueda ejecutarse en la instancia preferred.", "Mantener batch jobs en una instancia preferred reduce churn de cache entre nodos y facilita medir la carga programada con métricas AWR por servicio. Si falla el nodo preferred de batch, Oracle Clusterware puede iniciar el servicio en la instancia available para que el scheduler conserve un endpoint de servicio.", "Connection Load Balancing Goal LONG es apropiado para sesiones batch que tienden a ser largas y deben balancearse por conteo de sesiones en lugar de feedback runtime advisory.", "Runtime Load Balancing Goal NONE mantiene el ruteo batch explícito para que jobs grandes no compitan directamente con decisiones de runtime load balancing de OLTP.", "Failover Type NONE es intencional para batch jobs porque esta carga normalmente es reiniciable. Si un nodo falla durante un paso batch, el scheduler o la aplicación debe reejecutar el paso del job en lugar de intentar continuar una sentencia larga ejecutada parcialmente."], table: { headers: ["Atributo", "Valor recomendado", "Razón"], rows: [["Connection Load Balancing Goal", "LONG", "Las sesiones batch largas se balancean mejor por conteo de sesiones."], ["Runtime Load Balancing Goal", "NONE", "Las cargas batch se enrutan explícitamente en lugar de usar objetivos RLB advisory."], ["Instancias preferred / available", "CDB011 / CDB012", "La carga normal batch permanece en una instancia, mientras la otra queda reservada para failover del servicio."], ["Failover Type", "NONE", "Los batch jobs son reiniciables y deben reejecutarse desde el scheduler o la aplicación después de una falla."]] }, references: [{ label: "Referencia de comandos SRVCTL service", url: refs.srvctl }, { label: "Workload management with services", url: refs.srvctlCluster }] },
+          { id: "session-memory", title: "15. Consultas de distribución de sesiones y memoria", kicker: "Validación de sesiones y memoria RAC", body: "La distribución de sesiones y memoria es la evidencia runtime de si la colocación de servicios funciona como se espera. GV$SESSION, GV$PROCESS, GV$SERVICES y metadata de contenedores permiten comparar carga conectada y uso de PGA por instancia, PDB y servicio.", collapsible: true, code: { type: "sql", label: "Sesiones por instancia", description: "Objetivo: obtener un conteo rápido de sesiones por instancia RAC. Úsalo como primera revisión de balance después de cambios de servicio o pruebas de failover para ver si una instancia concentra la mayor parte de la carga conectada.", value: commands.sessionsPerInstance }, extraCodes: [{ type: "sql", label: "Sesiones por PDB e instancia", description: "Objetivo: desglosar el conteo de sesiones por PDB, instancia RAC y nombre de servicio de conexión. Muestra qué endpoint de servicio coloca sesiones en cada instancia y ayuda a confirmar si conexiones OLTP, reportes o batch aterrizan donde se espera.", value: commands.sessionsPerPdbInstance }, { type: "sql", label: "Uso de memoria por PDB e instancia RAC", description: "Objetivo: estimar la memoria PGA asignada por sesiones de usuario para cada PDB en cada instancia RAC. Úsalo para detectar presión de memoria, colocación sesgada de servicios o una clase de carga que consume más memoria de procesos en un nodo.", value: commands.memoryPerPdbInstance }, { type: "sql", label: "Distribución de memoria en todo el clúster", description: "Objetivo: agregar el uso de PGA por PDB en toda la base RAC. Resalta qué PDB es el mayor consumidor de memoria sin importar la instancia y ayuda a priorizar análisis más profundo de sesiones o SQL.", value: commands.clusterMemoryDistribution }, { type: "sql", label: "Dashboard de carga de trabajo RAC", description: "Objetivo: combinar conteo de sesiones, PGA total y PGA promedio por sesión por PDB e instancia. Úsalo como dashboard compacto de carga para comparar volumen e intensidad de memoria entre nodos RAC antes y después de cambios de configuración de servicios.", value: commands.racWorkloadDashboard }], notes: ["Ejecuta estas consultas desde una cuenta DBA o de monitoreo con acceso a GV$SESSION, GV$PROCESS y V$CONTAINERS.", "Usa la salida después de cambios de servicio, pruebas de failover o cambios de aislamiento de carga para confirmar que las sesiones y la memoria PGA se distribuyen según lo esperado."], references: [{ label: "Vistas dinámicas de rendimiento", url: refs.dynamicViews }] },
+          { id: "rlb", title: "16. Configuración OLTP Recomendada para Runtime Load Balancing", kicker: "Balanceo runtime", body: "Runtime load balancing es un mecanismo de service advisory consumido por pools de conexión integrados. Ayuda a que nuevas solicitudes prefieran la instancia que ofrece el mejor objetivo de servicio actual, pero el modelo de conexión de la aplicación debe ser compatible con ruteo basado en pool.", collapsible: true, code: { type: "bash", label: "Aplicar actualización de servicio para runtime load balancing", value: commands.oltpRlbModify }, extraCodes: [{ type: "bash", label: "Validar configuración actualizada del servicio", value: commands.oltpRlbVerify }, { type: "sql", label: "Verificar configuración del servicio desde GV$SERVICES", value: commands.rlbServiceSettingsSql }, { type: "sql", label: "Verificación de instancia conectada con SQL*Plus", value: commands.rlbInstanceCheck }], notes: ["Este cambio mantiene el SERVICE_NAME existente, por lo que los clientes de aplicación pueden seguir usando CDB01_PDB01.paas.oracle.com.", "Ejecuta el comando de validación después del comando modify para confirmar que SRVCTL reporta Connection Load Balancing Goal SHORT y Runtime Load Balancing Goal THROUGHPUT para el servicio.", "Usa la consulta GV$SERVICES desde una cuenta DBA o de monitoreo para confirmar filas por instancia donde CLB_GOAL es SHORT y GOAL es THROUGHPUT desde dentro de la base de datos.", "No se requiere un alias separado de capa de aplicación para esta sección. Runtime load balancing se controla mediante atributos del servicio, por lo que los alias existentes de la sección 9 o la sección 11 que resuelven a CDB01_PDB01.paas.oracle.com heredan el comportamiento actualizado del servicio.", "Comparado con el alias OLTP de la sección 11, la sintaxis de conexión puede mantenerse más simple aquí porque runtime load balancing se controla mediante la configuración del servicio y advisories de pools integrados, no agregando un bloque FAILOVER_MODE del lado cliente al descriptor TNS.", "Runtime load balancing funciona mejor para modelos de solicitud stateless donde las conexiones del pool se toman, se usan durante una solicitud corta y se devuelven al pool. Habilita Fast Connection Failover y usa pools UCP, WebLogic, OCI u ODP.NET que consumen eventos FAN y RAC load balancing advisory.", "Para aplicaciones stateful, revisa antes de habilitar THROUGHPUT globalmente. Conversaciones largas, package globals, tablas temporales, estado de sesión alterado, cursores abiertos o supuestos de afinidad pueden reducir el beneficio porque el pool no puede enrutar libremente cada nueva solicitud. Mueve el estado conversacional a la capa de aplicación o a una tabla, reinicia el estado de sesión al devolver conexiones al pool, marca límites de solicitud y valida la cobertura de Application Continuity o Transparent Application Continuity antes de depender de replay.", "Connection Load Balancing Goal SHORT es el objetivo de conexión recomendado para pools integrados que usan advisories de runtime load balancing.", "Runtime Load Balancing Goal THROUGHPUT enruta trabajo hacia la instancia que completa trabajo a la tasa más alta. Usa SERVICE_TIME cuando el objetivo principal sea el tiempo de respuesta de transacciones OLTP cortas; usa connection balancing LONG principalmente para cargas cerradas o estilo batch."], table: { headers: ["Atributo", "Valor recomendado", "Valor por defecto", "Valores documentados por Oracle"], rows: [["Connection Load Balancing Goal", "SHORT", "LONG", "SHORT, LONG"], ["Runtime Load Balancing Goal", "THROUGHPUT", "NONE", "NONE, SERVICE_TIME, THROUGHPUT"]] }, references: [{ label: "Referencia de comandos SRVCTL service", url: refs.srvctl }, { label: "Run-time connection load balancing", url: refs.rlb }, { label: "Fast Connection Failover", url: refs.fcf }, { label: "Application Continuity", url: refs.appContinuity }, { label: "Referencia GV$SERVICES", url: refs.gvservices }] },
+          { id: "operational-notes", title: "Notas Operativas de Exascale", kicker: "Contexto de ejecución", body: "La consistencia operativa importa porque las revisiones RAC cruzan usuarios de sistema operativo, Oracle homes, variables de entorno, nombres de nodo y nombres de servicio. Mantener explícitas esas sustituciones reduce falsos hallazgos durante la validación posterior a cambios.", bullets: ["Comandos de Grid como usuario grid.", "Comandos de base de datos como usuario oracle.", "Usar $ORACLE_UNQNAME.", "Reemplazar <node_name> con valores de olsnodes."] }
         ],
         calloutsTitle: "Conceptos de Continuidad y Servicios",
         calloutsIntro: "Estos conceptos enmarcan los términos de servicio y failover que aparecen en discusiones de RAC, balanceo de carga y continuidad de aplicaciones.",
@@ -855,7 +1108,31 @@ Exascale note: customer-managed ASM is not expected for the 26ai Exascale path i
           notes: "Notas",
           highlights: "Cobertura atualizada",
           sourceLabel: "Fonte",
-          oracleDocs: "Documentação oficial da Oracle"
+          oracleDocs: "Documentação oficial da Oracle",
+          snippetObjectives: {
+            "Executar como grid": "Objetivo: validar status do Clusterware, recursos e associação de nós a partir do proprietário do Grid Infrastructure antes de revisar recursos de banco.",
+            "Verificação de status ASM": "Objetivo: confirmar a expectativa Exascale de que ASM gerenciado pelo cliente não está presente nesta rota de implantação.",
+            "Esperado": "Objetivo: mostrar a saída esperada para comparar o resultado real do comando com a linha base documentada.",
+            "Status do listener": "Objetivo: verificar se o recurso listener do nó está online no nó de cluster alvo.",
+            "Status do banco": "Objetivo: carregar o ambiente do proprietário do banco e confirmar o status das instâncias RAC via SRVCTL.",
+            "Configuração do banco": "Objetivo: revisar a configuração do banco registrada no Oracle Clusterware, incluindo posicionamento de instâncias e atributos de administração.",
+            "Validação de serviços": "Objetivo: listar configuração e status runtime dos serviços do banco e depois revisar explicitamente o serviço PDB padrão.",
+            "Inventário de views SQL": "Objetivo: documentar as views dinâmicas de desempenho usadas pelos health checks SQL.",
+            "Validação de conectividade": "Objetivo: testar resolução de nomes cliente com tnsping e validar uma conexão real com SQL*Plus.",
+            "Revisão de aliases TNS": "Objetivo: abrir o diretório network admin específico do banco e inspecionar os aliases TNS usados por clientes.",
+            "Valores padrão de tnsnames.ora": "Objetivo: capturar os descritores local naming atuais antes de recomendar aliases da camada de aplicação.",
+            "Configuração do serviço padrão": "Objetivo: inspecionar os atributos do serviço PDB padrão que servem como linha base para mudanças de failover e balanceamento.",
+            "Modificação de serviço para failover OLTP": "Objetivo: atualizar o serviço OLTP existente com comportamento de retry de failover de sessão preservando o mesmo nome de serviço.",
+            "Alias TNS recomendado para a camada de aplicação": "Objetivo: fornecer o alias OLTP voltado à aplicação e o descritor JDBC Thin equivalente usado por clientes.",
+            "Verificação da instância conectada com SQL*Plus": "Objetivo: mostrar a instância RAC real e o nome de serviço usado pela sessão de aplicação conectada.",
+            "Criação e validação do serviço de relatórios": "Objetivo: criar e validar um serviço dedicado para relatórios com posicionamento preferred para isolar cargas longas de relatórios.",
+            "Alias TNS da camada de aplicação para relatórios": "Objetivo: fornecer o alias de relatórios que clientes devem usar para conectar pelo serviço dedicado de relatórios.",
+            "Criação e validação do serviço batch": "Objetivo: criar e validar um serviço batch dedicado com posicionamento explícito de instância preferred e available.",
+            "Alias TNS da camada de aplicação para batch jobs": "Objetivo: fornecer o alias batch que schedulers ou aplicações devem usar para cargas batch reiniciáveis.",
+            "Aplicar atualização de serviço para runtime load balancing": "Objetivo: modificar o serviço OLTP existente para publicar objetivos de connection e runtime load balancing para pools integrados.",
+            "Validar configuração atualizada do serviço": "Objetivo: confirmar que o SRVCTL reporta os atributos esperados de connection e runtime load balancing após a mudança.",
+            "Verificar configuração do serviço em GV$SERVICES": "Objetivo: validar dentro da base RAC os atributos de load balancing do serviço por instância."
+          }
         },
         highlights: [
           "Runtime load balancing OLTP agora atualiza CDB01_PDB01.paas.oracle.com com connection load balancing SHORT e runtime load balancing THROUGHPUT.",
@@ -864,23 +1141,25 @@ Exascale note: customer-managed ASM is not expected for the 26ai Exascale path i
           "Os exemplos da camada de aplicação incluem aliases TNS, URLs JDBC Thin DESCRIPTION completas, failover de serviço e runtime load balancing."
         ],
         sections: [
-          { id: "overview", title: "Overview", kicker: "Propósito", body: "Fornecer um procedimento consistente para validar a saúde de uma implantação Exadata Exascale RAC.", notes: ["Execute as seções em ordem durante uma validação base ou uma revisão após mudanças."] },
-          { id: "architecture", title: "Contexto de Arquitetura", kicker: "Mapa de escopo", body: "O guia verifica o stack RAC desde Grid Infrastructure até conectividade, mantendo explícita a expectativa de armazenamento Exascale.", code: { type: "diagram", label: "Diagrama de texto", value: commands.flow } },
-          { id: "grid", title: "1. Health Checks de Grid Infrastructure", kicker: "Clusterware e nós", body: "Verificar recursos do Oracle Clusterware, associação de nós, listeners e infraestrutura RAC.", code: { type: "bash", label: "Executar como grid", value: commands.grid }, notes: ["O guia fonte observa que olsnodes -i está obsoleto."] },
-          { id: "asm", title: "2. Verificações ASM (Não Aplicável ao Exascale)", kicker: "Expectativa de armazenamento Exascale", body: "Exascale usa armazenamento gerenciado baseado em Vault e não implanta instâncias ASM gerenciadas pelo cliente.", code: { type: "bash", label: "Verificação de status ASM", value: commands.asm }, expected: commands.asmExpected },
-          { id: "listener", title: "3. Health Checks de Listener", kicker: "Listener de nó", body: "Verificar o status do listener no nó alvo.", code: { type: "bash", label: "Status do listener", value: commands.listener }, notes: ["Substitua <node_name> por valores retornados por olsnodes."] },
-          { id: "database-health", title: "4. Health Checks de Banco de Dados", kicker: "Contexto do proprietário do banco", body: "Alternar para o usuário oracle, carregar o ambiente do banco e verificar o estado da base RAC com SRVCTL.", code: { type: "bash", label: "Status do banco", value: commands.database } },
-          { id: "database-config", title: "5. Configuração de Banco de Dados", kicker: "Configuração registrada", body: "Revisar a configuração do banco registrada no Oracle Clusterware.", code: { type: "bash", label: "Configuração do banco", value: commands.dbConfig } },
-          { id: "service-validation", title: "6. Validação de Serviços", kicker: "Configuração e execução de serviços", body: "Validar a configuração e o status runtime dos serviços para o database unique name.", code: { type: "bash", label: "Validação de serviços", value: commands.service } },
-          { id: "sql-health", title: "7. Health Checks SQL", kicker: "Views dinâmicas", body: "Incluir as seguintes views SQL na revisão de saúde.", code: { type: "sql", label: "Inventário de views SQL", value: commands.sqlViews } },
-          { id: "connectivity", title: "8. Validação de Conectividade", kicker: "TNS e SQL*Plus", body: "Validar o alias de serviço e depois validar uma conexão de banco por SQL*Plus.", code: { type: "bash", label: "Validação de conectividade", value: commands.connectivity } },
-          { id: "tns-aliases", title: "9. Revisão de Aliases TNS", kicker: "Arquivos de administração de rede", body: "Revisar os aliases TNS no diretório network admin específico do banco.", code: { type: "bash", label: "Revisão de aliases TNS", value: commands.tns }, extraCodes: [{ type: "text", label: "Valores padrão de tnsnames.ora", value: commands.tnsDefaults }] },
-          { id: "default-service", title: "10. Revisão da Configuração do Serviço de Conexão Padrão", kicker: "Linha base do serviço de conexão", body: "Revisar a configuração do serviço de conexão padrão e comparar suas características atuais.", code: { type: "bash", label: "Configuração do serviço padrão", value: commands.defaultService }, expected: commands.defaultServiceOutput, table: { headers: ["Característica", "Valor", "Valores documentados pela Oracle"], rows: [["Failover type", "NONE", "NONE, SESSION, SELECT, TRANSACTION, AUTO"], ["Runtime Load Balancing Goal", "NONE", "NONE, SERVICE_TIME, THROUGHPUT"], ["Connection Load Balancing Goal", "LONG", "SHORT, LONG"]] }, notes: ["Esta saída mostra que o serviço PDB padrão CDB01_PDB01.paas.oracle.com está habilitado para o papel PRIMARY e mapeado para PDB01.", "Cardinality 2 com instâncias preferred CDB011,CDB012 significa que o serviço fica posicionado nas duas instâncias RAC durante operação normal; não há instâncias available listadas para posicionamento alternativo.", "Failover type NONE, failover method NONE, TAF policy NONE, Commit Outcome FALSE e Failover restore NONE significam que este serviço padrão não está configurado para TAF do lado servidor, Transaction Guard nem comportamento de replay estilo Application Continuity.", "Connection Load Balancing Goal LONG favorece balanceamento por contagem de sessões para conexões de maior duração, enquanto Runtime Load Balancing Goal NONE significa que o serviço não publica objetivos de runtime load balancing advisory como SERVICE_TIME ou THROUGHPUT."], references: [{ label: "Referência de comandos SRVCTL service", url: refs.srvctl }] },
-          { id: "oltp", title: "11. Configuração OLTP Recomendada (Eficiente em Memória)", kicker: "Seção de melhores práticas", body: "Para a recomendação OLTP eficiente em memória deste guia, use estes valores.", collapsible: true, code: { type: "bash", label: "Modificação de serviço para failover OLTP", value: commands.oltpModify }, extraCodes: [{ type: "text", label: "Alias TNS recomendado para a camada de aplicação", value: commands.oltpTnsAlias }, { type: "sql", label: "Verificação da instância conectada com SQL*Plus", value: commands.oltpInstanceCheck }], table: { headers: ["Atributo", "Valor recomendado", "Valores documentados pela Oracle"], rows: [["Failover Type", "SESSION", "SRVCTL: NONE, SESSION, SELECT, TRANSACTION, AUTO; TNS FAILOVER_MODE TYPE: session, select, none"], ["Failover Retries", "30", "Quantidade inteira de tentativas"], ["Failover Delay", "5", "Atraso inteiro em segundos"]] }, notes: ["O Oracle AI Database 26ai deprecia a opção SRVCTL -failovermethod, então o SRVCTL avisa que ela será ignorada. Remova -failovermethod dos scripts de modificação de serviço.", "Para failover de sessão estilo TAF, mantenha -failovertype SESSION com valores de retry e delay. Para clientes e pools com capacidade de replay, prefira Transparent Application Continuity ou Application Continuity, que usam -failovertype AUTO ou TRANSACTION com commit outcome e parâmetros de replay."], references: [{ label: "Referência de comandos SRVCTL service", url: refs.srvctl }, { label: "Parâmetros SRVCTL depreciados", url: refs.srvctlCluster }, { label: "Application Continuity", url: refs.appContinuity }, { label: "Parâmetros Oracle Net FAILOVER_MODE", url: refs.failoverMode }] },
-          { id: "rlb", title: "12. Configuração OLTP Recomendada para Runtime Load Balancing", kicker: "Balanceamento runtime", body: "Habilitar runtime load balancing no serviço existente CDB01_PDB01.paas.oracle.com para que pools integrados possam rotear novo trabalho para a instância RAC com melhor throughput atual. Isso mantém o mesmo nome de serviço e evita a sobrecarga operacional de um serviço adicional, enquanto o impacto de CPU e memória do lado do banco é mínimo porque a mudança usa metadata de RAC service advisory em vez de iniciar processos adicionais de banco de dados. O benefício é melhor uso das duas instâncias, menos sessões presas a um nó mais lento e resposta mais uniforme sob condições variáveis de carga.", collapsible: true, code: { type: "bash", label: "Aplicar atualização de serviço para runtime load balancing", value: commands.oltpRlbModify }, extraCodes: [{ type: "bash", label: "Validar configuração atualizada do serviço", value: commands.oltpRlbVerify }, { type: "sql", label: "Verificar configuração do serviço em GV$SERVICES", value: commands.rlbServiceSettingsSql }, { type: "sql", label: "Verificação da instância conectada com SQL*Plus", value: commands.rlbInstanceCheck }], notes: ["Esta mudança mantém o SERVICE_NAME existente, então clientes de aplicação podem continuar usando CDB01_PDB01.paas.oracle.com.", "Execute o comando de validação depois do comando modify para confirmar que o SRVCTL reporta Connection Load Balancing Goal SHORT e Runtime Load Balancing Goal THROUGHPUT para o serviço.", "Use a consulta GV$SERVICES a partir de uma conta DBA ou de monitoramento para confirmar linhas por instância onde CLB_GOAL é SHORT e GOAL é THROUGHPUT dentro do banco de dados.", "Não é necessário um alias separado da camada de aplicação para esta seção. Runtime load balancing é controlado por atributos do serviço, então aliases existentes da seção 9 ou seção 11 que resolvem para CDB01_PDB01.paas.oracle.com herdam o comportamento atualizado do serviço.", "Comparada ao alias OLTP da seção 11, a sintaxe de conexão pode permanecer mais simples aqui porque runtime load balancing é controlado pela configuração do serviço e advisories de pools integrados, não pela inclusão de um bloco FAILOVER_MODE do lado cliente no descritor TNS.", "Connection Load Balancing Goal SHORT é o objetivo de conexão recomendado para pools integrados que usam advisories de runtime load balancing.", "Runtime Load Balancing Goal THROUGHPUT roteia trabalho para a instância que conclui trabalho na taxa mais alta. Use SERVICE_TIME quando o principal objetivo for tempo de resposta de transações OLTP curtas; use connection balancing LONG principalmente para cargas fechadas ou estilo batch."], table: { headers: ["Atributo", "Valor recomendado", "Valor padrão", "Valores documentados pela Oracle"], rows: [["Connection Load Balancing Goal", "SHORT", "LONG", "SHORT, LONG"], ["Runtime Load Balancing Goal", "THROUGHPUT", "NONE", "NONE, SERVICE_TIME, THROUGHPUT"]] }, references: [{ label: "Referência de comandos SRVCTL service", url: refs.srvctl }, { label: "Run-time connection load balancing", url: refs.rlb }, { label: "Referência GV$SERVICES", url: refs.gvservices }] },
-          { id: "report-service", title: "13. Isolamento de Serviço para Relatórios", kicker: "Serviço dedicado para cargas de relatórios", body: "Criar um serviço separado para sessões de relatórios de leitura intensiva e longa duração e preferi-lo em uma única instância RAC. Fixar a rota normal de relatórios em uma instância preferred mantém varreduras grandes, ordenações, uso de espaço temporário e churn de buffer cache longe da instância voltada a OLTP, enquanto a segunda instância permanece disponível se o nó preferred ou o posicionamento do serviço falhar. Este é um padrão de isolamento de carga, não um limite de capacidade: a instância available preserva a disponibilidade do serviço, mas a carga diária de relatórios permanece previsível e mais fácil de medir com métricas AWR por serviço.", collapsible: true, code: { type: "bash", label: "Criação e validação do serviço de relatórios", value: commands.reportsService }, extraCodes: [{ type: "text", label: "Alias TNS da camada de aplicação para relatórios", value: commands.reportsTnsAlias }, { type: "sql", label: "Verificação da instância conectada com SQL*Plus", value: commands.reportsInstanceCheck }], notes: ["Use nomes de instância de banco em -preferred e -available. Este exemplo envia a carga normal de relatórios para CDB012 e mantém CDB011 disponível apenas quando o serviço de relatórios não puder executar na instância preferred.", "Manter relatórios em uma instância preferred reduz churn de cache entre nós e protege o serviço OLTP de varreduras ou agregações grandes de relatórios. Se o nó preferred de relatórios falhar, o Oracle Clusterware pode iniciar o serviço na instância available para que usuários mantenham um endpoint de serviço.", "O alias TNS de relatórios é intencionalmente mais simples que o alias OLTP da seção 11. Ele omite o bloco FAILOVER_MODE do lado cliente porque este serviço de relatórios usa posicionamento explícito do serviço e comportamento de carga reiniciável em vez de failover de sessão estilo TAF.", "Connection Load Balancing Goal LONG é apropriado para sessões de relatórios que tendem a ser longas e devem ser balanceadas por contagem de sessões em vez de feedback runtime advisory.", "Runtime Load Balancing Goal NONE evita publicar objetivos runtime advisory para cargas de relatórios. Mantenha o roteamento de relatórios explícito para que varreduras ou agregações grandes não concorram diretamente com o serviço OLTP.", "Failover Type NONE é intencional para relatórios porque essa carga normalmente é reiniciável. Se um nó falhar durante um relatório, a aplicação ou ferramenta de relatórios deve reexecutar a consulta ou job em vez de tentar continuar uma instrução longa parcialmente executada."], table: { headers: ["Atributo", "Valor recomendado", "Razão"], rows: [["Connection Load Balancing Goal", "LONG", "Sessões longas de relatórios são melhor balanceadas por contagem de sessões."], ["Runtime Load Balancing Goal", "NONE", "Cargas de relatórios são roteadas explicitamente em vez de usar objetivos RLB advisory."], ["Instâncias preferred / available", "CDB012 / CDB011", "A carga normal de relatórios permanece em uma instância, enquanto a outra fica reservada para failover do serviço."], ["Failover Type", "NONE", "Relatórios são reiniciáveis e devem ser reexecutados pela aplicação ou camada de relatórios após uma falha."]] }, references: [{ label: "Referência de comandos SRVCTL service", url: refs.srvctl }, { label: "Workload management with services", url: refs.srvctlCluster }] },
-          { id: "batch-jobs", title: "14. Isolamento de Serviço para Batch Jobs", kicker: "Serviço dedicado para cargas batch", body: "Criar um serviço batch separado para jobs programados e reiniciáveis e preferi-lo em uma única instância RAC. Fixar a rota normal de batch em CDB011 mantém ETL, manutenção e processamento em segundo plano longe da rota do serviço voltado a OLTP, enquanto CDB012 permanece disponível se o nó batch preferred ou o posicionamento do serviço falhar. Este é um padrão de isolamento de carga, não um limite de capacidade: a carga batch permanece previsível durante janelas normais, e a instância available preserva a disponibilidade do serviço sem fazer cada passo batch em execução depender de failover de sessão.", collapsible: true, code: { type: "bash", label: "Criação e validação do serviço batch", value: commands.batchService }, extraCodes: [{ type: "text", label: "Alias TNS da camada de aplicação para batch jobs", value: commands.batchTnsAlias }], notes: ["Use nomes de instância de banco em -preferred e -available. Este exemplo envia a carga normal batch para CDB011 e mantém CDB012 disponível apenas quando o serviço batch não puder executar na instância preferred.", "Manter batch jobs em uma instância preferred reduz churn de cache entre nós e facilita medir a carga programada com métricas AWR por serviço. Se o nó preferred de batch falhar, o Oracle Clusterware pode iniciar o serviço na instância available para que o scheduler mantenha um endpoint de serviço.", "Connection Load Balancing Goal LONG é apropriado para sessões batch que tendem a ser longas e devem ser balanceadas por contagem de sessões em vez de feedback runtime advisory.", "Runtime Load Balancing Goal NONE mantém o roteamento batch explícito para que jobs grandes não concorram diretamente com decisões de runtime load balancing de OLTP.", "Failover Type NONE é intencional para batch jobs porque essa carga normalmente é reiniciável. Se um nó falhar durante um passo batch, o scheduler ou a aplicação deve reexecutar o passo do job em vez de tentar continuar uma instrução longa parcialmente executada."], table: { headers: ["Atributo", "Valor recomendado", "Razão"], rows: [["Connection Load Balancing Goal", "LONG", "Sessões batch longas são melhor balanceadas por contagem de sessões."], ["Runtime Load Balancing Goal", "NONE", "Cargas batch são roteadas explicitamente em vez de usar objetivos RLB advisory."], ["Instâncias preferred / available", "CDB011 / CDB012", "A carga normal batch permanece em uma instância, enquanto a outra fica reservada para failover do serviço."], ["Failover Type", "NONE", "Batch jobs são reiniciáveis e devem ser reexecutados pelo scheduler ou pela aplicação após uma falha."]] }, references: [{ label: "Referência de comandos SRVCTL service", url: refs.srvctl }, { label: "Workload management with services", url: refs.srvctlCluster }] },
-          { id: "operational-notes", title: "Notas Operacionais Exascale", kicker: "Contexto de execução", body: "Mantenha consistente o contexto de usuário, o nome do banco e a substituição de nó durante toda a revisão.", bullets: ["Comandos de Grid como usuário grid.", "Comandos de banco como usuário oracle.", "Usar $ORACLE_UNQNAME.", "Substituir <node_name> por valores de olsnodes."] }
+          { id: "overview", title: "Overview", kicker: "Propósito", body: "Um health check RAC é uma revisão em camadas de associação de cluster, recursos gerenciados pela Oracle, serviços de banco, naming cliente e posicionamento de carga baseado em serviços. Esta guia separa essas camadas para associar cada achado ao componente e responsável corretos.", notes: ["Execute as seções em ordem durante uma validação base ou uma revisão após mudanças."] },
+          { id: "architecture", title: "Contexto de Arquitetura", kicker: "Mapa de escopo", body: "No Oracle Multitenant, o container database (CDB) é o contêiner raiz de banco de dados que pode hospedar múltiplos pluggable databases (PDBs). Cada PDB tem seu próprio serviço de conexão padrão, portanto as aplicações devem conectar ao serviço da PDB em vez de apontar para uma instância RAC individual. Depois, a disponibilidade do Oracle RAC depende de Clusterware, instâncias de banco, serviços, listeners e descritores de conexão cliente trabalhando juntos. O mapa de arquitetura mostra essas dependências e separa o comportamento do serviço padrão dos serviços dedicados para relatórios e batch.", infographic: architectureInfographics.pt },
+          { id: "grid", title: "1. Health Checks de Grid Infrastructure", kicker: "Clusterware e nós", body: "O Oracle Clusterware fornece a estrutura de recursos cluster-aware usada pelo RAC. CRSCTL é a interface do Clusterware para verificar saúde do cluster, estado de recursos e associação de nós antes das revisões de banco.", code: { type: "bash", label: "Executar como grid", value: commands.grid }, notes: ["O guia fonte observa que olsnodes -i está obsoleto."] },
+          { id: "asm", title: "2. Verificações ASM (Não Aplicável ao Exascale)", kicker: "Expectativa de armazenamento Exascale", body: "Na rota Exadata Exascale usada por esta guia, o armazenamento é apresentado por infraestrutura gerenciada pelo Exascale e não por instâncias ASM gerenciadas pelo cliente. Um recurso ora.asm ausente é uma característica esperada, não necessariamente uma falha.", code: { type: "bash", label: "Verificação de status ASM", value: commands.asm }, expected: commands.asmExpected },
+          { id: "listener", title: "3. Health Checks de Listener", kicker: "Listener de nó", body: "Listeners Oracle Net recebem solicitações de conexão cliente e as roteiam para serviços de banco registrados. Em RAC, a saúde do listener faz parte da rota entre endereços SCAN ou de nó e o serviço escolhido pelo cliente.", code: { type: "bash", label: "Status do listener", value: commands.listener }, notes: ["Substitua <node_name> por valores retornados por olsnodes."] },
+          { id: "database-health", title: "4. Health Checks de Banco de Dados", kicker: "Contexto do proprietário do banco", body: "SRVCTL é a utilidade de administração esperada para entidades RAC gerenciadas pela Oracle, como bancos, instâncias, listeners e serviços. A revisão de status confirma se cada instância RAC está executando sob controle do Clusterware.", code: { type: "bash", label: "Status do banco", value: commands.database } },
+          { id: "database-config", title: "5. Configuração de Banco de Dados", kicker: "Configuração registrada", body: "A configuração do banco é a metadata do Clusterware que descreve como a base RAC é gerenciada, incluindo nomes de instância, Oracle homes, política de inicialização e informações de posicionamento usadas pelo SRVCTL.", code: { type: "bash", label: "Configuração do banco", value: commands.dbConfig } },
+          { id: "service-validation", title: "6. Validação de Serviços", kicker: "Configuração e execução de serviços", body: "Serviços RAC são pontos lógicos de entrada para cargas de trabalho. Eles separam nomes de conexão de aplicação de instâncias individuais e carregam atributos de posicionamento, failover e load balancing usados por clientes e pools.", code: { type: "bash", label: "Validação de serviços", value: commands.service } },
+          { id: "sql-health", title: "7. Health Checks SQL", kicker: "Views dinâmicas", body: "Views dinâmicas de desempenho expõem o estado atual do banco e das instâncias. Em RAC, views GV$ retornam linhas por instância para comparar status, serviços e sessões entre nós.", code: { type: "sql", label: "Inventário de views SQL", value: commands.sqlViews } },
+          { id: "connectivity", title: "8. Validação de Conectividade", kicker: "TNS e SQL*Plus", body: "A validação de conectividade cobre resolução de nomes e criação de sessão. Um alias TNS pode resolver corretamente enquanto a conexão final ao serviço ainda falha, portanto as duas camadas devem ser verificadas.", code: { type: "bash", label: "Validação de conectividade", value: commands.connectivity } },
+          { id: "tns-aliases", title: "9. Revisão de Aliases TNS", kicker: "Arquivos de administração de rede", body: "Local naming usa aliases de tnsnames.ora para mapear nomes amigáveis para connect descriptors. Esses descritores definem endereços, nomes de serviço, opções de failover e comportamento de load balancing vistos por clientes.", code: { type: "bash", label: "Revisão de aliases TNS", value: commands.tns }, extraCodes: [{ type: "text", label: "Valores padrão de tnsnames.ora", value: commands.tnsDefaults }] },
+{ id: "default-service", title: "10. Revisão da Configuração do Serviço de Conexão Padrão", kicker: "Linha base do serviço de conexão", body: "O serviço PDB padrão é a linha base de entrada de aplicação para este ambiente. Seus atributos SRVCTL mostram posicionamento, tipo de failover, objetivo de connection load balancing e objetivo de runtime load balancing antes de aplicar recomendações.", code: { type: "bash", label: "Configuração do serviço padrão", value: commands.defaultService }, table: { headers: ["Característica", "Valor", "Valores documentados pela Oracle"], rows: [["Failover type", "NONE", "NONE, SESSION, SELECT, TRANSACTION, AUTO"], ["Runtime Load Balancing Goal", "NONE", "NONE, SERVICE_TIME, THROUGHPUT"], ["Connection Load Balancing Goal", "LONG", "SHORT, LONG"]] }, notes: ["Esta saída mostra que o serviço PDB padrão CDB01_PDB01.paas.oracle.com está habilitado para o papel PRIMARY e mapeado para PDB01.", "Cardinality 2 com instâncias preferred CDB011,CDB012 significa que o serviço fica posicionado nas duas instâncias RAC durante operação normal; não há instâncias available listadas para posicionamento alternativo.", "Failover type NONE, failover method NONE, TAF policy NONE, Commit Outcome FALSE e Failover restore NONE significam que este serviço padrão não está configurado para TAF do lado servidor, Transaction Guard nem comportamento de replay estilo Application Continuity.", "Connection Load Balancing Goal LONG favorece balanceamento por contagem de sessões para conexões de maior duração, enquanto Runtime Load Balancing Goal NONE significa que o serviço não publica objetivos de runtime load balancing advisory como SERVICE_TIME ou THROUGHPUT."], postNoteCodes: [{ type: "text", label: "Saída do serviço padrão", description: "Objetivo: revisar a saída SRVCTL capturada nas notas e focar nos atributos de failover e balanceamento de carga que definem o comportamento do serviço padrão.", value: commands.defaultServiceOutput, highlightPatterns: ["Failover type:", "Runtime Load Balancing Goal:", "Connection Load Balancing Goal:"] }], references: [{ label: "Referência de comandos SRVCTL service", url: refs.srvctl }] },
+          { id: "oltp", title: "11. Configuração OLTP Recomendada (Eficiente em Memória)", kicker: "Seção de melhores práticas", body: "Serviços OLTP normalmente priorizam transações curtas, comportamento previsível de reconexão e baixo overhead operacional. Esta seção explica uma configuração de failover de sessão que mantém o mesmo nome de serviço e evita criar serviços adicionais.", collapsible: true, code: { type: "bash", label: "Modificação de serviço para failover OLTP", value: commands.oltpModify }, afterCodeNotes: ["-failovertype SESSION altera o serviço do valor padrão capturado Failover type NONE para failover de sessão em clientes compatíveis. Com NONE, o serviço não solicita failover de sessão estilo TAF; uma perda de conexão é devolvida à aplicação ou ao pool para tratamento. Com SESSION, o cliente pode reconectar a uma instância disponível e restaurar o contexto da sessão de banco de dados, mas o trabalho em andamento não é reproduzido automaticamente.",
+              "-failovertype SELECT é a opção TAF para continuidade de cursores somente leitura. Para clientes OCI compatíveis, SELECT pode permitir que uma sessão com cursores abertos continue fazendo fetch de linhas após reconectar em outra instância, enquanto SESSION apenas recria a sessão e não tenta recuperar operações select. SELECT adiciona overhead do lado cliente durante o processamento normal de selects, portanto deve ser reservado para cargas que se beneficiam de continuar fetches longos. Com failover BASIC, o segundo nó não mantém sessões backup pré-estabelecidas; ele precisa ter o serviço disponível e capacidade suficiente de CPU, memória e processos para aceitar reconexões quando o failover ocorrer. O failover preconectado seria mais rápido, mas aloca sessões backup antecipadamente e exige que a instância backup suporte essas conexões adicionais."], extraCodes: [{ type: "text", label: "Alias TNS recomendado para a camada de aplicação", value: commands.oltpTnsAlias }], postNoteCodes: [{ type: "sql", label: "Verificação da instância conectada com SQL*Plus", value: commands.oltpInstanceCheck }], postNoteText: ["A saída do SQL*Plus mostra a instância RAC real e o nome de serviço usado pela sessão conectada, confirmando onde o cliente aterrissou após resolver o alias OLTP."], table: { headers: ["Atributo", "Valor recomendado", "Valores documentados pela Oracle"], rows: [["Failover Type", "SESSION", "SRVCTL: NONE, SESSION, SELECT, TRANSACTION, AUTO; TNS FAILOVER_MODE TYPE: session, select, none"], ["Failover Retries", "30", "Quantidade inteira de tentativas"], ["Failover Delay", "5", "Atraso inteiro em segundos"]] }, notes: ["Coloque LOAD_BALANCE=ON e FAILOVER=ON diretamente sob DESCRIPTION porque são opções do connect descriptor. LOAD_BALANCE randomiza a rota de endereços quando há vários endereços listener ou SCAN disponíveis, e FAILOVER permite que o cliente tente outro endereço se o escolhido não estiver disponível durante o connect time.", "O alias omite UR=A neste exemplo OLTP porque a conexão deve usar o registro normal do serviço e o roteamento do listener para CDB01_PDB01.paas.oracle.com."], postNoteReferences: [{ label: "Referência de comandos SRVCTL service", url: refs.srvctl }, { label: "Parâmetros SRVCTL depreciados", url: refs.srvctlCluster }, { label: "Application Continuity", url: refs.appContinuity }, { label: "Parâmetros Oracle Net local naming", url: refs.tnsnames }, { label: "Parâmetros Oracle Net FAILOVER_MODE", url: refs.failoverMode }] },
+          { id: "report-service", title: "13. Isolamento de Serviço para Relatórios", kicker: "Serviço dedicado para cargas de relatórios", body: "Cargas de relatórios costumam ser de leitura intensiva, mais longas e mais propensas a gerar varreduras, ordenações, uso de espaço temporário e churn de buffer cache. Um serviço dedicado dá a essa carga seu próprio nome de serviço, política de posicionamento e identidade de monitoramento sem alterar a PDB.", collapsible: true, code: { type: "bash", label: "Criação e validação do serviço de relatórios", value: commands.reportsService }, extraCodes: [{ type: "text", label: "Alias TNS da camada de aplicação para relatórios", value: commands.reportsTnsAlias }, { type: "sql", label: "Verificação da instância conectada com SQL*Plus", value: commands.reportsInstanceCheck }], notes: ["Use nomes de instância de banco em -preferred e -available. Este exemplo envia a carga normal de relatórios para CDB012 e mantém CDB011 disponível apenas quando o serviço de relatórios não puder executar na instância preferred.", "Manter relatórios em uma instância preferred reduz churn de cache entre nós e protege o serviço OLTP de varreduras ou agregações grandes de relatórios. Se o nó preferred de relatórios falhar, o Oracle Clusterware pode iniciar o serviço na instância available para que usuários mantenham um endpoint de serviço.", "O alias TNS de relatórios é intencionalmente mais simples que o alias OLTP da seção 11. Ele omite o bloco FAILOVER_MODE do lado cliente porque este serviço de relatórios usa posicionamento explícito do serviço e comportamento de carga reiniciável em vez de failover de sessão estilo TAF.", "Connection Load Balancing Goal LONG é apropriado para sessões de relatórios que tendem a ser longas e devem ser balanceadas por contagem de sessões em vez de feedback runtime advisory.", "Runtime Load Balancing Goal NONE evita publicar objetivos runtime advisory para cargas de relatórios. Mantenha o roteamento de relatórios explícito para que varreduras ou agregações grandes não concorram diretamente com o serviço OLTP.", "Failover Type NONE é intencional para relatórios porque essa carga normalmente é reiniciável. Se um nó falhar durante um relatório, a aplicação ou ferramenta de relatórios deve reexecutar a consulta ou job em vez de tentar continuar uma instrução longa parcialmente executada."], table: { headers: ["Atributo", "Valor recomendado", "Razão"], rows: [["Connection Load Balancing Goal", "LONG", "Sessões longas de relatórios são melhor balanceadas por contagem de sessões."], ["Runtime Load Balancing Goal", "NONE", "Cargas de relatórios são roteadas explicitamente em vez de usar objetivos RLB advisory."], ["Instâncias preferred / available", "CDB012 / CDB011", "A carga normal de relatórios permanece em uma instância, enquanto a outra fica reservada para failover do serviço."], ["Failover Type", "NONE", "Relatórios são reiniciáveis e devem ser reexecutados pela aplicação ou camada de relatórios após uma falha."]] }, references: [{ label: "Referência de comandos SRVCTL service", url: refs.srvctl }, { label: "Workload management with services", url: refs.srvctlCluster }] },
+          { id: "batch-jobs", title: "14. Isolamento de Serviço para Batch Jobs", kicker: "Serviço dedicado para cargas batch", body: "Batch jobs normalmente são programados, consomem recursos e são reiniciáveis. Um serviço batch dedicado dá aos schedulers um endpoint estável para essa carga enquanto separa seu posicionamento normal e métricas de serviço do tráfego OLTP e de relatórios.", collapsible: true, code: { type: "bash", label: "Criação e validação do serviço batch", value: commands.batchService }, extraCodes: [{ type: "text", label: "Alias TNS da camada de aplicação para batch jobs", value: commands.batchTnsAlias }], notes: ["Use nomes de instância de banco em -preferred e -available. Este exemplo envia a carga normal batch para CDB011 e mantém CDB012 disponível apenas quando o serviço batch não puder executar na instância preferred.", "Manter batch jobs em uma instância preferred reduz churn de cache entre nós e facilita medir a carga programada com métricas AWR por serviço. Se o nó preferred de batch falhar, o Oracle Clusterware pode iniciar o serviço na instância available para que o scheduler mantenha um endpoint de serviço.", "Connection Load Balancing Goal LONG é apropriado para sessões batch que tendem a ser longas e devem ser balanceadas por contagem de sessões em vez de feedback runtime advisory.", "Runtime Load Balancing Goal NONE mantém o roteamento batch explícito para que jobs grandes não concorram diretamente com decisões de runtime load balancing de OLTP.", "Failover Type NONE é intencional para batch jobs porque essa carga normalmente é reiniciável. Se um nó falhar durante um passo batch, o scheduler ou a aplicação deve reexecutar o passo do job em vez de tentar continuar uma instrução longa parcialmente executada."], table: { headers: ["Atributo", "Valor recomendado", "Razão"], rows: [["Connection Load Balancing Goal", "LONG", "Sessões batch longas são melhor balanceadas por contagem de sessões."], ["Runtime Load Balancing Goal", "NONE", "Cargas batch são roteadas explicitamente em vez de usar objetivos RLB advisory."], ["Instâncias preferred / available", "CDB011 / CDB012", "A carga normal batch permanece em uma instância, enquanto a outra fica reservada para failover do serviço."], ["Failover Type", "NONE", "Batch jobs são reiniciáveis e devem ser reexecutados pelo scheduler ou pela aplicação após uma falha."]] }, references: [{ label: "Referência de comandos SRVCTL service", url: refs.srvctl }, { label: "Workload management with services", url: refs.srvctlCluster }] },
+          { id: "session-memory", title: "15. Consultas de distribuição de sessões e memória", kicker: "Validação de sessões e memória RAC", body: "A distribuição de sessões e memória é a evidência runtime de que o posicionamento de serviços funciona como esperado. GV$SESSION, GV$PROCESS, GV$SERVICES e metadata de containers permitem comparar carga conectada e uso de PGA por instância, PDB e serviço.", collapsible: true, code: { type: "sql", label: "Sessões por instância", description: "Objetivo: obter uma contagem rápida de sessões por instância RAC. Use como primeira verificação de balanceamento após mudanças de serviço ou testes de failover para ver se uma instância concentra a maior parte da carga conectada.", value: commands.sessionsPerInstance }, extraCodes: [{ type: "sql", label: "Sessões por PDB e instância", description: "Objetivo: detalhar a contagem de sessões por PDB, instância RAC e nome do serviço de conexão. Mostra qual endpoint de serviço posiciona sessões em cada instância e ajuda a confirmar se conexões OLTP, relatórios ou batch chegam onde esperado.", value: commands.sessionsPerPdbInstance }, { type: "sql", label: "Uso de memória por PDB e instância RAC", description: "Objetivo: estimar a memória PGA alocada por sessões de usuário para cada PDB em cada instância RAC. Use para identificar pressão de memória, posicionamento desigual de serviços ou uma classe de carga consumindo mais memória de processos em um nó.", value: commands.memoryPerPdbInstance }, { type: "sql", label: "Distribuição de memória em todo o cluster", description: "Objetivo: agregar o uso de PGA por PDB em toda a base RAC. Destaca qual PDB é o maior consumidor de memória independentemente da instância e ajuda a priorizar análise mais profunda de sessões ou SQL.", value: commands.clusterMemoryDistribution }, { type: "sql", label: "Dashboard de carga de trabalho RAC", description: "Objetivo: combinar contagem de sessões, PGA total e PGA média por sessão por PDB e instância. Use como dashboard compacto de carga para comparar volume e intensidade de memória entre nós RAC antes e depois de mudanças de configuração de serviços.", value: commands.racWorkloadDashboard }], notes: ["Execute estas consultas a partir de uma conta DBA ou de monitoramento com acesso a GV$SESSION, GV$PROCESS e V$CONTAINERS.", "Use a saída após mudanças de serviço, testes de failover ou mudanças de isolamento de carga para confirmar que as sessões e a memória PGA estão distribuídas conforme esperado."], references: [{ label: "Visões dinâmicas de desempenho", url: refs.dynamicViews }] },
+          { id: "rlb", title: "16. Configuração OLTP Recomendada para Runtime Load Balancing", kicker: "Balanceamento runtime", body: "Runtime load balancing é um mecanismo de service advisory consumido por pools de conexão integrados. Ele ajuda novas solicitações a preferirem a instância que oferece o melhor objetivo de serviço atual, mas o modelo de conexão da aplicação precisa ser compatível com roteamento baseado em pool.", collapsible: true, code: { type: "bash", label: "Aplicar atualização de serviço para runtime load balancing", value: commands.oltpRlbModify }, extraCodes: [{ type: "bash", label: "Validar configuração atualizada do serviço", value: commands.oltpRlbVerify }, { type: "sql", label: "Verificar configuração do serviço em GV$SERVICES", value: commands.rlbServiceSettingsSql }, { type: "sql", label: "Verificação da instância conectada com SQL*Plus", value: commands.rlbInstanceCheck }], notes: ["Esta mudança mantém o SERVICE_NAME existente, então clientes de aplicação podem continuar usando CDB01_PDB01.paas.oracle.com.", "Execute o comando de validação depois do comando modify para confirmar que o SRVCTL reporta Connection Load Balancing Goal SHORT e Runtime Load Balancing Goal THROUGHPUT para o serviço.", "Use a consulta GV$SERVICES a partir de uma conta DBA ou de monitoramento para confirmar linhas por instância onde CLB_GOAL é SHORT e GOAL é THROUGHPUT dentro do banco de dados.", "Não é necessário um alias separado da camada de aplicação para esta seção. Runtime load balancing é controlado por atributos do serviço, então aliases existentes da seção 9 ou seção 11 que resolvem para CDB01_PDB01.paas.oracle.com herdam o comportamento atualizado do serviço.", "Comparada ao alias OLTP da seção 11, a sintaxe de conexão pode permanecer mais simples aqui porque runtime load balancing é controlado pela configuração do serviço e advisories de pools integrados, não pela inclusão de um bloco FAILOVER_MODE do lado cliente no descritor TNS.", "Runtime load balancing funciona melhor para modelos de solicitação stateless em que conexões do pool são obtidas, usadas durante uma solicitação curta e devolvidas ao pool. Habilite Fast Connection Failover e use pools UCP, WebLogic, OCI ou ODP.NET que consomem eventos FAN e RAC load balancing advisory.", "Para aplicações stateful, revise antes de habilitar THROUGHPUT globalmente. Conversas longas, package globals, tabelas temporárias, estado de sessão alterado, cursores abertos ou suposições de afinidade podem reduzir o benefício porque o pool não pode rotear livremente cada nova solicitação. Mova o estado conversacional para a camada de aplicação ou para uma tabela, reinicie o estado de sessão ao devolver conexões ao pool, marque limites de solicitação e valide a cobertura de Application Continuity ou Transparent Application Continuity antes de depender de replay.", "Connection Load Balancing Goal SHORT é o objetivo de conexão recomendado para pools integrados que usam advisories de runtime load balancing.", "Runtime Load Balancing Goal THROUGHPUT roteia trabalho para a instância que conclui trabalho na taxa mais alta. Use SERVICE_TIME quando o principal objetivo for tempo de resposta de transações OLTP curtas; use connection balancing LONG principalmente para cargas fechadas ou estilo batch."], table: { headers: ["Atributo", "Valor recomendado", "Valor padrão", "Valores documentados pela Oracle"], rows: [["Connection Load Balancing Goal", "SHORT", "LONG", "SHORT, LONG"], ["Runtime Load Balancing Goal", "THROUGHPUT", "NONE", "NONE, SERVICE_TIME, THROUGHPUT"]] }, references: [{ label: "Referência de comandos SRVCTL service", url: refs.srvctl }, { label: "Run-time connection load balancing", url: refs.rlb }, { label: "Fast Connection Failover", url: refs.fcf }, { label: "Application Continuity", url: refs.appContinuity }, { label: "Referência GV$SERVICES", url: refs.gvservices }] },
+          { id: "operational-notes", title: "Notas Operacionais Exascale", kicker: "Contexto de execução", body: "Consistência operacional importa porque revisões RAC cruzam usuários de sistema operacional, Oracle homes, variáveis de ambiente, nomes de nó e nomes de serviço. Manter essas substituições explícitas reduz falsos achados durante validação após mudanças.", bullets: ["Comandos de Grid como usuário grid.", "Comandos de banco como usuário oracle.", "Usar $ORACLE_UNQNAME.", "Substituir <node_name> por valores de olsnodes."] }
         ],
         calloutsTitle: "Conceitos de Continuidade e Serviços",
         calloutsIntro: "Estes conceitos contextualizam os termos de serviço e failover que aparecem em discussões de RAC, balanceamento de carga e continuidade de aplicações.",
@@ -1002,6 +1281,9 @@ Exascale note: customer-managed ASM is not expected for the 26ai Exascale path i
 
     function CodePanel({ block, controls }) {
       const [copied, setCopied] = useState(false);
+      const description = block.description || (controls.snippetObjectives && controls.snippetObjectives[block.label]);
+      const highlightPatterns = block.highlightPatterns || [];
+      const codeLines = highlightPatterns.length ? String(block.value).split("\n") : null;
       const palette = {
         bash: "border-emerald-500/35 bg-[#111917]",
         java: "border-amber-500/35 bg-[#17130d]",
@@ -1051,6 +1333,10 @@ Exascale note: customer-managed ASM is not expected for the 26ai Exascale path i
         }
       }
 
+      function shouldHighlight(line) {
+        return highlightPatterns.some((pattern) => line.includes(pattern));
+      }
+
       return (
         <figure className={cx("overflow-hidden rounded-lg border shadow-sm", palette[block.type] || palette.text)}>
           <div className="flex items-center justify-between gap-4 border-b border-white/10 px-4 py-2">
@@ -1066,7 +1352,125 @@ Exascale note: customer-managed ASM is not expected for the 26ai Exascale path i
               {copied ? controls.copied : controls.copy}
             </button>
           </div>
-          <pre className="code-scroll overflow-x-auto p-4 text-[13px] leading-6 text-stone-100"><code>{block.value}</code></pre>
+          {description && (
+            <div className="border-b border-white/10 px-4 py-3 text-sm leading-6 text-stone-200">
+              {description}
+            </div>
+          )}
+          <pre className="code-scroll overflow-x-auto p-4 text-[13px] leading-6 text-stone-100"><code>{codeLines ? codeLines.map((line, index) => (
+            <span key={index} className={cx("block px-1", shouldHighlight(line) && "rounded-sm bg-emerald-400/15 text-emerald-200")}>{line || " "}</span>
+          )) : block.value}</code></pre>
+        </figure>
+      );
+    }
+
+    function PillList({ items }) {
+      return (
+        <div className="flex flex-wrap gap-2">
+          {items.map((item) => (
+            <span key={item} className="rounded-md border border-stone-200 bg-white px-2.5 py-1 text-xs font-semibold text-stone-700 dark:border-stone-700 dark:bg-stone-900 dark:text-stone-300">
+              {item}
+            </span>
+          ))}
+        </div>
+      );
+    }
+
+    function ArchitectureInfographic({ data }) {
+      return (
+        <figure className="overflow-hidden rounded-lg border border-stone-200 bg-stone-50 shadow-sm dark:border-stone-700 dark:bg-[#211d1b]">
+          <div className="border-b border-stone-200 bg-white px-5 py-4 dark:border-stone-700 dark:bg-stone-900/45">
+            <h3 className="text-base font-bold text-stone-950 dark:text-white">{data.title}</h3>
+            <p className="mt-1 text-sm leading-6 text-stone-700 dark:text-stone-300">{data.subtitle}</p>
+          </div>
+
+          <div className="space-y-5 p-4 sm:p-5">
+            <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
+              <div className="rounded-lg border border-stone-200 bg-white p-4 dark:border-stone-700 dark:bg-stone-900/45">
+                <p className="text-xs font-bold uppercase tracking-[0.16em] text-oracle-red dark:text-orange-300">{data.clientsTitle}</p>
+                <div className="mt-3">
+                  <PillList items={data.clients} />
+                </div>
+              </div>
+              <div className="rounded-lg border border-stone-200 bg-white p-4 dark:border-stone-700 dark:bg-stone-900/45">
+                <p className="text-xs font-bold uppercase tracking-[0.16em] text-oracle-red dark:text-orange-300">{data.scanTitle}</p>
+                <div className="mt-3">
+                  <PillList items={data.scanItems} />
+                </div>
+              </div>
+            </div>
+
+            <div className="flex justify-center" aria-hidden="true">
+              <div className="h-8 w-px bg-oracle-red/45"></div>
+            </div>
+
+            <div className="rounded-lg border border-stone-200 bg-white p-4 dark:border-stone-700 dark:bg-stone-900/45">
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                <p className="text-xs font-bold uppercase tracking-[0.16em] text-oracle-red dark:text-orange-300">{data.clusterTitle}</p>
+                <span className="rounded-md bg-oracle-red px-3 py-1 text-xs font-black tracking-wide text-white">CDB01 / PDB01</span>
+              </div>
+              <div className="mt-4 grid gap-4 lg:grid-cols-2">
+                {data.nodes.map((node) => (
+                  <div key={node.instance} className="rounded-lg border border-stone-200 bg-stone-50 p-4 dark:border-stone-700 dark:bg-[#171412]">
+                    <div className="flex flex-wrap items-start justify-between gap-3">
+                      <div>
+                        <p className="text-sm font-bold text-stone-950 dark:text-white">{node.name}</p>
+                        <p className="mt-1 text-2xl font-black text-oracle-red dark:text-orange-300">{node.instance}</p>
+                      </div>
+                      <span className="rounded-md border border-stone-300 bg-white px-2.5 py-1 text-xs font-semibold text-stone-700 dark:border-stone-700 dark:bg-stone-900 dark:text-stone-300">{node.role}</span>
+                    </div>
+                    <ul className="mt-4 space-y-2 text-sm leading-5 text-stone-700 dark:text-stone-300">
+                      {node.items.map((item) => (
+                        <li key={item} className="flex gap-2">
+                          <span className="mt-2 h-1.5 w-1.5 flex-none rounded-full bg-oracle-red" aria-hidden="true"></span>
+                          <span>{item}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="grid gap-4 xl:grid-cols-[minmax(0,1.35fr)_minmax(0,0.9fr)]">
+              <div className="rounded-lg border border-stone-200 bg-white p-4 dark:border-stone-700 dark:bg-stone-900/45">
+                <p className="text-xs font-bold uppercase tracking-[0.16em] text-oracle-red dark:text-orange-300">{data.servicesTitle}</p>
+                <div className="mt-4 grid gap-3">
+                  {data.services.map((service) => (
+                    <div key={service.value} className="rounded-md border border-stone-200 bg-stone-50 p-3 dark:border-stone-700 dark:bg-[#171412]">
+                      <p className="text-sm font-bold text-stone-950 dark:text-white">{service.name}</p>
+                      <p className="mt-1 break-words font-mono text-xs text-oracle-red dark:text-orange-300">{service.value}</p>
+                      <p className="mt-2 text-sm leading-5 text-stone-700 dark:text-stone-300">{service.detail}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <div className="grid gap-4">
+                <div className="rounded-lg border border-stone-200 bg-white p-4 dark:border-stone-700 dark:bg-stone-900/45">
+                  <p className="text-xs font-bold uppercase tracking-[0.16em] text-oracle-red dark:text-orange-300">{data.storageTitle}</p>
+                  <ul className="mt-3 space-y-2 text-sm leading-5 text-stone-700 dark:text-stone-300">
+                    {data.storageItems.map((item) => (
+                      <li key={item} className="flex gap-2">
+                        <span className="mt-2 h-1.5 w-1.5 flex-none rounded-full bg-oracle-red" aria-hidden="true"></span>
+                        <span>{item}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+                <div className="rounded-lg border border-stone-200 bg-white p-4 dark:border-stone-700 dark:bg-stone-900/45">
+                  <p className="text-xs font-bold uppercase tracking-[0.16em] text-oracle-red dark:text-orange-300">{data.validationTitle}</p>
+                  <ul className="mt-3 space-y-2 text-sm leading-5 text-stone-700 dark:text-stone-300">
+                    {data.validationItems.map((item) => (
+                      <li key={item} className="flex gap-2">
+                        <span className="mt-2 h-1.5 w-1.5 flex-none rounded-full bg-oracle-red" aria-hidden="true"></span>
+                        <span>{item}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
         </figure>
       );
     }
@@ -1155,6 +1559,12 @@ Exascale note: customer-managed ASM is not expected for the 26ai Exascale path i
             </ul>
           )}
           {section.code && <CodePanel block={section.code} controls={controls} />}
+          {section.infographic && <ArchitectureInfographic data={section.infographic} />}
+          {section.afterCodeNotes && (
+            <div className="space-y-2 text-sm leading-6 text-stone-700 dark:text-stone-300">
+              {section.afterCodeNotes.map((note) => <p key={note}>{note}</p>)}
+            </div>
+          )}
           {section.extraCodes && section.extraCodes.map((block) => (
             <CodePanel key={`${section.id}-${block.label}`} block={block} controls={controls} />
           ))}
@@ -1174,6 +1584,15 @@ Exascale note: customer-managed ASM is not expected for the 26ai Exascale path i
               </ul>
             </div>
           )}
+          {section.postNoteCodes && section.postNoteCodes.map((block) => (
+            <CodePanel key={`${section.id}-${block.label}`} block={block} controls={controls} />
+          ))}
+          {section.postNoteText && (
+            <div className="space-y-2 text-sm leading-6 text-stone-700 dark:text-stone-300">
+              {section.postNoteText.map((note) => <p key={note}>{note}</p>)}
+            </div>
+          )}
+          <ReferenceLinks links={section.postNoteReferences} controls={controls} />
         </div>
       );
 
@@ -1194,6 +1613,12 @@ Exascale note: customer-managed ASM is not expected for the 26ai Exascale path i
               <div className="mt-4 space-y-5">
                 <p className="max-w-3xl text-base leading-7 text-stone-700 dark:text-stone-300">{section.body}</p>
                 {section.code && <CodePanel block={section.code} controls={controls} />}
+                {section.infographic && <ArchitectureInfographic data={section.infographic} />}
+                {section.afterCodeNotes && (
+                  <div className="space-y-2 text-sm leading-6 text-stone-700 dark:text-stone-300">
+                    {section.afterCodeNotes.map((note) => <p key={note}>{note}</p>)}
+                  </div>
+                )}
                 {section.extraCodes && section.extraCodes.map((block) => (
                   <CodePanel key={`${section.id}-${block.label}`} block={block} controls={controls} />
                 ))}
@@ -1207,6 +1632,15 @@ Exascale note: customer-managed ASM is not expected for the 26ai Exascale path i
                     </ul>
                   </div>
                 )}
+                {section.postNoteCodes && section.postNoteCodes.map((block) => (
+                  <CodePanel key={`${section.id}-${block.label}`} block={block} controls={controls} />
+                ))}
+                {section.postNoteText && (
+                  <div className="space-y-2 text-sm leading-6 text-stone-700 dark:text-stone-300">
+                    {section.postNoteText.map((note) => <p key={note}>{note}</p>)}
+                  </div>
+                )}
+                <ReferenceLinks links={section.postNoteReferences} controls={controls} />
               </div>
             </details>
           ) : content}
