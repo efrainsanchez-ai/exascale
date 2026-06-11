@@ -18,6 +18,7 @@
       --accent: #c74634;
       --accent-strong: #5f2b24;
       --accent-soft: #fef2f2;
+      --accent-2: #8f3428;
       --gold: #b07113;
       --green: #22775f;
       --blue: #2f5f96;
@@ -45,6 +46,7 @@
       --accent: #e46b5d;
       --accent-strong: #fed7aa;
       --accent-soft: #431407;
+      --accent-2: #f59e0b;
       --gold: #d69a3c;
       --green: #5bbd9d;
       --blue: #78a8dd;
@@ -74,6 +76,8 @@
       color: var(--text);
       line-height: 1.65;
       text-rendering: optimizeLegibility;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
     }
 
     body[data-theme="dark"] {
@@ -89,6 +93,13 @@
     a {
       color: inherit;
       text-decoration: none;
+    }
+
+    a:focus-visible,
+    button:focus-visible,
+    summary:focus-visible {
+      outline: 3px solid color-mix(in srgb, var(--accent), transparent 58%);
+      outline-offset: 3px;
     }
 
     button,
@@ -315,6 +326,15 @@
       padding: 2.1rem 0 3.1rem;
     }
 
+    .hero-copy,
+    .hero-visual,
+    .article,
+    .content-card,
+    details.content-card,
+    .rac-infographic {
+      min-width: 0;
+    }
+
     .hero-copy {
       max-width: 56rem;
     }
@@ -416,6 +436,47 @@
       line-height: 1.55;
     }
 
+    .related-links {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 0.75rem;
+      margin-top: 1.25rem;
+      max-width: 54rem;
+    }
+
+    .related-link {
+      display: block;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--surface);
+      padding: 0.9rem;
+      box-shadow: 0 1px 2px rgba(31, 27, 26, 0.04);
+      transition: border-color 0.18s ease, box-shadow 0.18s ease, transform 0.18s ease;
+    }
+
+    .related-link:hover,
+    .related-link:focus-visible {
+      border-color: var(--accent);
+      box-shadow: var(--shadow);
+      outline: none;
+      transform: translateY(-1px);
+    }
+
+    .related-link strong {
+      display: block;
+      color: var(--accent);
+      font-size: 0.9rem;
+      line-height: 1.3;
+    }
+
+    .related-link span {
+      display: block;
+      margin-top: 0.25rem;
+      color: var(--muted);
+      font-size: 0.86rem;
+      line-height: 1.45;
+    }
+
     .highlight-grid {
       display: none;
     }
@@ -495,6 +556,7 @@
       margin-bottom: 0.1rem;
       color: var(--text);
       font-size: 0.92rem;
+      line-height: 1.35;
     }
 
     .highlight span {
@@ -706,6 +768,11 @@
       padding: 1.15rem;
     }
 
+    .content-card a {
+      overflow-wrap: anywhere;
+      word-break: break-word;
+    }
+
     .section-stack {
       display: grid;
       gap: 1rem;
@@ -788,13 +855,16 @@
     .rac-arrow {
       display: grid;
       place-items: center;
-      color: var(--accent-strong);
-      font-size: 1.4rem;
-      font-weight: 900;
+      color: var(--accent);
     }
 
     .rac-arrow::before {
-      content: ">";
+      content: "";
+      width: 1.8rem;
+      height: 1.8rem;
+      border-top: 2px solid currentColor;
+      border-right: 2px solid currentColor;
+      transform: rotate(45deg);
     }
 
     .rac-node-grid {
@@ -948,10 +1018,52 @@
       max-width: 100%;
       margin: 0.9rem 0;
       overflow: hidden;
-      border: 1px solid color-mix(in srgb, var(--line), #000 18%);
+      border: 1px solid rgba(120, 113, 108, 0.35);
       border-radius: var(--radius);
-      background: var(--code-bg);
-      box-shadow: 0 8px 22px rgba(0, 0, 0, 0.12);
+      background: #171412;
+      box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    }
+
+    .code-bash {
+      border-color: rgba(16, 185, 129, 0.35);
+      background: #111917;
+    }
+
+    .code-java {
+      border-color: rgba(245, 158, 11, 0.35);
+      background: #17130d;
+    }
+
+    .code-sql {
+      border-color: rgba(14, 165, 233, 0.35);
+      background: #101922;
+    }
+
+    .code-text {
+      border-color: rgba(120, 113, 108, 0.35);
+      background: #171412;
+    }
+
+    .code-diagram {
+      border-color: rgba(251, 146, 60, 0.35);
+      background: #191511;
+    }
+
+    .code-description {
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      padding: 0.75rem 1rem;
+      color: #e7e5e4;
+      font-size: 0.875rem;
+      line-height: 1.5rem;
+    }
+
+    .code-highlight {
+      display: inline-block;
+      border-radius: 0.125rem;
+      background: rgba(52, 211, 153, 0.15);
+      padding: 0 0.25rem;
+      color: #a7f3d0;
+      font-weight: 400;
     }
 
     .code-toolbar {
@@ -959,65 +1071,92 @@
       align-items: center;
       justify-content: space-between;
       gap: 1rem;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.12);
-      background: rgba(255, 255, 255, 0.04);
-      padding: 0.58rem 0.72rem;
-      color: rgba(255, 255, 255, 0.78);
-      font-size: 0.78rem;
-      font-weight: 800;
-      letter-spacing: 0.02em;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      padding: 0.5rem 1rem;
+      color: #e7e5e4;
+      font-size: 0.75rem;
+      font-weight: 600;
+      letter-spacing: 0.025em;
       text-transform: uppercase;
     }
 
     .code-toolbar span::before {
-      content: "";
-      display: inline-block;
-      width: 0.52rem;
-      height: 0.52rem;
-      margin-right: 0.45rem;
-      border-radius: 999px;
-      background: var(--accent);
-      vertical-align: 0.03rem;
-    }
-
-    .code-sql .code-toolbar span::before {
-      background: var(--blue);
-    }
-
-    .code-text .code-toolbar span::before,
-    .code-diagram .code-toolbar span::before {
-      background: var(--gold);
+      display: none;
     }
 
     .copy-btn {
-      min-width: 4.4rem;
-      padding: 0.38rem 0.62rem;
-      border-color: rgba(255, 255, 255, 0.2);
-      border-radius: 6px;
-      background: rgba(255, 255, 255, 0.08);
+      min-width: 0;
+      padding: 0.25rem 0.75rem;
+      border-color: rgba(255, 255, 255, 0.15);
+      border-radius: 0.375rem;
+      background: rgba(255, 255, 255, 0.1);
       color: white;
-      font-size: 0.78rem;
-      font-weight: 800;
+      font-size: 0.75rem;
+      font-weight: 600;
       text-transform: none;
+      transition: background 150ms ease, box-shadow 150ms ease, border-color 150ms ease;
+    }
+
+    .copy-btn:hover {
+      border-color: rgba(255, 255, 255, 0.15);
+      background: rgba(255, 255, 255, 0.18);
+      color: white;
+      transform: none;
+    }
+
+    .copy-btn:focus {
+      outline: none;
+      box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.6);
     }
 
     pre {
       margin: 0;
-      overflow: auto;
+      overflow-x: auto;
+      padding: 1rem;
       white-space: pre;
-      color: var(--code-text);
+      color: #f5f5f4;
       font-size: 13px;
+      font-weight: 400;
       line-height: 24px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    }
+
+    .code-card pre::-webkit-scrollbar {
+      height: 10px;
+      width: 10px;
+    }
+
+    .code-card pre::-webkit-scrollbar-track {
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    .code-card pre::-webkit-scrollbar-thumb {
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.28);
     }
 
     code {
-      font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
     }
 
     pre code {
       display: block;
       min-width: max-content;
-      padding: 1rem;
+      padding: 0;
+      color: inherit;
+      font: inherit;
+      font-weight: 400;
+    }
+
+    :not(pre) > code {
+      border: 1px solid color-mix(in srgb, var(--accent), transparent 78%);
+      border-radius: 6px;
+      background: var(--accent-soft);
+      padding: 0.12rem 0.34rem;
+      color: var(--accent-strong);
+      font-size: 0.92em;
+      font-weight: 680;
+      overflow-wrap: anywhere;
     }
 
     .code-diagram pre {
@@ -1063,6 +1202,26 @@
 
     .data-table td:first-child {
       font-weight: 600;
+      color: var(--text);
+    }
+
+    .note-box {
+      margin: 1rem 0;
+      border: 1px solid color-mix(in srgb, var(--gold), var(--line) 45%);
+      border-left: 4px solid var(--gold);
+      border-radius: var(--radius);
+      background: color-mix(in srgb, #fffbeb, var(--surface) 42%);
+      padding: 0.95rem 1rem;
+      color: var(--muted);
+    }
+
+    body[data-theme="dark"] .note-box {
+      background: rgba(176, 113, 19, 0.12);
+    }
+
+    .note-box strong {
+      display: block;
+      margin-bottom: 0.35rem;
       color: var(--text);
     }
 
@@ -1190,20 +1349,57 @@
 
     .reference-list {
       display: grid;
-      gap: 0.65rem;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 0.85rem;
       margin: 1rem 0 0;
       padding: 0;
       list-style: none;
     }
 
     .reference-list a {
-      display: block;
+      position: relative;
+      display: grid;
+      gap: 0.48rem;
+      min-height: 8.2rem;
       border: 1px solid var(--line);
       border-radius: var(--radius);
-      background: var(--surface-soft);
-      padding: 0.78rem 0.9rem;
-      color: var(--accent);
+      background:
+        linear-gradient(180deg, color-mix(in srgb, var(--accent) 9%, transparent), transparent 42%),
+        var(--surface);
+      padding: 1rem;
+      color: var(--text);
       font-weight: 780;
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .reference-list a::before {
+      content: "";
+      position: absolute;
+      inset: 0 auto 0 0;
+      width: 4px;
+      background: linear-gradient(180deg, var(--accent), var(--accent-2));
+    }
+
+    .reference-list a span {
+      color: var(--accent);
+      font-size: 0.72rem;
+      font-weight: 840;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .reference-list a strong {
+      font-size: 0.98rem;
+      line-height: 1.28;
+    }
+
+    .reference-list a em {
+      align-self: end;
+      color: var(--muted);
+      font-size: 0.78rem;
+      font-style: normal;
+      font-weight: 720;
     }
 
     .reference-list a:hover,
@@ -1318,6 +1514,7 @@
       }
 
       .highlight-grid,
+      .related-links,
       .acronym-grid,
       .two-up,
       .term-grid,
@@ -1336,7 +1533,9 @@
       }
 
       .rac-arrow::before {
-        content: "v";
+        width: 1.55rem;
+        height: 1.55rem;
+        transform: rotate(135deg);
       }
 
       .article-section {
@@ -1356,12 +1555,17 @@
         font-size: 13px;
       }
 
+      .data-table {
+        min-width: 640px;
+      }
+
       .back-top {
         right: 0.8rem;
         bottom: 0.8rem;
       }
     }
   </style>
+  <script src="../shared-guide-set.js"></script>
 </head>
 <body data-theme="light">
   <a class="skip-link" href="#en-main">Skip to article</a>
@@ -1401,17 +1605,21 @@
             <h2>Educational use and validation required</h2>
             <p>This content is for educational and planning purposes only. Apply every command and configuration first in a non-production test environment that mirrors your RAC, service, client driver, workload, and failover requirements. The recommended values shown here may not work in your specific environment, may require change-control approval, and can affect availability, connection routing, transaction behavior, memory use, and batch workload placement. Validate with application owners, DBAs, network teams, and Oracle Support guidance before using any setting in production.</p>
           </aside>
+          <div class="related-links" aria-label="Related Exascale blogs">
+            <a class="related-link" href="../index.html"><strong>Exascale Overview</strong><span>Architecture context, continuity concepts, and shared glossary.</span></a>
+            <a class="related-link" href="../Healthcheck/index.html"><strong>RAC Health Check</strong><span>Operational RAC validation checks, sections 1 through 8.</span></a>
+            <a class="related-link" href="../ConnectionServices/index.html"><strong>Connection Services</strong><span>TNS aliases, service configuration, load balancing, and failover simulation.</span></a>
+          </div>
         </div>
-        <aside class="hero-visual" aria-label="Latest guide coverage">
+        <aside class="hero-visual" aria-label="Navigate the guide set">
           <div class="visual-caption">
-            <span>Latest guide coverage</span>
-            <span class="visual-pill">26ai RAC</span>
+            <span>Navigate the guide set</span>
           </div>
           <ul class="hero-highlights">
-            <li class="highlight"><span><b>Scale path</b>Single-node clustered database deployment to two-node clustered database deployment.</span></li>
-            <li class="highlight"><span><b>Availability stack</b>Resilience components are presented with full acronym descriptions after the benefits list.</span></li>
-            <li class="highlight"><span><b>Service routing</b>Oracle Net connect descriptors and service-management examples show service access and load balancing.</span></li>
-            <li class="highlight"><span><b>Validation</b>Cluster commands and database queries check status, sessions, and memory distribution.</span></li>
+            <li class="highlight"><span><b>Use this page</b>Review the scale path from single-node RAC to two-node RAC.</span></li>
+            <li class="highlight"><span><b>Use Exascale Overview</b>Get shared architecture context and glossary references.</span></li>
+            <li class="highlight"><span><b>Use Healthcheck</b>Run operational RAC validation checks before and after scaling.</span></li>
+            <li class="highlight"><span><b>Use ConnectionServices</b>Review service routing, load balancing, and failover behavior.</span></li>
           </ul>
         </aside>
       </div>
@@ -1421,30 +1629,27 @@
       <nav class="toc" aria-label="Table of contents">
         <h2>Table of Contents</h2>
         <ol>
-          <li><a href="#en-introduction">Introduction</a></li>
-          <li><a href="#en-architecture">Architecture Evolution</a></li>
-          <li><a href="#en-ha">High Availability Components</a></li>
-          <li><a href="#en-validation">Cluster Validation Commands</a></li>
-          <li><a href="#en-service-validation">Service Validation Before Changes</a></li>
-          <li><a href="#en-service">Service Configuration and Load Balancing</a></li>
-          <li><a href="#en-session">Session and Memory Queries</a></li>
-          <li><a href="#en-ac">Application Continuity</a></li>
-          <li><a href="#en-tac">Transparent Application Continuity</a></li>
-          <li><a href="#en-testing">High Availability Testing</a></li>
-          <li><a href="#en-best-practices">Best Practices</a></li>
-          <li><a href="#en-conclusion">Conclusion</a></li>
-          <li><a href="#en-glossary">Glossary</a></li>
+          <li><a href="#en-introduction">1. Introduction</a></li>
+          <li><a href="#en-architecture">2. Architecture Evolution</a></li>
+          <li><a href="#en-ha">3. RAC Availability Concepts</a></li>
+          <li><a href="#en-replay">4. Replay, Request Boundaries, and Memory</a></li>
+          <li><a href="#en-taf">5. OLTP Runtime Load Balancing and Connection Model</a></li>
+          <li><a href="#en-validation">6. RAC Validation and Workload Checks</a></li>
+          <li><a href="#en-ac">7. Application Continuity</a></li>
+          <li><a href="#en-tac">8. Transparent Application Continuity</a></li>
+          <li><a href="#en-best-practices">9. Best Practices</a></li>
+          <li><a href="#en-conclusion">10. Conclusion</a></li>
         </ol>
       </nav>
 
       <main id="en-main" class="article">
         <section id="en-introduction" class="article-section">
-          <h2>Introduction</h2>
+          <h2>1. Introduction</h2>
           <p>Oracle Exadata Exascale Database Service on Oracle Cloud Infrastructure (OCI) enables elastic scaling of Oracle Real Application Clusters (RAC) databases. This document explains the architectural transition from a single-node RAC deployment to a two-node RAC deployment running Oracle Database 26ai.</p>
         </section>
 
         <section id="en-architecture" class="article-section">
-          <h2>Architecture Evolution</h2>
+          <h2>2. Architecture Evolution</h2>
           <div class="rac-infographic" aria-label="High-level RAC component infographic">
             <div class="rac-flow">
               <div class="rac-stage">
@@ -1483,8 +1688,8 @@
             <div class="rac-node-grid" aria-label="RAC instance evolution">
               <div class="rac-node">
                 <span class="rac-badge">Single-node baseline</span>
-                <strong>Node1 / DB26AI1</strong>
-                <p>Node1 hosts DB26AI1 in the single-node RAC deployment and remains active after scaling.</p>
+                <strong>Node1 / CDB011</strong>
+                <p>Node1 hosts CDB011 for the CDB01 database and remains active after scaling.</p>
                 <ul>
                   <li>Node Virtual IP (VIP)</li>
                   <li>Local Listener</li>
@@ -1493,20 +1698,14 @@
               </div>
               <div class="rac-node">
                 <span class="rac-badge">Two-node RAC</span>
-                <strong>Node2 / DB26AI2</strong>
-                <p>Node2 adds DB26AI2 for the two-node RAC deployment.</p>
+                <strong>Node2 / CDB012</strong>
+                <p>Node2 adds CDB012 for the two-node RAC deployment.</p>
                 <ul>
                   <li>Node Virtual IP (VIP)</li>
                   <li>Local Listener</li>
                   <li>Database Instance</li>
                 </ul>
               </div>
-            </div>
-            <div class="rac-signal-row" aria-label="RAC high availability and load balancing signals">
-              <div class="rac-signal"><strong>Fast Application Notification (FAN)</strong><p>Included in the high availability stack with Oracle Notification Service.</p></div>
-              <div class="rac-signal"><strong>Oracle Notification Service (ONS)</strong><p>Shown with FAN as part of the SCAN component list.</p></div>
-              <div class="rac-signal"><strong>Runtime Load Balancing (RLB)</strong><p>Runtime Load Balancing is part of the two-node RAC benefits and service configuration.</p></div>
-              <div class="rac-signal"><strong>Application Continuity (AC) / Transparent Application Continuity (TAC)</strong><p>Application Continuity and Transparent Application Continuity provide replay-capable availability options.</p></div>
             </div>
           </div>
           <h3>Benefits</h3>
@@ -1516,262 +1715,120 @@
             <li>Runtime Load Balancing</li>
             <li>Higher availability</li>
           </ul>
-          <div class="acronym-guide" aria-label="First-use acronym guide">
-            <h2>Acronym Guide</h2>
-            <div class="acronym-grid">
-              <div class="acronym-card"><strong>OCI — Oracle Cloud Infrastructure</strong><span>Oracle's cloud platform where Exadata Exascale Database Service runs.</span></div>
-              <div class="acronym-card"><strong>RAC — Real Application Clusters</strong><span>Oracle architecture where multiple database instances on clustered nodes access one shared database.</span></div>
-              <div class="acronym-card"><strong>SCAN — Single Client Access Name</strong><span>A stable cluster-level client access name that routes service connections without tying clients to individual nodes.</span></div>
-              <div class="acronym-card"><strong>DNS / VIP — Domain Name System / Virtual IP</strong><span>DNS resolves names such as SCAN; VIPs provide movable network addresses used by cluster listeners and nodes.</span></div>
-              <div class="acronym-card"><strong>FAN / ONS — Fast Application Notification / Oracle Notification Service</strong><span>FAN publishes high availability events, and ONS transports those notifications to interested clients.</span></div>
-              <div class="acronym-card"><strong>RLB — Runtime Load Balancing</strong><span>Connection routing uses service workload information to direct clients toward suitable RAC instances.</span></div>
-              <div class="acronym-card"><strong>AC — Application Continuity</strong><span>Replay-capable availability that can mask recoverable outages by rebuilding and replaying database work when safe.</span></div>
-              <div class="acronym-card"><strong>TAC — Transparent Application Continuity</strong><span>A mode of Application Continuity that automatically tracks session state and discovers request boundaries.</span></div>
-            </div>
-          </div>
         </section>
 
         <section id="en-ha" class="article-section">
-          <h2>High Availability Components</h2>
-          <div class="term-grid" aria-label="High availability callouts">
-            <article class="term-card"><h3>SCAN</h3><p>Used exclusively in best practices and shown as the path from clients to service lookup and local listeners.</p></article>
-            <article class="term-card"><h3>RAC</h3><p>The article contrasts one RAC node with a two-node RAC deployment using DB26AI1 and DB26AI2.</p></article>
-            <article class="term-card"><h3>FAN</h3><p>Listed with ONS in the SCAN component stack and included in the high availability infographic.</p></article>
-            <article class="term-card"><h3>RLB</h3><p>Runtime Load Balancing is configured with <code>-clbgoal SHORT</code> and <code>-rlbgoal SERVICE_TIME</code>.</p></article>
-            <article class="term-card"><h3>AC</h3><p>The AC example uses <code>TRANSACTION</code>, <code>commit_outcome TRUE</code>, replay initialization, and retention settings.</p></article>
-            <article class="term-card"><h3>TAC</h3><p>The TAC recommendation uses <code>AUTO</code>, <code>DYNAMIC</code>, commit outcome, replay initialization, and retention settings.</p></article>
-          </div>
-          <h3>High Availability Infographic</h3>
-          <div class="code-card code-diagram">
-            <div class="code-toolbar"><span>Text diagram</span><button class="copy-btn" type="button">Copy</button></div>
-            <pre><code>CLIENTS
-   |
-SCAN
-   |
-+-----------------------------+
-| SCAN VIP1 / SCAN LISTENER1 |
-| SCAN VIP2 / SCAN LISTENER2 |
-| SCAN VIP3 / SCAN LISTENER3 |
-+-----------------------------+
-              |
-      Service Resolution
-              |
-     +--------+--------+
-     |                 |
-  DB26AI1          DB26AI2
-
- FAN / ONS / RLB / TAC</code></pre>
-          </div>
-          <h3>Availability Technology Comparison</h3>
+          <h2>3. RAC Availability Concepts</h2>
+          <p>In this guide, the RAC database is <code>CDB01</code>, the pluggable database is <code>PDB01</code>, and the application enters through the service <code>CDB01_PDB01.paas.oracle.com</code>. After scaling, <code>CDB011</code> and <code>CDB012</code> are the RAC instances that can host that service. Applications should use the service name and SCAN address, not instance-specific connect strings, so routing can change without changing client configuration.</p>
+          <p>SCAN is the stable cluster entry point. DNS resolves the SCAN name to SCAN VIPs, SCAN listeners receive the request, and the cluster routes the connection to a local listener where the requested service is currently available. This hides node placement from clients and allows services to remain the operational boundary for routing, failover, and workload management.</p>
+          <p>Fast Application Notification (FAN) publishes planned and unplanned service events, while Oracle Notification Service (ONS) transports those events to aware clients and pools. Fast Connection Failover (FCF) lets integrated pools quickly discard dead connections and create replacements. Runtime Load Balancing (RLB) uses RAC service advisories so new work favors the instance currently meeting the selected service goal.</p>
+          <p>SCAN, FAN, ONS, FCF, and RLB improve connection routing and recovery, but they do not replay work by themselves. Application Continuity (AC) and Transparent Application Continuity (TAC) add replay behavior for recoverable requests when the client driver, service attributes, and application state make replay safe.</p>
           <div class="table-wrap">
             <table class="data-table">
-              <thead>
-                <tr><th>Technology</th><th>Reconnect</th><th>Replay</th></tr>
-              </thead>
+              <thead><tr><th>Concept</th><th>Purpose</th><th>What it does not do alone</th></tr></thead>
               <tbody>
-                <tr><td>SCAN</td><td class="yes">Yes</td><td class="no">No</td></tr>
-                <tr><td>Fast Connection Failover (FCF)</td><td class="yes">Yes</td><td class="no">No</td></tr>
-                <tr><td>AC</td><td class="yes">Yes</td><td class="yes">Yes</td></tr>
-                <tr><td>TAC</td><td class="yes">Yes</td><td class="yes">Yes</td></tr>
+                <tr><td>SCAN</td><td>Provides the stable cluster access name for service-based connections.</td><td>It does not replay SQL or preserve in-flight work.</td></tr>
+                <tr><td>FAN / ONS</td><td>Publishes and transports RAC service and node events.</td><td>It does not fix applications that keep using closed connections.</td></tr>
+                <tr><td>FCF</td><td>Allows integrated pools to invalidate dead connections quickly.</td><td>It does not decide whether a transaction can be repeated.</td></tr>
+                <tr><td>RLB</td><td>Guides new pooled requests toward the best RAC instance for the service goal.</td><td>It does not move existing sessions between instances.</td></tr>
+                <tr><td>AC / TAC</td><td>Can replay recoverable requests when replay is enabled and safe.</td><td>It cannot replay unsafe stateful work without proper boundaries.</td></tr>
               </tbody>
             </table>
           </div>
-          <div class="acronym-guide" aria-label="Replay concept, components, and memory implications">
-            <h2>Replay concept, components, and memory implications</h2>
-            <div class="acronym-grid replay-grid">
-              <div class="acronym-card"><strong>Replay concept</strong><span>Replay means the client stack can rebuild a recoverable database session and repeat a safe logical unit of work after an outage. SCAN and Fast Connection Failover (FCF) reconnect; Application Continuity (AC) and Transparent Application Continuity (TAC) add replay.</span></div>
-              <div class="acronym-card"><strong>Replay components</strong><span>Service attributes configured with SRVCTL, Oracle RAC services, SCAN listeners, Fast Application Notification (FAN), Oracle Notification Service (ONS), Runtime Load Balancing (RLB), and replay-aware client drivers or pools such as JDBC/UCP.</span></div>
-              <div class="acronym-card"><strong>Session requirements</strong><span>Applications must connect through services, not fixed instances. After node failure or service relocation, replacement sessions are established on surviving RAC instances, so pools need enough capacity and retry behavior.</span></div>
-              <div class="acronym-card"><strong>Memory implications</strong><span>Every rebuilt or replayed session consumes process memory on the target instance. During failover, surviving nodes can carry extra sessions plus Program Global Area (PGA), User Global Area (UGA), cursor, and package-state memory.</span></div>
-              <div class="acronym-card"><strong>Operational validation</strong><span>Compare <code>gv$session</code>, <code>gv$process</code>, <code>v$containers</code>, and service placement after scaling or failover. Validate balanced placement, acceptable sessions per instance, and enough memory headroom.</span></div>
-            </div>
+        </section>
+
+        <section id="en-replay" class="article-section">
+          <h2>4. Replay, Request Boundaries, and Memory</h2>
+          <p>Replay means the client stack can rebuild a recoverable database session and repeat a safe logical unit of work after an outage. The key word is safe: the driver must know the start and end of a request, whether the last commit completed, and whether the session state can be restored consistently.</p>
+          <p>AC and TAC depend on service attributes, RAC services, FAN/ONS events, RLB-aware clients, and replay-capable drivers or pools such as Oracle JDBC with UCP. TAC automates more of the state tracking, while AC is more explicit. Both still require application validation because package globals, temporary tables, altered session state, open cursors, external side effects, and long conversations can make replay unsafe or less useful.</p>
+          <p>Failover also has a memory cost. Every replacement or replayed session consumes process memory on the target instance. During a CDB011 outage, CDB012 may carry surviving sessions plus replacement sessions, including PGA, UGA, cursor memory, and package state. Capacity planning must include this failover posture, not only normal balanced operation.</p>
+          <ul class="best-practice-list">
+            <li>Mark request boundaries or use pools and drivers that can identify them reliably.</li>
+            <li>Keep OLTP requests short, idempotent where possible, and free of hidden session affinity.</li>
+            <li>Validate replay behavior with the real driver, pool, service attributes, and workload pattern.</li>
+            <li>Measure sessions, processes, and memory on CDB011 and CDB012 during both normal routing and failure simulation.</li>
+          </ul>
+        </section>
+
+        <section id="en-taf" class="article-section">
+          <h2>5. OLTP Runtime Load Balancing and Connection Model</h2>
+          <p>Runtime load balancing is a service advisory mechanism consumed by integrated connection pools. It does not move existing sessions. Instead, it publishes service-quality advice that helps supported pools choose the best RAC instance when they borrow or create a connection for new work.</p>
+          <p>This section modifies the existing <code>CDB01_PDB01.paas.oracle.com</code> OLTP service to use <code>SHORT</code> connection load balancing and <code>SERVICE_TIME</code> runtime load balancing. The service name stays the same, so application clients can continue using the same connect descriptor or TNS alias while the service begins publishing response-time-oriented RAC advisories.</p>
+          <p><code>SERVICE_TIME</code> and <code>THROUGHPUT</code> are both Runtime Load Balancing goals, but they optimize for different signals. <code>SERVICE_TIME</code> favors the instance with the best observed response time for the service. It is usually the clearer OLTP choice when requests are short, user-facing, and latency-sensitive because the advisory prefers the instance completing individual requests quickly.</p>
+          <p><code>THROUGHPUT</code> favors the instance completing the highest rate of work. It can be useful when the priority is total work completed per unit of time, but it can be less intuitive for latency-sensitive OLTP because a high-throughput instance is not always the lowest-latency instance for the next short request. For mixed or stateful applications, validate both goals with the real pool, driver, and workload before changing production behavior.</p>
+          <p>Runtime load balancing works best for stateless request models where connections are borrowed from the pool, used for a short request, and returned to the pool. Enable Fast Connection Failover and use UCP, WebLogic, OCI, or ODP.NET pools that consume FAN and RAC load balancing advisory events.</p>
+          <div class="code-card code-bash">
+            <div class="code-toolbar"><span>Apply runtime load balancing service update</span><button class="copy-btn" type="button">Copy</button></div>
+            <div class="code-description">Objective: modify the existing OLTP service to publish SHORT connection load balancing and SERVICE_TIME runtime load balancing advisories for integrated pools.</div>
+            <pre><code>srvctl modify service \
+-d $ORACLE_UNQNAME \
+-s CDB01_PDB01.paas.oracle.com \
+-clbgoal SHORT \
+-rlbgoal SERVICE_TIME</code></pre>
+          </div>
+          <div class="code-card code-bash">
+            <div class="code-toolbar"><span>Restart OLTP service after runtime load balancing update</span><button class="copy-btn" type="button">Copy</button></div>
+            <div class="code-description">Objective: stop, start, and check the service so the updated CLB and RLB attributes are reloaded across the cluster.</div>
+            <pre><code>srvctl stop service -d $ORACLE_UNQNAME -s CDB01_PDB01.paas.oracle.com
+srvctl start service -d $ORACLE_UNQNAME -s CDB01_PDB01.paas.oracle.com
+srvctl status service -d $ORACLE_UNQNAME -s CDB01_PDB01.paas.oracle.com
+srvctl config service -d $ORACLE_UNQNAME -s CDB01_PDB01.paas.oracle.com</code></pre>
+          </div>
+          <div class="code-card code-text">
+            <div class="code-toolbar"><span>Validate updated service configuration</span><button class="copy-btn" type="button">Copy</button></div>
+            <div class="code-description">Objective: confirm SRVCTL reports the expected connection and runtime load-balancing goals after the service update.</div>
+            <pre><code>Connection Load Balancing Goal: <span class="code-highlight">SHORT</span>
+Runtime Load Balancing Goal: <span class="code-highlight">SERVICE_TIME</span></code></pre>
+          </div>
+          <div class="code-card code-sql">
+            <div class="code-toolbar"><span>Verify service settings from GV$SERVICES</span><button class="copy-btn" type="button">Copy</button></div>
+            <div class="code-description">Objective: validate the service load-balancing attributes from inside the RAC database by instance.</div>
+            <pre><code>SELECT inst_id,
+       name,
+       clb_goal,
+       goal
+FROM gv$services
+WHERE name = 'CDB01_PDB01.paas.oracle.com'
+ORDER BY inst_id;
+
+-- Expected per active service member:
+-- CLB_GOAL = SHORT
+-- GOAL     = SERVICE_TIME</code></pre>
           </div>
         </section>
 
         <section id="en-validation" class="article-section">
-          <h2>RAC Validation Commands</h2>
-          <div class="section-stack">
-            <details class="content-card" open>
-              <summary>Commands to run as the grid OS user</summary>
-              <div class="details-body">
-                <p>Run these Oracle Clusterware validation commands as the <code>grid</code> operating system user.</p>
-                <div class="code-card code-bash">
-                  <div class="code-toolbar"><span>Bash</span><button class="copy-btn" type="button">Copy</button></div>
-                  <pre><code>sudo su - grid
-crsctl check cluster -all
+          <h2>6. RAC Validation and Workload Checks</h2>
+          <p>After scaling, validate cluster health, service placement, session distribution, memory posture, and planned service relocation before considering the two-node RAC deployment operationally ready.</p>
+          <div class="note-box">
+            <strong>Validation scope</strong>
+            Run these checks in a controlled test window first. Replace sample database, service, and instance names with the values from your environment and compare the output before, during, and after failover tests.
+          </div>
+          <div class="code-card code-bash">
+            <div class="code-toolbar"><span>RAC validation commands</span><button class="copy-btn" type="button">Copy</button></div>
+            <div class="code-description">Objective: confirm Clusterware, nodes, database, services, SCAN, SCAN listeners, and local listeners are healthy after scaling.</div>
+            <pre><code>crsctl check cluster -all
 crsctl stat res -t
-olsnodes -n</code></pre>
-                </div>
-              </div>
-            </details>
-            <details class="content-card" open>
-              <summary>Commands to run as the oracle OS user</summary>
-              <div class="details-body">
-                <p>Run these listener and database status checks as the <code>oracle</code> operating system user.</p>
-                <div class="code-card code-bash">
-                  <div class="code-toolbar"><span>Bash</span><button class="copy-btn" type="button">Copy</button></div>
-                  <pre><code>sudo su - oracle
+olsnodes -n
+
+srvctl status database -db CDB01
+srvctl status service -db CDB01
 srvctl status scan
 srvctl status scan_listener
-srvctl status listener
-srvctl status database -db CDB01</code></pre>
-                </div>
-              </div>
-            </details>
+srvctl status listener</code></pre>
           </div>
-        </section>
-
-        <section id="en-service-validation" class="article-section">
-          <h2>Service Validation Before Changes</h2>
-          <div class="section-stack">
-            <div class="content-card">
-              <h3>10. Review Default Connection Service Configuration</h3>
-              <p>Review the default connection service configuration and compare its current characteristics before applying any service modification.</p>
-              <div class="code-card code-bash">
-                <div class="code-toolbar"><span>Bash</span><button class="copy-btn" type="button">Copy</button></div>
-                <pre><code>sudo su - oracle
-srvctl config service \
--d $ORACLE_UNQNAME \
--s CDB01_PDB01.paas.oracle.com</code></pre>
-              </div>
-              <div class="table-wrap">
-                <table class="data-table default-config-card">
-                  <thead>
-                    <tr><th>Characteristic</th><th>Value</th><th>Oracle documented values</th></tr>
-                  </thead>
-                  <tbody>
-                    <tr><td>Failover type</td><td>NONE</td><td>NONE, SESSION, SELECT, TRANSACTION, AUTO</td></tr>
-                    <tr><td>Runtime Load Balancing Goal</td><td>NONE</td><td>NONE, SERVICE_TIME, THROUGHPUT</td></tr>
-                    <tr><td>Connection Load Balancing Goal</td><td>LONG</td><td>SHORT, LONG</td></tr>
-                  </tbody>
-                </table>
-              </div>
-            </div>
-            <div class="content-card">
-              <h3>11. Recommended OLTP Configuration (Memory Efficient)</h3>
-              <p>For the memory-efficient OLTP recommendation, keep the default connection service and apply session-level failover settings. This avoids creating another service and keeps the application connection target stable while adding basic reconnect behavior.</p>
-              <div class="code-card code-bash">
-                <div class="code-toolbar"><span>Bash</span><button class="copy-btn" type="button">Copy</button></div>
-                <pre><code>srvctl modify service \
--d $ORACLE_UNQNAME \
--s CDB01_PDB01.paas.oracle.com \
--failovertype SESSION \
--failovermethod BASIC \
--failoverretry 30 \
--failoverdelay 5</code></pre>
-              </div>
-              <div class="table-wrap">
-                <table class="data-table default-config-card">
-                  <thead>
-                    <tr><th>Attribute</th><th>Recommended value</th><th>Oracle documented values</th></tr>
-                  </thead>
-                  <tbody>
-                    <tr><td>Failover Type</td><td><code>SESSION</code></td><td>SRVCTL: NONE, SESSION, SELECT, TRANSACTION, AUTO; TNS FAILOVER_MODE TYPE: session, select, none</td></tr>
-                    <tr><td>Failover Method</td><td><code>BASIC</code></td><td>SRVCTL: NONE, BASIC; TNS FAILOVER_MODE METHOD: basic, preconnect</td></tr>
-                    <tr><td>Failover Retries</td><td><code>30</code></td><td>Integer retry count</td></tr>
-                    <tr><td>Failover Delay</td><td><code>5</code></td><td>Integer delay in seconds</td></tr>
-                  </tbody>
-                </table>
-              </div>
-              <div class="code-card code-text">
-                <div class="code-toolbar"><span>TNS</span><button class="copy-btn" type="button">Copy</button></div>
-                <pre><code>CDB01_PDB01_OLTP=
-    (DESCRIPTION=
-      (ADDRESS=
-        (PROTOCOL=TCP)
-        (HOST=exasc01-scan-jjtmn.private.usw.oraclevcn.com)
-        (PORT=1521))
-      (CONNECT_DATA=
-        (SERVER=DEDICATED)
-        (SERVICE_NAME=CDB01_PDB01.paas.oracle.com)
-        (UR=A)
-        (FAILOVER_MODE=
-          (TYPE=session)
-          (METHOD=basic)
-          (RETRIES=30)
-          (DELAY=5))))
-
-# Java JDBC Thin alias URL:
-# jdbc:oracle:thin:@CDB01_PDB01_OLTP
-# Java JDBC Thin descriptor URL with the same parameters:
-# jdbc:oracle:thin:@(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=exasc01-scan-jjtmn.private.usw.oraclevcn.com)(PORT=1521))(CONNECT_DATA=(SERVER=DEDICATED)(SERVICE_NAME=CDB01_PDB01.paas.oracle.com)(UR=A)(FAILOVER_MODE=(TYPE=session)(METHOD=basic)(RETRIES=30)(DELAY=5))))</code></pre>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <section id="en-service" class="article-section">
-          <h2>Service Configuration and Load Balancing</h2>
-          <div class="section-stack">
-            <div class="content-card">
-              <h3>Transparent Network Substrate (TNS) connect descriptor</h3>
-              <p>This Oracle Net descriptor uses the <code>CDB01_PDB01</code> service name, SCAN host name, load balancing, and failover flags for service-based access.</p>
-              <div class="code-card code-text">
-                <div class="code-toolbar"><span>TNS</span><button class="copy-btn" type="button">Copy</button></div>
-                <pre><code>CDB01_PDB01 =
- (DESCRIPTION=
-   (LOAD_BALANCE=ON)
-   (FAILOVER=ON)
-   (ADDRESS=
-      (PROTOCOL=TCP)
-      (HOST=salesdb-scan.company.com)
-      (PORT=1521))
-   (CONNECT_DATA=
-      (SERVICE_NAME=CDB01_PDB01.paas.oracle.com)))</code></pre>
-              </div>
-            </div>
-            <div class="content-card">
-              <h3>Runtime Load Balancing</h3>
-              <div class="code-card code-bash">
-                <div class="code-toolbar"><span>Bash</span><button class="copy-btn" type="button">Copy</button></div>
-                <pre><code>srvctl modify service \
--db CDB01 \
--service CDB01_PDB01.paas.oracle.com \
--clbgoal SHORT \
--rlbgoal SERVICE_TIME</code></pre>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <section id="en-session" class="article-section">
-          <h2>Session and Memory Distribution Queries</h2>
-          <p>These Structured Query Language (SQL) queries use Oracle dynamic performance views to compare user sessions and process memory across RAC instances and PDBs.</p>
-          <div class="section-stack">
-            <details class="content-card" open>
-              <summary>Sessions per Instance</summary>
-              <div class="details-body">
-                <div class="code-card code-sql">
-                  <div class="code-toolbar"><span>SQL</span><button class="copy-btn" type="button">Copy</button></div>
-                  <pre><code>SELECT inst_id, COUNT(*)
+          <div class="code-card code-sql">
+            <div class="code-toolbar"><span>Sessions per RAC instance</span><button class="copy-btn" type="button">Copy</button></div>
+            <div class="code-description">Objective: verify user sessions are visible across RAC instances after scaling and workload routing.</div>
+            <pre><code>SELECT inst_id, COUNT(*)
 FROM gv$session
-GROUP BY inst_id;</code></pre>
-                </div>
-              </div>
-            </details>
-            <details class="content-card" open>
-              <summary>Sessions per PDB and Instance</summary>
-              <div class="details-body">
-                <div class="code-card code-sql">
-                  <div class="code-toolbar"><span>SQL</span><button class="copy-btn" type="button">Copy</button></div>
-                  <pre><code>SELECT s.inst_id,
-       p.name pdb_name,
-       COUNT(*) sessions
-FROM gv$session s
-JOIN v$containers p
-  ON s.con_id=p.con_id
-WHERE s.type='USER'
-GROUP BY s.inst_id,p.name
-ORDER BY p.name,s.inst_id;</code></pre>
-                </div>
-              </div>
-            </details>
-            <details class="content-card" open>
-              <summary>Memory Usage per PDB and RAC Instance</summary>
-              <div class="details-body">
-                <div class="code-card code-sql">
-                  <div class="code-toolbar"><span>SQL</span><button class="copy-btn" type="button">Copy</button></div>
-                  <pre><code>SELECT
+GROUP BY inst_id
+ORDER BY inst_id;</code></pre>
+          </div>
+          <div class="code-card code-sql">
+            <div class="code-toolbar"><span>PDB sessions and PGA by instance</span><button class="copy-btn" type="button">Copy</button></div>
+            <div class="code-description">Objective: review session count and allocated PGA by PDB and RAC instance.</div>
+            <pre><code>SELECT
     s.inst_id,
     c.name pdb_name,
     ROUND(SUM(p.pga_alloc_mem)/1024/1024,2) pga_mb,
@@ -1785,36 +1842,11 @@ JOIN v$containers c
 WHERE s.type='USER'
 GROUP BY s.inst_id,c.name
 ORDER BY c.name,s.inst_id;</code></pre>
-                </div>
-              </div>
-            </details>
-            <details class="content-card" open>
-              <summary>Cluster-Wide Memory Distribution</summary>
-              <div class="details-body">
-                <div class="code-card code-sql">
-                  <div class="code-toolbar"><span>SQL</span><button class="copy-btn" type="button">Copy</button></div>
-                  <pre><code>SELECT
-    c.name pdb_name,
-    ROUND(SUM(p.pga_alloc_mem)/1024/1024,2) total_pga_mb,
-    COUNT(*) sessions
-FROM gv$session s
-JOIN gv$process p
-  ON s.inst_id=p.inst_id
- AND s.paddr=p.addr
-JOIN v$containers c
-  ON s.con_id=c.con_id
-WHERE s.type='USER'
-GROUP BY c.name
-ORDER BY total_pga_mb DESC;</code></pre>
-                </div>
-              </div>
-            </details>
-            <details class="content-card" open>
-              <summary>RAC Workload Dashboard</summary>
-              <div class="details-body">
-                <div class="code-card code-sql">
-                  <div class="code-toolbar"><span>SQL</span><button class="copy-btn" type="button">Copy</button></div>
-                  <pre><code>SELECT
+          </div>
+          <div class="code-card code-sql">
+            <div class="code-toolbar"><span>RAC workload dashboard</span><button class="copy-btn" type="button">Copy</button></div>
+            <div class="code-description">Objective: combine sessions, total PGA, and average PGA per user session for scale and failover review.</div>
+            <pre><code>SELECT
     s.inst_id,
     c.name pdb_name,
     COUNT(*) sessions,
@@ -1829,17 +1861,25 @@ JOIN v$containers c
 WHERE s.type='USER'
 GROUP BY s.inst_id,c.name
 ORDER BY c.name,s.inst_id;</code></pre>
-                </div>
-              </div>
-            </details>
+          </div>
+          <div class="code-card code-bash">
+            <div class="code-toolbar"><span>Planned service relocation test</span><button class="copy-btn" type="button">Copy</button></div>
+            <div class="code-description">Objective: simulate a planned service move and observe client, pool, FAN, RLB, AC, or TAC behavior.</div>
+            <pre><code>srvctl relocate service \
+-db CDB01 \
+-service CDB01_PDB01.paas.oracle.com \
+-oldinst CDB011 \
+-newinst CDB012</code></pre>
           </div>
         </section>
 
         <section id="en-ac" class="article-section">
-          <h2>Application Continuity (AC)</h2>
+          <h2>7. Application Continuity (AC)</h2>
           <details class="content-card" open>
             <summary>Example configuration</summary>
             <div class="details-body">
+              <p>Application Continuity protects user work by rebuilding a recoverable database session and replaying a safe request after planned maintenance, a network interruption, or an instance failure. It is most useful when the application uses request boundaries from a supported pool or driver, because replay must start and stop at a known logical unit of work.</p>
+              <p>The <code>TRANSACTION</code> failover type enables transaction replay behavior for the service. <code>commit_outcome</code> helps the client determine whether the last commit completed, while <code>replay_init_time</code> and <code>retention</code> define the replay initiation window and how long commit outcome information is retained.</p>
               <p>Example: Server Control Utility (SRVCTL) manages Oracle RAC database services. In this guide, <code>CDB01</code> is the Container Database (CDB), and <code>CDB01_PDB01.paas.oracle.com</code> is the Pluggable Database (PDB) service.</p>
               <div class="code-card code-bash">
                 <div class="code-toolbar"><span>Bash</span><button class="copy-btn" type="button">Copy</button></div>
@@ -1856,10 +1896,12 @@ ORDER BY c.name,s.inst_id;</code></pre>
         </section>
 
         <section id="en-tac" class="article-section">
-          <h2>Transparent Application Continuity (TAC)</h2>
+          <h2>8. Transparent Application Continuity (TAC)</h2>
           <details class="content-card" open>
             <summary>Recommended configuration</summary>
             <div class="details-body">
+              <p>Transparent Application Continuity is the automatic mode of Application Continuity. It tracks session and transactional state for supported clients so the database session can be recovered after a recoverable outage without requiring the DBA to know the application code path.</p>
+              <p>Use TAC for applications where request boundaries can be discovered safely and where the client stack is replay-aware, such as JDBC/UCP or supported Oracle drivers. The <code>AUTO</code> failover type enables TAC, and <code>session_state DYNAMIC</code> lets Oracle track session state changes instead of requiring a fixed static model.</p>
               <p>Recommended configuration: SRVCTL applies the TAC service attributes to the <code>CDB01</code> database and <code>CDB01_PDB01.paas.oracle.com</code> service used in this example.</p>
               <div class="code-card code-bash">
                 <div class="code-toolbar"><span>Bash</span><button class="copy-btn" type="button">Copy</button></div>
@@ -1876,20 +1918,8 @@ ORDER BY c.name,s.inst_id;</code></pre>
           </details>
         </section>
 
-        <section id="en-testing" class="article-section">
-          <h2>High Availability Testing</h2>
-          <div class="code-card code-bash">
-            <div class="code-toolbar"><span>Bash</span><button class="copy-btn" type="button">Copy</button></div>
-            <pre><code>srvctl relocate service \
--db CDB01 \
--service CDB01_PDB01.paas.oracle.com \
--oldinst DB26AI1 \
--newinst DB26AI2</code></pre>
-          </div>
-        </section>
-
         <section id="en-best-practices" class="article-section">
-          <h2>Best Practices</h2>
+          <h2>9. Best Practices</h2>
           <details class="content-card" open>
             <summary>Operational checklist</summary>
             <div class="details-body">
@@ -1906,43 +1936,16 @@ ORDER BY c.name,s.inst_id;</code></pre>
         </section>
 
         <section id="en-conclusion" class="article-section">
-          <h2>Conclusion</h2>
+          <h2>10. Conclusion</h2>
           <p>A two-node Oracle RAC deployment on Exadata Exascale provides active-active scalability, workload balancing, and high availability. Combining SCAN, FAN, RLB, AC, and TAC delivers a resilient architecture for Oracle Database 26ai workloads.</p>
-        </section>
-
-        <section id="en-glossary" class="article-section">
-          <h2>Glossary</h2>
-          <p>These definitions summarize the acronyms used in this article and point to official Oracle documentation for deeper reference.</p>
-          <div class="glossary-grid">
-            <article class="glossary-term"><h3>AC <span>Application Continuity</span></h3><p>Replay-capable high availability for recoverable database outages when replay is enabled and safe.</p></article>
-            <article class="glossary-term"><h3>CDB <span>Container Database</span></h3><p>The multitenant database container used in the service examples; PDB services run inside it.</p></article>
-            <article class="glossary-term"><h3>CRSCTL <span>Clusterware control</span></h3><p>Command-line utility used to check and manage Oracle Clusterware resources.</p></article>
-            <article class="glossary-term"><h3>DNS <span>Domain Name System</span></h3><p>Name resolution layer used by clients to resolve names such as SCAN.</p></article>
-            <article class="glossary-term"><h3>ExaDB-XS <span>Exadata Database Service on Exascale Infrastructure</span></h3><p>Oracle's Exadata Exascale cloud database service deployment option in OCI.</p></article>
-            <article class="glossary-term"><h3>FAN <span>Fast Application Notification</span></h3><p>Oracle RAC high availability event notification framework for planned and unplanned events.</p></article>
-            <article class="glossary-term"><h3>FCF <span>Fast Connection Failover</span></h3><p>Client-side failover behavior that helps reconnect applications after service or instance changes.</p></article>
-            <article class="glossary-term"><h3>OCI <span>Oracle Cloud Infrastructure</span></h3><p>Oracle's cloud platform for running Exadata Exascale Database Service resources.</p></article>
-            <article class="glossary-term"><h3>ONS <span>Oracle Notification Service</span></h3><p>Notification transport used with FAN events for Oracle RAC-aware clients.</p></article>
-            <article class="glossary-term"><h3>PDB <span>Pluggable Database</span></h3><p>A database container inside a CDB; this article uses <code>CDB01_PDB01.paas.oracle.com</code> as the PDB service name.</p></article>
-            <article class="glossary-term"><h3>RAC <span>Real Application Clusters</span></h3><p>Oracle architecture where multiple instances on clustered servers access one shared database.</p></article>
-            <article class="glossary-term"><h3>RLB <span>Runtime Load Balancing</span></h3><p>Service-aware routing that uses workload information to direct connections across RAC instances.</p></article>
-            <article class="glossary-term"><h3>SCAN <span>Single Client Access Name</span></h3><p>Stable cluster access name used by clients instead of node-specific addresses.</p></article>
-            <article class="glossary-term"><h3>SQL <span>Structured Query Language</span></h3><p>Query language used here to inspect RAC sessions and process memory distribution.</p></article>
-            <article class="glossary-term"><h3>SRVCTL <span>Server Control Utility</span></h3><p>Oracle command-line utility for managing RAC databases, services, listeners, and related resources.</p></article>
-            <article class="glossary-term"><h3>TAC <span>Transparent Application Continuity</span></h3><p>A mode of Application Continuity that automatically tracks session state and request boundaries.</p></article>
-            <article class="glossary-term"><h3>TNS <span>Transparent Network Substrate</span></h3><p>Oracle Net connection descriptor format used to define service, host, load balancing, and failover settings.</p></article>
-            <article class="glossary-term"><h3>UCP <span>Universal Connection Pool</span></h3><p>Oracle JDBC connection pool commonly used with RAC-aware high availability features.</p></article>
-            <article class="glossary-term"><h3>VIP <span>Virtual IP</span></h3><p>Cluster-managed network address used by SCAN listeners and node access paths.</p></article>
-          </div>
           <h3>Official Oracle references</h3>
           <ul class="reference-list">
-            <li><a href="https://docs.oracle.com/en/engineered-systems/exadata-database-exascale/exdxs/overview-exadb-xs-service.html" target="_blank" rel="noopener">Oracle Exadata Database Service on Exascale Infrastructure Overview</a></li>
-            <li><a href="https://docs.oracle.com/en/engineered-systems/exadata-database-machine/exscl/what-is-oracle-exascale.html" target="_blank" rel="noopener">What is Oracle Exadata Exascale?</a></li>
-            <li><a href="https://docs.oracle.com/en/database/oracle/oracle-database/26/racad/index.html" target="_blank" rel="noopener">Oracle Real Application Clusters Administration and Deployment Guide, 26ai</a></li>
-            <li><a href="https://docs.oracle.com/en/database/oracle/oracle-database/26/cwlin/about-the-scan.html" target="_blank" rel="noopener">About the SCAN</a></li>
-            <li><a href="https://docs.oracle.com/en/database/oracle/oracle-database/26/racad/ensuring-application-continuity.html" target="_blank" rel="noopener">Ensuring Application Continuity</a></li>
-            <li><a href="https://docs.oracle.com/en/database/oracle/oracle-database/26/rilin/load-balancing-of-connections-to-oracle-rac-databases.html" target="_blank" rel="noopener">Load Balancing of Connections to Oracle RAC Databases</a></li>
-            <li><a href="https://docs.oracle.com/en/database/oracle/oracle-database/26/haovw/oracle-real-application-clusters-and-oracle-clusterware.html" target="_blank" rel="noopener">Oracle Real Application Clusters and Oracle Clusterware</a></li>
+            <li><a href="https://docs.oracle.com/en/engineered-systems/exadata-database-exascale/exdxs/overview-exadb-xs-service.html" target="_blank" rel="noopener"><span>Exadata Exascale</span><strong>Oracle Exadata Database Service on Exascale Infrastructure Overview</strong><em>docs.oracle.com</em></a></li>
+            <li><a href="https://docs.oracle.com/en/database/oracle/oracle-database/26/racad/index.html" target="_blank" rel="noopener"><span>RAC administration</span><strong>Oracle Real Application Clusters Administration and Deployment Guide, 26ai</strong><em>docs.oracle.com</em></a></li>
+            <li><a href="https://docs.oracle.com/en/database/oracle/oracle-database/26/cwlin/about-the-scan.html" target="_blank" rel="noopener"><span>SCAN access</span><strong>About the SCAN</strong><em>docs.oracle.com</em></a></li>
+            <li><a href="https://docs.oracle.com/en/database/oracle/oracle-database/26/racad/ensuring-application-continuity.html" target="_blank" rel="noopener"><span>Replay continuity</span><strong>Ensuring Application Continuity</strong><em>docs.oracle.com</em></a></li>
+            <li><a href="https://docs.oracle.com/en/database/oracle/oracle-database/26/rilin/load-balancing-of-connections-to-oracle-rac-databases.html" target="_blank" rel="noopener"><span>RAC load balancing</span><strong>Load Balancing of Connections to Oracle RAC Databases</strong><em>docs.oracle.com</em></a></li>
+            <li><a href="https://docs.oracle.com/en/database/oracle/oracle-database/26/haovw/oracle-real-application-clusters-and-oracle-clusterware.html" target="_blank" rel="noopener"><span>Cluster availability</span><strong>Oracle Real Application Clusters and Oracle Clusterware</strong><em>docs.oracle.com</em></a></li>
           </ul>
         </section>
       </main>
@@ -1963,17 +1966,21 @@ ORDER BY c.name,s.inst_id;</code></pre>
             <h2>Uso educativo y validación requerida</h2>
             <p>Este contenido es solo para fines educativos y de planificación. Aplica cada comando y configuración primero en un entorno de prueba no productivo que refleje tus requisitos de RAC, servicio, controlador cliente, carga de trabajo y failover. Los valores recomendados aquí pueden no funcionar en tu entorno específico, pueden requerir aprobación de control de cambios y pueden afectar disponibilidad, enrutamiento de conexiones, comportamiento transaccional, uso de memoria y ubicación de cargas batch. Valida con dueños de aplicaciones, DBAs, equipos de red y la guía de Oracle Support antes de usar cualquier configuración en producción.</p>
           </aside>
+          <div class="related-links" aria-label="Blogs relacionados de Exascale">
+            <a class="related-link" href="../index.html"><strong>Exascale Overview</strong><span>Contexto de arquitectura, conceptos de continuidad y glosario compartido.</span></a>
+            <a class="related-link" href="../Healthcheck/index.html"><strong>RAC Health Check</strong><span>Validaciones operativas RAC, secciones 1 a 8.</span></a>
+            <a class="related-link" href="../ConnectionServices/index.html"><strong>Connection Services</strong><span>Alias TNS, configuración de servicios, load balancing y simulación de failover.</span></a>
+          </div>
         </div>
-        <aside class="hero-visual" aria-label="Cobertura más reciente de la guía">
+        <aside class="hero-visual" aria-label="Navegar las guías">
           <div class="visual-caption">
-            <span>Cobertura de la guía</span>
-            <span class="visual-pill">26ai RAC</span>
+            <span>Navegar las guías</span>
           </div>
           <ul class="hero-highlights">
-            <li class="highlight"><span><b>Ruta de escalado</b>Despliegue de base de datos en clúster de un solo nodo a despliegue en clúster de dos nodos.</span></li>
-            <li class="highlight"><span><b>Pila de disponibilidad</b>Los componentes de resiliencia se presentan con descripciones completas de acrónimos después de la lista de beneficios.</span></li>
-            <li class="highlight"><span><b>Enrutamiento de servicios</b>Los descriptores de Oracle Net y ejemplos de administración de servicios muestran acceso por servicios y balanceo de carga.</span></li>
-            <li class="highlight"><span><b>Validación</b>Comandos de clúster y consultas de base de datos revisan estado, sesiones y distribución de memoria.</span></li>
+            <li class="highlight"><span><b>Usa esta página</b>Revisa la ruta de escalado de RAC de un nodo a RAC de dos nodos.</span></li>
+            <li class="highlight"><span><b>Usa Exascale Overview</b>Consulta el contexto de arquitectura y las referencias del glosario.</span></li>
+            <li class="highlight"><span><b>Usa Healthcheck</b>Ejecuta validaciones operativas RAC antes y después del escalado.</span></li>
+            <li class="highlight"><span><b>Usa ConnectionServices</b>Revisa enrutamiento de servicios, load balancing y comportamiento de failover.</span></li>
           </ul>
         </aside>
       </div>
@@ -1983,357 +1990,146 @@ ORDER BY c.name,s.inst_id;</code></pre>
       <nav class="toc" aria-label="Tabla de contenido">
         <h2>Tabla de contenido</h2>
         <ol>
-          <li><a href="#es-introduction">Introducción</a></li>
-          <li><a href="#es-architecture">Evolución de la arquitectura</a></li>
-          <li><a href="#es-ha">Componentes de alta disponibilidad</a></li>
-          <li><a href="#es-validation">Comandos de validación de clúster</a></li>
-          <li><a href="#es-service-validation">Validación de servicio antes de cambios</a></li>
-          <li><a href="#es-service">Configuración de servicios y balanceo</a></li>
-          <li><a href="#es-session">Consultas de sesiones y memoria</a></li>
-          <li><a href="#es-ac">Application Continuity</a></li>
-          <li><a href="#es-tac">Transparent Application Continuity</a></li>
-          <li><a href="#es-testing">Pruebas de alta disponibilidad</a></li>
-          <li><a href="#es-best-practices">Mejores prácticas</a></li>
-          <li><a href="#es-conclusion">Conclusión</a></li>
-          <li><a href="#es-glossary">Glosario</a></li>
+          <li><a href="#es-introduction">1. Introducción</a></li>
+          <li><a href="#es-architecture">2. Evolución de la arquitectura</a></li>
+          <li><a href="#es-ha">3. Conceptos de disponibilidad RAC</a></li>
+          <li><a href="#es-replay">4. Replay, límites de solicitud y memoria</a></li>
+          <li><a href="#es-taf">5. Runtime Load Balancing OLTP y modelo de conexión</a></li>
+          <li><a href="#es-validation">6. Validación RAC y revisión de workload</a></li>
+          <li><a href="#es-ac">7. Application Continuity</a></li>
+          <li><a href="#es-tac">8. Transparent Application Continuity</a></li>
+          <li><a href="#es-best-practices">9. Mejores prácticas</a></li>
+          <li><a href="#es-conclusion">10. Conclusión</a></li>
         </ol>
       </nav>
 
       <main id="es-main" class="article">
         <section id="es-introduction" class="article-section">
-          <h2>Introducción</h2>
+          <h2>1. Introducción</h2>
           <p>Oracle Exadata Exascale Database Service en Oracle Cloud Infrastructure (OCI) permite el escalado elástico de bases de datos Oracle Real Application Clusters (RAC). Este documento explica la transición arquitectónica desde un despliegue RAC de un solo nodo hacia un despliegue RAC de dos nodos ejecutando Oracle Database 26ai.</p>
         </section>
 
         <section id="es-architecture" class="article-section">
-          <h2>Evolución de la arquitectura</h2>
+          <h2>2. Evolución de la arquitectura</h2>
           <div class="rac-infographic" aria-label="Infografía de alto nivel de componentes RAC">
             <div class="rac-flow">
-              <div class="rac-stage">
-                <span class="rac-badge">Entrada</span>
-                <strong>Conexiones de clientes</strong>
-                <p>Los clientes se conectan mediante conexiones basadas en servicios en lugar de endpoints específicos por instancia.</p>
-                <ul>
-                  <li>Clientes</li>
-                  <li>Nombre de servicio</li>
-                </ul>
-              </div>
+              <div class="rac-stage"><span class="rac-badge">Entrada</span><strong>Conexiones de clientes</strong><p>Los clientes se conectan mediante servicios, no por endpoints específicos de instancia.</p><ul><li>Clientes</li><li>Nombre de servicio</li></ul></div>
               <div class="rac-arrow" aria-hidden="true"></div>
-              <div class="rac-stage">
-                <span class="rac-badge">SCAN</span>
-                <strong>Capa de acceso Single Client Access Name (SCAN)</strong>
-                <p>La ruta de conexión usa SCAN, resolución Domain Name System (DNS), Virtual IPs (VIPs) de SCAN y listeners SCAN antes de la búsqueda de servicio.</p>
-                <ul>
-                  <li>Nombre SCAN</li>
-                  <li>SCAN DNS</li>
-                  <li>VIPs de SCAN</li>
-                  <li>Listeners SCAN</li>
-                </ul>
-              </div>
+              <div class="rac-stage"><span class="rac-badge">SCAN</span><strong>Capa Single Client Access Name (SCAN)</strong><p>La ruta usa SCAN, DNS, VIPs de SCAN y listeners SCAN antes de resolver el servicio.</p><ul><li>SCAN Name</li><li>SCAN DNS</li><li>SCAN VIPs</li><li>SCAN Listeners</li></ul></div>
               <div class="rac-arrow" aria-hidden="true"></div>
-              <div class="rac-stage">
-                <span class="rac-badge">Servicio</span>
-                <strong>Resolución de servicio</strong>
-                <p>Los servicios resuelven la conexión hacia listeners locales en los nodos RAC disponibles.</p>
-                <ul>
-                  <li>Servicios</li>
-                  <li>Búsqueda de servicio</li>
-                  <li>Listeners locales</li>
-                </ul>
-              </div>
+              <div class="rac-stage"><span class="rac-badge">Servicio</span><strong>Resolución del servicio</strong><p>El servicio dirige la conexión hacia listeners locales en los nodos RAC disponibles.</p><ul><li>Servicios</li><li>Búsqueda de servicio</li><li>Listeners locales</li></ul></div>
             </div>
             <div class="rac-node-grid" aria-label="Evolución de instancias RAC">
-              <div class="rac-node">
-                <span class="rac-badge">Base de un nodo</span>
-                <strong>Nodo1 / DB26AI1</strong>
-                <p>El Nodo1 hospeda DB26AI1 en el despliegue RAC de un solo nodo y permanece activo después del escalado.</p>
-                <ul>
-                  <li>Virtual IP (VIP) de nodo</li>
-                  <li>Listener local</li>
-                  <li>Instancia de base de datos</li>
-                </ul>
-              </div>
-              <div class="rac-node">
-                <span class="rac-badge">RAC de dos nodos</span>
-                <strong>Nodo2 / DB26AI2</strong>
-                <p>El Nodo2 agrega DB26AI2 para el despliegue RAC de dos nodos.</p>
-                <ul>
-                  <li>Virtual IP (VIP) de nodo</li>
-                  <li>Listener local</li>
-                  <li>Instancia de base de datos</li>
-                </ul>
-              </div>
-            </div>
-            <div class="rac-signal-row" aria-label="Señales RAC de alta disponibilidad y balanceo">
-              <div class="rac-signal"><strong>Fast Application Notification (FAN)</strong><p>Incluido en la pila de alta disponibilidad con Oracle Notification Service.</p></div>
-              <div class="rac-signal"><strong>Oracle Notification Service (ONS)</strong><p>Se muestra con FAN como parte de la lista de componentes SCAN.</p></div>
-              <div class="rac-signal"><strong>Runtime Load Balancing (RLB)</strong><p>Runtime Load Balancing es parte de los beneficios de RAC de dos nodos y de la configuración de servicios.</p></div>
-              <div class="rac-signal"><strong>Application Continuity (AC) / Transparent Application Continuity (TAC)</strong><p>Application Continuity y Transparent Application Continuity ofrecen opciones de disponibilidad con replay.</p></div>
+              <div class="rac-node"><span class="rac-badge">Base de un nodo</span><strong>Nodo1 / CDB011</strong><p>Node1 hospeda CDB011 para la base CDB01 y permanece activo después del escalado.</p><ul><li>Node Virtual IP (VIP)</li><li>Listener local</li><li>Instancia de base de datos</li></ul></div>
+              <div class="rac-node"><span class="rac-badge">RAC de dos nodos</span><strong>Nodo2 / CDB012</strong><p>Node2 agrega CDB012 para el despliegue RAC de dos nodos.</p><ul><li>Node Virtual IP (VIP)</li><li>Listener local</li><li>Instancia de base de datos</li></ul></div>
             </div>
           </div>
           <h3>Beneficios</h3>
-          <ul class="benefits">
-            <li>Procesamiento activo-activo</li>
-            <li>Mantenimiento rolling</li>
-            <li>Runtime Load Balancing</li>
-            <li>Mayor disponibilidad</li>
-          </ul>
-          <div class="acronym-guide" aria-label="Guía de acrónimos de primer uso">
-            <h2>Guía de acrónimos</h2>
-            <div class="acronym-grid">
-              <div class="acronym-card"><strong>OCI — Oracle Cloud Infrastructure</strong><span>La plataforma cloud de Oracle donde se ejecuta Exadata Exascale Database Service.</span></div>
-              <div class="acronym-card"><strong>RAC — Real Application Clusters</strong><span>Arquitectura de Oracle donde varias instancias de base de datos en nodos de clúster acceden a una base de datos compartida.</span></div>
-              <div class="acronym-card"><strong>SCAN — Single Client Access Name</strong><span>Nombre estable de acceso al clúster que enruta conexiones de servicio sin ligar clientes a nodos individuales.</span></div>
-              <div class="acronym-card"><strong>DNS / VIP — Domain Name System / Virtual IP</strong><span>DNS resuelve nombres como SCAN; las VIPs proporcionan direcciones de red móviles usadas por listeners y nodos del clúster.</span></div>
-              <div class="acronym-card"><strong>FAN / ONS — Fast Application Notification / Oracle Notification Service</strong><span>FAN publica eventos de alta disponibilidad y ONS transporta esas notificaciones a clientes interesados.</span></div>
-              <div class="acronym-card"><strong>RLB — Runtime Load Balancing</strong><span>El enrutamiento de conexiones usa información de carga de trabajo del servicio para dirigir clientes hacia instancias RAC adecuadas.</span></div>
-              <div class="acronym-card"><strong>AC — Application Continuity</strong><span>Disponibilidad con capacidad de replay que puede ocultar interrupciones recuperables al reconstruir y reproducir trabajo de base de datos cuando es seguro.</span></div>
-              <div class="acronym-card"><strong>TAC — Transparent Application Continuity</strong><span>Modo de Application Continuity que rastrea automáticamente el estado de sesión y descubre límites de petición.</span></div>
-            </div>
-          </div>
+          <ul class="benefits"><li>Procesamiento activo-activo</li><li>Mantenimiento rolling</li><li>Runtime Load Balancing</li><li>Mayor disponibilidad</li></ul>
         </section>
 
         <section id="es-ha" class="article-section">
-          <h2>Componentes de alta disponibilidad</h2>
-          <div class="term-grid" aria-label="Llamadas de alta disponibilidad">
-            <article class="term-card"><h3>SCAN</h3><p>Se usa exclusivamente en las mejores prácticas y se muestra como la ruta desde clientes hacia la búsqueda de servicio y los listeners locales.</p></article>
-            <article class="term-card"><h3>RAC</h3><p>El artículo contrasta un nodo RAC con un despliegue RAC de dos nodos usando DB26AI1 y DB26AI2.</p></article>
-            <article class="term-card"><h3>FAN</h3><p>Está listado con ONS en la pila de componentes SCAN e incluido en la infografía de alta disponibilidad.</p></article>
-            <article class="term-card"><h3>RLB</h3><p>Runtime Load Balancing se configura con <code>-clbgoal SHORT</code> y <code>-rlbgoal SERVICE_TIME</code>.</p></article>
-            <article class="term-card"><h3>AC</h3><p>El ejemplo de AC usa <code>TRANSACTION</code>, <code>commit_outcome TRUE</code>, inicialización de replay y configuración de retención.</p></article>
-            <article class="term-card"><h3>TAC</h3><p>La recomendación de TAC usa <code>AUTO</code>, <code>DYNAMIC</code>, commit outcome, inicialización de replay y configuración de retención.</p></article>
-          </div>
-          <h3>Infografía de alta disponibilidad</h3>
-          <div class="code-card code-diagram">
-            <div class="code-toolbar"><span>Diagrama de texto</span><button class="copy-btn" type="button">Copiar</button></div>
-            <pre><code>CLIENTS
-   |
-SCAN
-   |
-+-----------------------------+
-| SCAN VIP1 / SCAN LISTENER1 |
-| SCAN VIP2 / SCAN LISTENER2 |
-| SCAN VIP3 / SCAN LISTENER3 |
-+-----------------------------+
-              |
-      Service Resolution
-              |
-     +--------+--------+
-     |                 |
-  DB26AI1          DB26AI2
+          <h2>3. Conceptos de disponibilidad RAC</h2>
+          <p>En esta guía, la base RAC es <code>CDB01</code>, la pluggable database es <code>PDB01</code> y la aplicación entra por el servicio <code>CDB01_PDB01.paas.oracle.com</code>. Después del escalado, <code>CDB011</code> y <code>CDB012</code> son las instancias RAC que pueden hospedar ese servicio.</p>
+          <p>SCAN es el punto estable de entrada al clúster. DNS resuelve el nombre SCAN a VIPs de SCAN, los listeners SCAN reciben la solicitud y el clúster enruta la conexión hacia un listener local donde el servicio está disponible. Esto evita que los clientes dependan de una instancia específica.</p>
+          <p>FAN publica eventos planeados y no planeados de servicios y nodos; ONS transporta esos eventos a clientes y pools compatibles. FCF permite que los pools descarten conexiones muertas y creen reemplazos. RLB usa advisories del servicio RAC para que el nuevo trabajo favorezca la instancia que cumple mejor el objetivo configurado.</p>
+          <p>SCAN, FAN, ONS, FCF y RLB mejoran ruteo y recuperación, pero no reproducen trabajo por sí solos. AC y TAC agregan replay para solicitudes recuperables cuando el driver, los atributos del servicio y el estado de la aplicación lo permiten.</p>
+          <div class="table-wrap"><table class="data-table"><thead><tr><th>Concepto</th><th>Propósito</th><th>Lo que no hace solo</th></tr></thead><tbody>
+            <tr><td>SCAN</td><td>Da un nombre estable de acceso al clúster.</td><td>No reproduce SQL ni conserva trabajo en vuelo.</td></tr>
+            <tr><td>FAN / ONS</td><td>Publica y transporta eventos RAC.</td><td>No corrige aplicaciones que reutilizan conexiones cerradas.</td></tr>
+            <tr><td>FCF</td><td>Invalida conexiones muertas en pools integrados.</td><td>No decide si una transacción puede repetirse.</td></tr>
+            <tr><td>RLB</td><td>Guía nuevas solicitudes hacia la mejor instancia para el objetivo del servicio.</td><td>No mueve sesiones existentes entre instancias.</td></tr>
+            <tr><td>AC / TAC</td><td>Puede reproducir solicitudes recuperables cuando es seguro.</td><td>No reproduce trabajo stateful inseguro sin límites correctos.</td></tr>
+          </tbody></table></div>
+        </section>
 
- FAN / ONS / RLB / TAC</code></pre>
+        <section id="es-replay" class="article-section">
+          <h2>4. Replay, límites de solicitud y memoria</h2>
+          <p>Replay significa que el stack cliente puede reconstruir una sesión recuperable y repetir una unidad lógica de trabajo segura después de una interrupción. El driver debe conocer el inicio y fin de la solicitud, si el último commit terminó y si el estado de sesión puede restaurarse de forma consistente.</p>
+          <p>AC y TAC dependen de atributos de servicio, servicios RAC, eventos FAN/ONS, clientes con RLB y drivers o pools compatibles con replay como Oracle JDBC con UCP. TAC automatiza más seguimiento de estado; AC es más explícito. Ambos requieren validación de aplicación.</p>
+          <p>El failover también consume memoria. Cada sesión reemplazada o reproducida usa memoria de proceso en la instancia destino. Durante una falla de CDB011, CDB012 puede cargar sesiones sobrevivientes y sesiones reemplazo, incluyendo PGA, UGA, cursores y estado de paquetes.</p>
+          <ul class="best-practice-list"><li>Marque límites de solicitud o use pools y drivers que puedan identificarlos.</li><li>Mantenga solicitudes OLTP cortas y sin afinidad oculta de sesión.</li><li>Valide replay con el driver, pool, atributos de servicio y workload reales.</li><li>Mida sesiones, procesos y memoria en CDB011 y CDB012 durante operación normal y simulaciones.</li></ul>
+        </section>
+
+        <section id="es-taf" class="article-section">
+          <h2>5. Runtime Load Balancing OLTP y modelo de conexión</h2>
+          <p>Runtime load balancing es un mecanismo de service advisory consumido por pools de conexión integrados. No mueve sesiones existentes. Publica señales de calidad de servicio para que los pools soportados elijan la mejor instancia RAC cuando toman o crean una conexión para trabajo nuevo.</p>
+          <p>Esta sección modifica el servicio OLTP existente <code>CDB01_PDB01.paas.oracle.com</code> para usar connection load balancing <code>SHORT</code> y runtime load balancing <code>SERVICE_TIME</code>. El nombre de servicio no cambia, por lo que los clientes pueden seguir usando el mismo descriptor o alias TNS mientras el servicio publica advisories orientados a tiempo de respuesta.</p>
+          <p><code>SERVICE_TIME</code> y <code>THROUGHPUT</code> son objetivos de Runtime Load Balancing, pero optimizan señales diferentes. <code>SERVICE_TIME</code> favorece la instancia con mejor tiempo de respuesta observado para el servicio. Suele ser la opción más clara para OLTP cuando las solicitudes son cortas, interactivas y sensibles a latencia.</p>
+          <p><code>THROUGHPUT</code> favorece la instancia que completa la mayor tasa de trabajo. Puede ser útil cuando la prioridad es el volumen total completado por unidad de tiempo, pero puede ser menos intuitivo para OLTP sensible a latencia porque la instancia de mayor throughput no siempre es la de menor latencia para la siguiente solicitud corta. Para aplicaciones mixtas o stateful, valide ambos objetivos con el pool, driver y workload reales.</p>
+          <p>Runtime load balancing funciona mejor para modelos stateless donde las conexiones se toman del pool, se usan durante una solicitud corta y se devuelven al pool. Habilite Fast Connection Failover y use UCP, WebLogic, OCI u ODP.NET con eventos FAN y RAC load balancing advisory.</p>
+          <div class="code-card code-bash">
+            <div class="code-toolbar"><span>Aplicar actualización de runtime load balancing</span><button class="copy-btn" type="button">Copiar</button></div>
+            <div class="code-description">Objetivo: modificar el servicio OLTP existente para publicar connection load balancing SHORT y runtime load balancing SERVICE_TIME para pools integrados.</div>
+            <pre><code>srvctl modify service \
+-d $ORACLE_UNQNAME \
+-s CDB01_PDB01.paas.oracle.com \
+-clbgoal SHORT \
+-rlbgoal SERVICE_TIME</code></pre>
           </div>
-          <h3>Comparación de tecnologías de disponibilidad</h3>
-          <div class="table-wrap">
-            <table class="data-table">
-              <thead>
-                <tr><th>Tecnología</th><th>Reconexión</th><th>Replay</th></tr>
-              </thead>
-              <tbody>
-                <tr><td>SCAN</td><td class="yes">Sí</td><td class="no">No</td></tr>
-                <tr><td>Fast Connection Failover (FCF)</td><td class="yes">Sí</td><td class="no">No</td></tr>
-                <tr><td>AC</td><td class="yes">Sí</td><td class="yes">Sí</td></tr>
-                <tr><td>TAC</td><td class="yes">Sí</td><td class="yes">Sí</td></tr>
-              </tbody>
-            </table>
+          <div class="code-card code-bash">
+            <div class="code-toolbar"><span>Reiniciar servicio OLTP después de la actualización</span><button class="copy-btn" type="button">Copiar</button></div>
+            <div class="code-description">Objetivo: detener, iniciar y revisar el servicio para recargar los atributos CLB y RLB actualizados en el clúster.</div>
+            <pre><code>srvctl stop service -d $ORACLE_UNQNAME -s CDB01_PDB01.paas.oracle.com
+srvctl start service -d $ORACLE_UNQNAME -s CDB01_PDB01.paas.oracle.com
+srvctl status service -d $ORACLE_UNQNAME -s CDB01_PDB01.paas.oracle.com
+srvctl config service -d $ORACLE_UNQNAME -s CDB01_PDB01.paas.oracle.com</code></pre>
           </div>
-          <div class="acronym-guide" aria-label="Concepto de replay, componentes e implicaciones de memoria">
-            <h2>Concepto de replay, componentes e implicaciones de memoria</h2>
-            <div class="acronym-grid replay-grid">
-              <div class="acronym-card"><strong>Concepto de replay</strong><span>Replay significa que la pila cliente puede reconstruir una sesión recuperable y repetir una unidad lógica de trabajo segura después de una interrupción. SCAN y Fast Connection Failover (FCF) reconectan; Application Continuity (AC) y Transparent Application Continuity (TAC) agregan replay.</span></div>
-              <div class="acronym-card"><strong>Componentes de replay</strong><span>Atributos de servicio configurados con SRVCTL, servicios Oracle RAC, listeners SCAN, Fast Application Notification (FAN), Oracle Notification Service (ONS), Runtime Load Balancing (RLB) y drivers o pools cliente compatibles con replay, como JDBC/UCP.</span></div>
-              <div class="acronym-card"><strong>Requisitos de sesión</strong><span>Las aplicaciones deben conectarse mediante servicios, no por instancias fijas. Después de falla de nodo o reubicación de servicio, las sesiones de reemplazo se establecen en instancias RAC sobrevivientes, por lo que los pools necesitan capacidad y reintentos suficientes.</span></div>
-              <div class="acronym-card"><strong>Implicaciones de memoria</strong><span>Cada sesión reconstruida o reproducida consume memoria de proceso en la instancia destino. Durante failover, los nodos sobrevivientes pueden cargar más sesiones y memoria Program Global Area (PGA), User Global Area (UGA), cursores y estado de paquetes.</span></div>
-              <div class="acronym-card"><strong>Validación operativa</strong><span>Compara <code>gv$session</code>, <code>gv$process</code>, <code>v$containers</code> y la ubicación de servicios después de escalar o ejecutar failover. Valida ubicación balanceada, sesiones aceptables por instancia y margen de memoria suficiente.</span></div>
-            </div>
+          <div class="code-card code-text">
+            <div class="code-toolbar"><span>Validar configuración actualizada del servicio</span><button class="copy-btn" type="button">Copiar</button></div>
+            <div class="code-description">Objetivo: confirmar que SRVCTL reporta los objetivos esperados de connection y runtime load balancing.</div>
+            <pre><code>Connection Load Balancing Goal: <span class="code-highlight">SHORT</span>
+Runtime Load Balancing Goal: <span class="code-highlight">SERVICE_TIME</span></code></pre>
+          </div>
+          <div class="code-card code-sql">
+            <div class="code-toolbar"><span>Verificar configuración desde GV$SERVICES</span><button class="copy-btn" type="button">Copiar</button></div>
+            <div class="code-description">Objetivo: validar desde la base RAC los atributos de load balancing del servicio por instancia.</div>
+            <pre><code>SELECT inst_id,
+       name,
+       clb_goal,
+       goal
+FROM gv$services
+WHERE name = 'CDB01_PDB01.paas.oracle.com'
+ORDER BY inst_id;
+
+-- Esperado por miembro activo del servicio:
+-- CLB_GOAL = SHORT
+-- GOAL     = SERVICE_TIME</code></pre>
           </div>
         </section>
 
         <section id="es-validation" class="article-section">
-          <h2>Comandos de validación RAC</h2>
-          <div class="section-stack">
-            <details class="content-card" open>
-              <summary>Comandos para ejecutar como usuario del sistema operativo grid</summary>
-              <div class="details-body">
-                <p>Ejecuta estos comandos de validación de Oracle Clusterware como el usuario de sistema operativo <code>grid</code>.</p>
-                <div class="code-card code-bash">
-                  <div class="code-toolbar"><span>Bash</span><button class="copy-btn" type="button">Copiar</button></div>
-                  <pre><code>sudo su - grid
-crsctl check cluster -all
+          <h2>6. Validación RAC y revisión de workload</h2>
+          <p>Después del escalado, valide salud del clúster, ubicación del servicio, distribución de sesiones, postura de memoria y reubicación planeada del servicio antes de considerar listo el despliegue RAC de dos nodos.</p>
+          <div class="note-box">
+            <strong>Alcance de validación</strong>
+            Ejecute estas revisiones primero en una ventana controlada de pruebas. Reemplace los nombres de base de datos, servicio e instancia con los valores de su entorno y compare la salida antes, durante y después de las pruebas de failover.
+          </div>
+          <div class="code-card code-bash">
+            <div class="code-toolbar"><span>Comandos de validación RAC</span><button class="copy-btn" type="button">Copiar</button></div>
+            <div class="code-description">Objetivo: confirmar que Clusterware, nodos, base de datos, servicios, SCAN, listeners SCAN y listeners locales están saludables después del escalado.</div>
+            <pre><code>crsctl check cluster -all
 crsctl stat res -t
-olsnodes -n</code></pre>
-                </div>
-              </div>
-            </details>
-            <details class="content-card" open>
-              <summary>Comandos para ejecutar como usuario del sistema operativo oracle</summary>
-              <div class="details-body">
-                <p>Ejecuta estas validaciones de listeners y base de datos como el usuario de sistema operativo <code>oracle</code>.</p>
-                <div class="code-card code-bash">
-                  <div class="code-toolbar"><span>Bash</span><button class="copy-btn" type="button">Copiar</button></div>
-                  <pre><code>sudo su - oracle
+olsnodes -n
+
+srvctl status database -db CDB01
+srvctl status service -db CDB01
 srvctl status scan
 srvctl status scan_listener
-srvctl status listener
-srvctl status database -db CDB01</code></pre>
-                </div>
-              </div>
-            </details>
+srvctl status listener</code></pre>
           </div>
-        </section>
-
-        <section id="es-service-validation" class="article-section">
-          <h2>Validación de servicio antes de cambios</h2>
-          <div class="section-stack">
-            <div class="content-card">
-              <h3>10. Revisión de configuración del servicio de conexión por defecto</h3>
-              <p>Revisa la configuración del servicio de conexión por defecto y compara sus características actuales antes de aplicar cualquier modificación del servicio.</p>
-              <div class="code-card code-bash">
-                <div class="code-toolbar"><span>Bash</span><button class="copy-btn" type="button">Copiar</button></div>
-                <pre><code>sudo su - oracle
-srvctl config service \
--d $ORACLE_UNQNAME \
--s CDB01_PDB01.paas.oracle.com</code></pre>
-              </div>
-              <div class="table-wrap">
-                <table class="data-table default-config-card">
-                  <thead>
-                    <tr><th>Característica</th><th>Valor</th><th>Valores documentados por Oracle</th></tr>
-                  </thead>
-                  <tbody>
-                    <tr><td>Failover type</td><td>NONE</td><td>NONE, SESSION, SELECT, TRANSACTION, AUTO</td></tr>
-                    <tr><td>Runtime Load Balancing Goal</td><td>NONE</td><td>NONE, SERVICE_TIME, THROUGHPUT</td></tr>
-                    <tr><td>Connection Load Balancing Goal</td><td>LONG</td><td>SHORT, LONG</td></tr>
-                  </tbody>
-                </table>
-              </div>
-            </div>
-            <div class="content-card">
-              <h3>11. Configuración OLTP recomendada (eficiente en memoria)</h3>
-              <p>Para la recomendación OLTP eficiente en memoria, conserva el servicio de conexión por defecto y aplica valores de failover a nivel de sesión. Esto evita crear otro servicio y mantiene estable el destino de conexión de la aplicación mientras agrega comportamiento básico de reconexión.</p>
-              <div class="code-card code-bash">
-                <div class="code-toolbar"><span>Bash</span><button class="copy-btn" type="button">Copiar</button></div>
-                <pre><code>srvctl modify service \
--d $ORACLE_UNQNAME \
--s CDB01_PDB01.paas.oracle.com \
--failovertype SESSION \
--failovermethod BASIC \
--failoverretry 30 \
--failoverdelay 5</code></pre>
-              </div>
-              <div class="table-wrap">
-                <table class="data-table default-config-card">
-                  <thead>
-                    <tr><th>Atributo</th><th>Valor recomendado</th><th>Valores documentados por Oracle</th></tr>
-                  </thead>
-                  <tbody>
-                    <tr><td>Failover Type</td><td><code>SESSION</code></td><td>SRVCTL: NONE, SESSION, SELECT, TRANSACTION, AUTO; TNS FAILOVER_MODE TYPE: session, select, none</td></tr>
-                    <tr><td>Failover Method</td><td><code>BASIC</code></td><td>SRVCTL: NONE, BASIC; TNS FAILOVER_MODE METHOD: basic, preconnect</td></tr>
-                    <tr><td>Failover Retries</td><td><code>30</code></td><td>Cantidad entera de reintentos</td></tr>
-                    <tr><td>Failover Delay</td><td><code>5</code></td><td>Demora entera en segundos</td></tr>
-                  </tbody>
-                </table>
-              </div>
-              <div class="code-card code-text">
-                <div class="code-toolbar"><span>TNS</span><button class="copy-btn" type="button">Copiar</button></div>
-                <pre><code>CDB01_PDB01_OLTP=
-    (DESCRIPTION=
-      (ADDRESS=
-        (PROTOCOL=TCP)
-        (HOST=exasc01-scan-jjtmn.private.usw.oraclevcn.com)
-        (PORT=1521))
-      (CONNECT_DATA=
-        (SERVER=DEDICATED)
-        (SERVICE_NAME=CDB01_PDB01.paas.oracle.com)
-        (UR=A)
-        (FAILOVER_MODE=
-          (TYPE=session)
-          (METHOD=basic)
-          (RETRIES=30)
-          (DELAY=5))))
-
-# Java JDBC Thin alias URL:
-# jdbc:oracle:thin:@CDB01_PDB01_OLTP
-# Java JDBC Thin descriptor URL with the same parameters:
-# jdbc:oracle:thin:@(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=exasc01-scan-jjtmn.private.usw.oraclevcn.com)(PORT=1521))(CONNECT_DATA=(SERVER=DEDICATED)(SERVICE_NAME=CDB01_PDB01.paas.oracle.com)(UR=A)(FAILOVER_MODE=(TYPE=session)(METHOD=basic)(RETRIES=30)(DELAY=5))))</code></pre>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <section id="es-service" class="article-section">
-          <h2>Configuración de servicios y balanceo de carga</h2>
-          <div class="section-stack">
-            <div class="content-card">
-              <h3>Descriptor de conexión Transparent Network Substrate (TNS)</h3>
-              <p>Este descriptor de Oracle Net usa el nombre de servicio <code>CDB01_PDB01</code>, el nombre de host SCAN y las opciones de balanceo de carga y failover para acceso basado en servicios.</p>
-              <div class="code-card code-text">
-                <div class="code-toolbar"><span>TNS</span><button class="copy-btn" type="button">Copiar</button></div>
-                <pre><code>CDB01_PDB01 =
- (DESCRIPTION=
-   (LOAD_BALANCE=ON)
-   (FAILOVER=ON)
-   (ADDRESS=
-      (PROTOCOL=TCP)
-      (HOST=salesdb-scan.company.com)
-      (PORT=1521))
-   (CONNECT_DATA=
-      (SERVICE_NAME=CDB01_PDB01.paas.oracle.com)))</code></pre>
-              </div>
-            </div>
-            <div class="content-card">
-              <h3>Runtime Load Balancing</h3>
-              <div class="code-card code-bash">
-                <div class="code-toolbar"><span>Bash</span><button class="copy-btn" type="button">Copiar</button></div>
-                <pre><code>srvctl modify service \
--db CDB01 \
--service CDB01_PDB01.paas.oracle.com \
--clbgoal SHORT \
--rlbgoal SERVICE_TIME</code></pre>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <section id="es-session" class="article-section">
-          <h2>Consultas de distribución de sesiones y memoria</h2>
-          <p>Estas consultas Structured Query Language (SQL) usan vistas dinámicas de rendimiento de Oracle para comparar sesiones de usuario y memoria de procesos entre instancias RAC y PDBs.</p>
-          <div class="section-stack">
-            <details class="content-card" open>
-              <summary>Sesiones por instancia</summary>
-              <div class="details-body">
-                <div class="code-card code-sql">
-                  <div class="code-toolbar"><span>SQL</span><button class="copy-btn" type="button">Copiar</button></div>
-                  <pre><code>SELECT inst_id, COUNT(*)
+          <div class="code-card code-sql">
+            <div class="code-toolbar"><span>Sesiones por instancia RAC</span><button class="copy-btn" type="button">Copiar</button></div>
+            <div class="code-description">Objetivo: verificar sesiones de usuario entre instancias RAC después del escalado y del ruteo de workload.</div>
+            <pre><code>SELECT inst_id, COUNT(*)
 FROM gv$session
-GROUP BY inst_id;</code></pre>
-                </div>
-              </div>
-            </details>
-            <details class="content-card" open>
-              <summary>Sesiones por PDB e instancia</summary>
-              <div class="details-body">
-                <div class="code-card code-sql">
-                  <div class="code-toolbar"><span>SQL</span><button class="copy-btn" type="button">Copiar</button></div>
-                  <pre><code>SELECT s.inst_id,
-       p.name pdb_name,
-       COUNT(*) sessions
-FROM gv$session s
-JOIN v$containers p
-  ON s.con_id=p.con_id
-WHERE s.type='USER'
-GROUP BY s.inst_id,p.name
-ORDER BY p.name,s.inst_id;</code></pre>
-                </div>
-              </div>
-            </details>
-            <details class="content-card" open>
-              <summary>Uso de memoria por PDB e instancia RAC</summary>
-              <div class="details-body">
-                <div class="code-card code-sql">
-                  <div class="code-toolbar"><span>SQL</span><button class="copy-btn" type="button">Copiar</button></div>
-                  <pre><code>SELECT
+GROUP BY inst_id
+ORDER BY inst_id;</code></pre>
+          </div>
+          <div class="code-card code-sql">
+            <div class="code-toolbar"><span>Sesiones PDB y PGA por instancia</span><button class="copy-btn" type="button">Copiar</button></div>
+            <div class="code-description">Objetivo: revisar conteo de sesiones y PGA asignada por PDB e instancia RAC.</div>
+            <pre><code>SELECT
     s.inst_id,
     c.name pdb_name,
     ROUND(SUM(p.pga_alloc_mem)/1024/1024,2) pga_mb,
@@ -2347,36 +2143,11 @@ JOIN v$containers c
 WHERE s.type='USER'
 GROUP BY s.inst_id,c.name
 ORDER BY c.name,s.inst_id;</code></pre>
-                </div>
-              </div>
-            </details>
-            <details class="content-card" open>
-              <summary>Distribución de memoria en todo el clúster</summary>
-              <div class="details-body">
-                <div class="code-card code-sql">
-                  <div class="code-toolbar"><span>SQL</span><button class="copy-btn" type="button">Copiar</button></div>
-                  <pre><code>SELECT
-    c.name pdb_name,
-    ROUND(SUM(p.pga_alloc_mem)/1024/1024,2) total_pga_mb,
-    COUNT(*) sessions
-FROM gv$session s
-JOIN gv$process p
-  ON s.inst_id=p.inst_id
- AND s.paddr=p.addr
-JOIN v$containers c
-  ON s.con_id=c.con_id
-WHERE s.type='USER'
-GROUP BY c.name
-ORDER BY total_pga_mb DESC;</code></pre>
-                </div>
-              </div>
-            </details>
-            <details class="content-card" open>
-              <summary>Dashboard de carga de trabajo RAC</summary>
-              <div class="details-body">
-                <div class="code-card code-sql">
-                  <div class="code-toolbar"><span>SQL</span><button class="copy-btn" type="button">Copiar</button></div>
-                  <pre><code>SELECT
+          </div>
+          <div class="code-card code-sql">
+            <div class="code-toolbar"><span>Dashboard de workload RAC</span><button class="copy-btn" type="button">Copiar</button></div>
+            <div class="code-description">Objetivo: combinar sesiones, PGA total y PGA promedio por sesión de usuario para revisar escalado y failover.</div>
+            <pre><code>SELECT
     s.inst_id,
     c.name pdb_name,
     COUNT(*) sessions,
@@ -2391,17 +2162,25 @@ JOIN v$containers c
 WHERE s.type='USER'
 GROUP BY s.inst_id,c.name
 ORDER BY c.name,s.inst_id;</code></pre>
-                </div>
-              </div>
-            </details>
+          </div>
+          <div class="code-card code-bash">
+            <div class="code-toolbar"><span>Prueba de reubicación planeada de servicio</span><button class="copy-btn" type="button">Copiar</button></div>
+            <div class="code-description">Objetivo: simular un movimiento planeado del servicio y observar comportamiento del cliente, pool, FAN, RLB, AC o TAC.</div>
+            <pre><code>srvctl relocate service \
+-db CDB01 \
+-service CDB01_PDB01.paas.oracle.com \
+-oldinst CDB011 \
+-newinst CDB012</code></pre>
           </div>
         </section>
 
         <section id="es-ac" class="article-section">
-          <h2>Application Continuity (AC)</h2>
+          <h2>7. Application Continuity (AC)</h2>
           <details class="content-card" open>
             <summary>Configuración de ejemplo</summary>
             <div class="details-body">
+              <p>Application Continuity protege el trabajo del usuario al reconstruir una sesión de base de datos recuperable y reproducir una petición segura después de mantenimiento planificado, una interrupción de red o una falla de instancia. Es más útil cuando la aplicación usa límites de petición desde un pool o driver compatible, porque el replay debe iniciar y terminar en una unidad lógica de trabajo conocida.</p>
+              <p>El tipo de failover <code>TRANSACTION</code> habilita comportamiento de replay de transacciones para el servicio. <code>commit_outcome</code> ayuda al cliente a determinar si el último commit se completó, mientras que <code>replay_init_time</code> y <code>retention</code> definen la ventana de inicio de replay y cuánto tiempo se conserva la información de resultado de commit.</p>
               <p>Ejemplo: Server Control Utility (SRVCTL) administra servicios de base de datos Oracle RAC. En esta guía, <code>CDB01</code> es la Container Database (CDB), y <code>CDB01_PDB01.paas.oracle.com</code> es el servicio de Pluggable Database (PDB).</p>
               <div class="code-card code-bash">
                 <div class="code-toolbar"><span>Bash</span><button class="copy-btn" type="button">Copiar</button></div>
@@ -2418,10 +2197,12 @@ ORDER BY c.name,s.inst_id;</code></pre>
         </section>
 
         <section id="es-tac" class="article-section">
-          <h2>Transparent Application Continuity (TAC)</h2>
+          <h2>8. Transparent Application Continuity (TAC)</h2>
           <details class="content-card" open>
             <summary>Configuración recomendada</summary>
             <div class="details-body">
+              <p>Transparent Application Continuity es el modo automático de Application Continuity. Rastrea el estado de sesión y transaccional para clientes compatibles, de modo que la sesión de base de datos pueda recuperarse después de una interrupción recuperable sin requerir que el DBA conozca la ruta de código de la aplicación.</p>
+              <p>Use TAC para aplicaciones donde los límites de petición puedan descubrirse de forma segura y donde la pila cliente sea compatible con replay, como JDBC/UCP o drivers Oracle soportados. El tipo de failover <code>AUTO</code> habilita TAC, y <code>session_state DYNAMIC</code> permite que Oracle rastree cambios de estado de sesión en lugar de requerir un modelo estático fijo.</p>
               <p>Configuración recomendada: SRVCTL aplica los atributos de servicio TAC a la base de datos <code>CDB01</code> y al servicio <code>CDB01_PDB01.paas.oracle.com</code> usados en este ejemplo.</p>
               <div class="code-card code-bash">
                 <div class="code-toolbar"><span>Bash</span><button class="copy-btn" type="button">Copiar</button></div>
@@ -2438,20 +2219,8 @@ ORDER BY c.name,s.inst_id;</code></pre>
           </details>
         </section>
 
-        <section id="es-testing" class="article-section">
-          <h2>Pruebas de alta disponibilidad</h2>
-          <div class="code-card code-bash">
-            <div class="code-toolbar"><span>Bash</span><button class="copy-btn" type="button">Copiar</button></div>
-            <pre><code>srvctl relocate service \
--db CDB01 \
--service CDB01_PDB01.paas.oracle.com \
--oldinst DB26AI1 \
--newinst DB26AI2</code></pre>
-          </div>
-        </section>
-
         <section id="es-best-practices" class="article-section">
-          <h2>Mejores prácticas</h2>
+          <h2>9. Mejores prácticas</h2>
           <details class="content-card" open>
             <summary>Lista operativa</summary>
             <div class="details-body">
@@ -2468,43 +2237,16 @@ ORDER BY c.name,s.inst_id;</code></pre>
         </section>
 
         <section id="es-conclusion" class="article-section">
-          <h2>Conclusión</h2>
+          <h2>10. Conclusión</h2>
           <p>Un despliegue Oracle RAC de dos nodos en Exadata Exascale proporciona escalabilidad activo-activo, balanceo de carga de trabajo y alta disponibilidad. La combinación de SCAN, FAN, RLB, AC y TAC ofrece una arquitectura resiliente para cargas de trabajo de Oracle Database 26ai.</p>
-        </section>
-
-        <section id="es-glossary" class="article-section">
-          <h2>Glosario</h2>
-          <p>Estas definiciones resumen los acrónimos usados en el artículo y apuntan a documentación oficial de Oracle para una referencia más profunda.</p>
-          <div class="glossary-grid">
-            <article class="glossary-term"><h3>AC <span>Application Continuity</span></h3><p>Alta disponibilidad con capacidad de replay para interrupciones recuperables cuando el replay está habilitado y es seguro.</p></article>
-            <article class="glossary-term"><h3>CDB <span>Container Database</span></h3><p>Contenedor multitenant de base de datos usado en los ejemplos de servicio; los servicios PDB se ejecutan dentro de él.</p></article>
-            <article class="glossary-term"><h3>CRSCTL <span>Control de Clusterware</span></h3><p>Utilidad de línea de comandos usada para revisar y administrar recursos de Oracle Clusterware.</p></article>
-            <article class="glossary-term"><h3>DNS <span>Domain Name System</span></h3><p>Capa de resolución de nombres usada por clientes para resolver nombres como SCAN.</p></article>
-            <article class="glossary-term"><h3>ExaDB-XS <span>Exadata Database Service on Exascale Infrastructure</span></h3><p>Opción de servicio cloud de Oracle para Exadata Exascale Database Service en OCI.</p></article>
-            <article class="glossary-term"><h3>FAN <span>Fast Application Notification</span></h3><p>Marco de notificación de eventos de alta disponibilidad de Oracle RAC para eventos planeados y no planeados.</p></article>
-            <article class="glossary-term"><h3>FCF <span>Fast Connection Failover</span></h3><p>Comportamiento de failover del cliente que ayuda a reconectar aplicaciones después de cambios de servicio o instancia.</p></article>
-            <article class="glossary-term"><h3>OCI <span>Oracle Cloud Infrastructure</span></h3><p>Plataforma cloud de Oracle para ejecutar recursos de Exadata Exascale Database Service.</p></article>
-            <article class="glossary-term"><h3>ONS <span>Oracle Notification Service</span></h3><p>Transporte de notificaciones usado con eventos FAN para clientes conscientes de Oracle RAC.</p></article>
-            <article class="glossary-term"><h3>PDB <span>Pluggable Database</span></h3><p>Contenedor de base de datos dentro de una CDB; este artículo usa <code>CDB01_PDB01.paas.oracle.com</code> como nombre de servicio PDB.</p></article>
-            <article class="glossary-term"><h3>RAC <span>Real Application Clusters</span></h3><p>Arquitectura Oracle donde varias instancias en servidores de clúster acceden a una base de datos compartida.</p></article>
-            <article class="glossary-term"><h3>RLB <span>Runtime Load Balancing</span></h3><p>Enrutamiento consciente de servicios que usa información de carga de trabajo para dirigir conexiones entre instancias RAC.</p></article>
-            <article class="glossary-term"><h3>SCAN <span>Single Client Access Name</span></h3><p>Nombre estable de acceso al clúster usado por clientes en lugar de direcciones específicas por nodo.</p></article>
-            <article class="glossary-term"><h3>SQL <span>Structured Query Language</span></h3><p>Lenguaje de consulta usado aquí para inspeccionar sesiones RAC y distribución de memoria de procesos.</p></article>
-            <article class="glossary-term"><h3>SRVCTL <span>Server Control Utility</span></h3><p>Utilidad de línea de comandos de Oracle para administrar bases de datos RAC, servicios, listeners y recursos relacionados.</p></article>
-            <article class="glossary-term"><h3>TAC <span>Transparent Application Continuity</span></h3><p>Modo de Application Continuity que rastrea automáticamente estado de sesión y límites de petición.</p></article>
-            <article class="glossary-term"><h3>TNS <span>Transparent Network Substrate</span></h3><p>Formato de descriptor de conexión de Oracle Net usado para definir servicio, host, balanceo de carga y failover.</p></article>
-            <article class="glossary-term"><h3>UCP <span>Universal Connection Pool</span></h3><p>Pool de conexiones JDBC de Oracle usado comúnmente con funciones de alta disponibilidad conscientes de RAC.</p></article>
-            <article class="glossary-term"><h3>VIP <span>Virtual IP</span></h3><p>Dirección de red administrada por el clúster usada por listeners SCAN y rutas de acceso de nodo.</p></article>
-          </div>
           <h3>Referencias oficiales de Oracle</h3>
           <ul class="reference-list">
-            <li><a href="https://docs.oracle.com/en/engineered-systems/exadata-database-exascale/exdxs/overview-exadb-xs-service.html" target="_blank" rel="noopener">Oracle Exadata Database Service on Exascale Infrastructure Overview</a></li>
-            <li><a href="https://docs.oracle.com/en/engineered-systems/exadata-database-machine/exscl/what-is-oracle-exascale.html" target="_blank" rel="noopener">What is Oracle Exadata Exascale?</a></li>
-            <li><a href="https://docs.oracle.com/en/database/oracle/oracle-database/26/racad/index.html" target="_blank" rel="noopener">Oracle Real Application Clusters Administration and Deployment Guide, 26ai</a></li>
-            <li><a href="https://docs.oracle.com/en/database/oracle/oracle-database/26/cwlin/about-the-scan.html" target="_blank" rel="noopener">About the SCAN</a></li>
-            <li><a href="https://docs.oracle.com/en/database/oracle/oracle-database/26/racad/ensuring-application-continuity.html" target="_blank" rel="noopener">Ensuring Application Continuity</a></li>
-            <li><a href="https://docs.oracle.com/en/database/oracle/oracle-database/26/rilin/load-balancing-of-connections-to-oracle-rac-databases.html" target="_blank" rel="noopener">Load Balancing of Connections to Oracle RAC Databases</a></li>
-            <li><a href="https://docs.oracle.com/en/database/oracle/oracle-database/26/haovw/oracle-real-application-clusters-and-oracle-clusterware.html" target="_blank" rel="noopener">Oracle Real Application Clusters and Oracle Clusterware</a></li>
+            <li><a href="https://docs.oracle.com/en/engineered-systems/exadata-database-exascale/exdxs/overview-exadb-xs-service.html" target="_blank" rel="noopener"><span>Exadata Exascale</span><strong>Oracle Exadata Database Service on Exascale Infrastructure Overview</strong><em>docs.oracle.com</em></a></li>
+            <li><a href="https://docs.oracle.com/en/database/oracle/oracle-database/26/racad/index.html" target="_blank" rel="noopener"><span>Administración RAC</span><strong>Oracle Real Application Clusters Administration and Deployment Guide, 26ai</strong><em>docs.oracle.com</em></a></li>
+            <li><a href="https://docs.oracle.com/en/database/oracle/oracle-database/26/cwlin/about-the-scan.html" target="_blank" rel="noopener"><span>Acceso SCAN</span><strong>About the SCAN</strong><em>docs.oracle.com</em></a></li>
+            <li><a href="https://docs.oracle.com/en/database/oracle/oracle-database/26/racad/ensuring-application-continuity.html" target="_blank" rel="noopener"><span>Continuidad y replay</span><strong>Ensuring Application Continuity</strong><em>docs.oracle.com</em></a></li>
+            <li><a href="https://docs.oracle.com/en/database/oracle/oracle-database/26/rilin/load-balancing-of-connections-to-oracle-rac-databases.html" target="_blank" rel="noopener"><span>Load balancing RAC</span><strong>Load Balancing of Connections to Oracle RAC Databases</strong><em>docs.oracle.com</em></a></li>
+            <li><a href="https://docs.oracle.com/en/database/oracle/oracle-database/26/haovw/oracle-real-application-clusters-and-oracle-clusterware.html" target="_blank" rel="noopener"><span>Disponibilidad de clúster</span><strong>Oracle Real Application Clusters and Oracle Clusterware</strong><em>docs.oracle.com</em></a></li>
           </ul>
         </section>
       </main>
@@ -2525,17 +2267,21 @@ ORDER BY c.name,s.inst_id;</code></pre>
             <h2>Uso educacional e validação obrigatória</h2>
             <p>Este conteúdo é apenas para fins educacionais e de planejamento. Aplique cada comando e configuração primeiro em um ambiente de teste não produtivo que reflita seus requisitos de RAC, serviço, driver cliente, carga de trabalho e failover. Os valores recomendados aqui podem não funcionar no seu ambiente específico, podem exigir aprovação de controle de mudanças e podem afetar disponibilidade, roteamento de conexões, comportamento transacional, uso de memória e posicionamento de cargas batch. Valide com responsáveis por aplicações, DBAs, equipes de rede e a orientação do Oracle Support antes de usar qualquer configuração em produção.</p>
           </aside>
+          <div class="related-links" aria-label="Blogs relacionados do Exascale">
+            <a class="related-link" href="../index.html"><strong>Exascale Overview</strong><span>Contexto de arquitetura, conceitos de continuidade e glossário compartilhado.</span></a>
+            <a class="related-link" href="../Healthcheck/index.html"><strong>RAC Health Check</strong><span>Validações operacionais RAC, seções 1 a 8.</span></a>
+            <a class="related-link" href="../ConnectionServices/index.html"><strong>Connection Services</strong><span>Aliases TNS, configuração de serviços, load balancing e simulação de failover.</span></a>
+          </div>
         </div>
-        <aside class="hero-visual" aria-label="Cobertura mais recente do guia">
+        <aside class="hero-visual" aria-label="Navegar pelos guias">
           <div class="visual-caption">
-            <span>Cobertura do guia</span>
-            <span class="visual-pill">26ai RAC</span>
+            <span>Navegar pelos guias</span>
           </div>
           <ul class="hero-highlights">
-            <li class="highlight"><span><b>Caminho de escala</b>Implantação de banco de dados em cluster de nó único para implantação em cluster de dois nós.</span></li>
-            <li class="highlight"><span><b>Pilha de disponibilidade</b>Os componentes de resiliência aparecem com descrições completas de acrônimos após a lista de benefícios.</span></li>
-            <li class="highlight"><span><b>Roteamento de serviços</b>Descritores do Oracle Net e exemplos de administração de serviços mostram acesso por serviços e balanceamento de carga.</span></li>
-            <li class="highlight"><span><b>Validação</b>Comandos de cluster e consultas de banco de dados verificam estado, sessões e distribuição de memória.</span></li>
+            <li class="highlight"><span><b>Use esta página</b>Revise o caminho de escala de RAC de um nó para RAC de dois nós.</span></li>
+            <li class="highlight"><span><b>Use Exascale Overview</b>Consulte o contexto de arquitetura e as referências do glossário.</span></li>
+            <li class="highlight"><span><b>Use Healthcheck</b>Execute validações operacionais RAC antes e depois da escala.</span></li>
+            <li class="highlight"><span><b>Use ConnectionServices</b>Revise roteamento de serviços, load balancing e comportamento de failover.</span></li>
           </ul>
         </aside>
       </div>
@@ -2545,357 +2291,146 @@ ORDER BY c.name,s.inst_id;</code></pre>
       <nav class="toc" aria-label="Sumário">
         <h2>Sumário</h2>
         <ol>
-          <li><a href="#pt-introduction">Introdução</a></li>
-          <li><a href="#pt-architecture">Evolução da arquitetura</a></li>
-          <li><a href="#pt-ha">Componentes de alta disponibilidade</a></li>
-          <li><a href="#pt-validation">Comandos de validação de cluster</a></li>
-          <li><a href="#pt-service-validation">Validação de serviço antes de mudanças</a></li>
-          <li><a href="#pt-service">Configuração de serviços e balanceamento</a></li>
-          <li><a href="#pt-session">Consultas de sessões e memória</a></li>
-          <li><a href="#pt-ac">Application Continuity</a></li>
-          <li><a href="#pt-tac">Transparent Application Continuity</a></li>
-          <li><a href="#pt-testing">Testes de alta disponibilidade</a></li>
-          <li><a href="#pt-best-practices">Melhores práticas</a></li>
-          <li><a href="#pt-conclusion">Conclusão</a></li>
-          <li><a href="#pt-glossary">Glossário</a></li>
+          <li><a href="#pt-introduction">1. Introdução</a></li>
+          <li><a href="#pt-architecture">2. Evolução da arquitetura</a></li>
+          <li><a href="#pt-ha">3. Conceitos de disponibilidade RAC</a></li>
+          <li><a href="#pt-replay">4. Replay, limites de solicitação e memória</a></li>
+          <li><a href="#pt-taf">5. Runtime Load Balancing OLTP e modelo de conexão</a></li>
+          <li><a href="#pt-validation">6. Validação RAC e revisão de workload</a></li>
+          <li><a href="#pt-ac">7. Application Continuity</a></li>
+          <li><a href="#pt-tac">8. Transparent Application Continuity</a></li>
+          <li><a href="#pt-best-practices">9. Melhores práticas</a></li>
+          <li><a href="#pt-conclusion">10. Conclusão</a></li>
         </ol>
       </nav>
 
       <main id="pt-main" class="article">
         <section id="pt-introduction" class="article-section">
-          <h2>Introdução</h2>
+          <h2>1. Introdução</h2>
           <p>O Oracle Exadata Exascale Database Service no Oracle Cloud Infrastructure (OCI) permite escalonamento elástico de bancos de dados Oracle Real Application Clusters (RAC). Este documento explica a transição arquitetônica de uma implantação RAC de nó único para uma implantação RAC de dois nós executando Oracle Database 26ai.</p>
         </section>
 
         <section id="pt-architecture" class="article-section">
-          <h2>Evolução da arquitetura</h2>
+          <h2>2. Evolução da arquitetura</h2>
           <div class="rac-infographic" aria-label="Infográfico de alto nível de componentes RAC">
             <div class="rac-flow">
-              <div class="rac-stage">
-                <span class="rac-badge">Entrada</span>
-                <strong>Conexões de clientes</strong>
-                <p>Os clientes se conectam por conexões baseadas em serviços, em vez de endpoints específicos por instância.</p>
-                <ul>
-                  <li>Clientes</li>
-                  <li>Nome do serviço</li>
-                </ul>
-              </div>
+              <div class="rac-stage"><span class="rac-badge">Entrada</span><strong>Conexões de clientes</strong><p>Os clientes se conectam por serviços, não por endpoints específicos de instância.</p><ul><li>Clientes</li><li>Nome do serviço</li></ul></div>
               <div class="rac-arrow" aria-hidden="true"></div>
-              <div class="rac-stage">
-                <span class="rac-badge">SCAN</span>
-                <strong>Camada de acesso Single Client Access Name (SCAN)</strong>
-                <p>O caminho de conexão usa SCAN, resolução Domain Name System (DNS), Virtual IPs (VIPs) do SCAN e listeners SCAN antes da busca de serviço.</p>
-                <ul>
-                  <li>Nome SCAN</li>
-                  <li>SCAN DNS</li>
-                  <li>VIPs do SCAN</li>
-                  <li>Listeners SCAN</li>
-                </ul>
-              </div>
+              <div class="rac-stage"><span class="rac-badge">SCAN</span><strong>Camada Single Client Access Name (SCAN)</strong><p>O caminho usa SCAN, DNS, VIPs de SCAN e listeners SCAN antes da resolução do serviço.</p><ul><li>SCAN Name</li><li>SCAN DNS</li><li>SCAN VIPs</li><li>SCAN Listeners</li></ul></div>
               <div class="rac-arrow" aria-hidden="true"></div>
-              <div class="rac-stage">
-                <span class="rac-badge">Serviço</span>
-                <strong>Resolução de serviço</strong>
-                <p>Os serviços resolvem a conexão para listeners locais nos nós RAC disponíveis.</p>
-                <ul>
-                  <li>Serviços</li>
-                  <li>Busca de serviço</li>
-                  <li>Listeners locais</li>
-                </ul>
-              </div>
+              <div class="rac-stage"><span class="rac-badge">Serviço</span><strong>Resolução do serviço</strong><p>O serviço direciona a conexão para listeners locais nos nós RAC disponíveis.</p><ul><li>Serviços</li><li>Busca de serviço</li><li>Listeners locais</li></ul></div>
             </div>
             <div class="rac-node-grid" aria-label="Evolução de instâncias RAC">
-              <div class="rac-node">
-                <span class="rac-badge">Base de nó único</span>
-                <strong>Nó1 / DB26AI1</strong>
-                <p>O Nó1 hospeda DB26AI1 na implantação RAC de nó único e permanece ativo após o escalonamento.</p>
-                <ul>
-                  <li>Virtual IP (VIP) do nó</li>
-                  <li>Listener local</li>
-                  <li>Instância do banco de dados</li>
-                </ul>
-              </div>
-              <div class="rac-node">
-                <span class="rac-badge">RAC de dois nós</span>
-                <strong>Nó2 / DB26AI2</strong>
-                <p>O Nó2 adiciona DB26AI2 para a implantação RAC de dois nós.</p>
-                <ul>
-                  <li>Virtual IP (VIP) do nó</li>
-                  <li>Listener local</li>
-                  <li>Instância do banco de dados</li>
-                </ul>
-              </div>
-            </div>
-            <div class="rac-signal-row" aria-label="Sinais RAC de alta disponibilidade e balanceamento">
-              <div class="rac-signal"><strong>Fast Application Notification (FAN)</strong><p>Incluído na pilha de alta disponibilidade com Oracle Notification Service.</p></div>
-              <div class="rac-signal"><strong>Oracle Notification Service (ONS)</strong><p>Mostrado com FAN como parte da lista de componentes SCAN.</p></div>
-              <div class="rac-signal"><strong>Runtime Load Balancing (RLB)</strong><p>Runtime Load Balancing faz parte dos benefícios do RAC de dois nós e da configuração de serviços.</p></div>
-              <div class="rac-signal"><strong>Application Continuity (AC) / Transparent Application Continuity (TAC)</strong><p>Application Continuity e Transparent Application Continuity oferecem opções de disponibilidade com replay.</p></div>
+              <div class="rac-node"><span class="rac-badge">Base de um nó</span><strong>Nó1 / CDB011</strong><p>Node1 hospeda CDB011 para o banco CDB01 e permanece ativo após o escalonamento.</p><ul><li>Node Virtual IP (VIP)</li><li>Listener local</li><li>Instância de banco</li></ul></div>
+              <div class="rac-node"><span class="rac-badge">RAC de dois nós</span><strong>Nó2 / CDB012</strong><p>Node2 adiciona CDB012 para a implantação RAC de dois nós.</p><ul><li>Node Virtual IP (VIP)</li><li>Listener local</li><li>Instância de banco</li></ul></div>
             </div>
           </div>
           <h3>Benefícios</h3>
-          <ul class="benefits">
-            <li>Processamento ativo-ativo</li>
-            <li>Manutenção rolling</li>
-            <li>Runtime Load Balancing</li>
-            <li>Maior disponibilidade</li>
-          </ul>
-          <div class="acronym-guide" aria-label="Guia de acrônimos de primeiro uso">
-            <h2>Guia de acrônimos</h2>
-            <div class="acronym-grid">
-              <div class="acronym-card"><strong>OCI — Oracle Cloud Infrastructure</strong><span>A plataforma cloud da Oracle onde o Exadata Exascale Database Service é executado.</span></div>
-              <div class="acronym-card"><strong>RAC — Real Application Clusters</strong><span>Arquitetura Oracle em que várias instâncias de banco de dados em nós de cluster acessam um banco de dados compartilhado.</span></div>
-              <div class="acronym-card"><strong>SCAN — Single Client Access Name</strong><span>Nome estável de acesso ao cluster que roteia conexões de serviço sem vincular clientes a nós individuais.</span></div>
-              <div class="acronym-card"><strong>DNS / VIP — Domain Name System / Virtual IP</strong><span>DNS resolve nomes como SCAN; VIPs fornecem endereços de rede móveis usados por listeners e nós do cluster.</span></div>
-              <div class="acronym-card"><strong>FAN / ONS — Fast Application Notification / Oracle Notification Service</strong><span>FAN publica eventos de alta disponibilidade, e ONS transporta essas notificações para clientes interessados.</span></div>
-              <div class="acronym-card"><strong>RLB — Runtime Load Balancing</strong><span>O roteamento de conexões usa informações de carga de trabalho do serviço para direcionar clientes a instâncias RAC adequadas.</span></div>
-              <div class="acronym-card"><strong>AC — Application Continuity</strong><span>Disponibilidade com capacidade de replay que pode ocultar interrupções recuperáveis ao reconstruir e reproduzir trabalho de banco de dados quando seguro.</span></div>
-              <div class="acronym-card"><strong>TAC — Transparent Application Continuity</strong><span>Modo de Application Continuity que rastreia automaticamente o estado da sessão e descobre limites de requisição.</span></div>
-            </div>
-          </div>
+          <ul class="benefits"><li>Processamento ativo-ativo</li><li>Manutenção rolling</li><li>Runtime Load Balancing</li><li>Maior disponibilidade</li></ul>
         </section>
 
         <section id="pt-ha" class="article-section">
-          <h2>Componentes de alta disponibilidade</h2>
-          <div class="term-grid" aria-label="Chamadas de alta disponibilidade">
-            <article class="term-card"><h3>SCAN</h3><p>Usado exclusivamente nas melhores práticas e mostrado como o caminho dos clientes para a busca de serviço e os listeners locais.</p></article>
-            <article class="term-card"><h3>RAC</h3><p>O artigo contrasta um nó RAC com uma implantação RAC de dois nós usando DB26AI1 e DB26AI2.</p></article>
-            <article class="term-card"><h3>FAN</h3><p>Listado com ONS na pilha de componentes SCAN e incluído no infográfico de alta disponibilidade.</p></article>
-            <article class="term-card"><h3>RLB</h3><p>Runtime Load Balancing é configurado com <code>-clbgoal SHORT</code> e <code>-rlbgoal SERVICE_TIME</code>.</p></article>
-            <article class="term-card"><h3>AC</h3><p>O exemplo de AC usa <code>TRANSACTION</code>, <code>commit_outcome TRUE</code>, inicialização de replay e configurações de retenção.</p></article>
-            <article class="term-card"><h3>TAC</h3><p>A recomendação de TAC usa <code>AUTO</code>, <code>DYNAMIC</code>, commit outcome, inicialização de replay e configurações de retenção.</p></article>
-          </div>
-          <h3>Infográfico de alta disponibilidade</h3>
-          <div class="code-card code-diagram">
-            <div class="code-toolbar"><span>Diagrama de texto</span><button class="copy-btn" type="button">Copiar</button></div>
-            <pre><code>CLIENTS
-   |
-SCAN
-   |
-+-----------------------------+
-| SCAN VIP1 / SCAN LISTENER1 |
-| SCAN VIP2 / SCAN LISTENER2 |
-| SCAN VIP3 / SCAN LISTENER3 |
-+-----------------------------+
-              |
-      Service Resolution
-              |
-     +--------+--------+
-     |                 |
-  DB26AI1          DB26AI2
+          <h2>3. Conceitos de disponibilidade RAC</h2>
+          <p>Neste guia, o banco RAC é <code>CDB01</code>, o pluggable database é <code>PDB01</code> e a aplicação entra pelo serviço <code>CDB01_PDB01.paas.oracle.com</code>. Após o escalonamento, <code>CDB011</code> e <code>CDB012</code> são as instâncias RAC que podem hospedar esse serviço.</p>
+          <p>SCAN é o ponto estável de entrada do cluster. DNS resolve o nome SCAN para VIPs de SCAN, os listeners SCAN recebem a solicitação e o cluster roteia a conexão para um listener local onde o serviço está disponível. Isso evita dependência de uma instância específica.</p>
+          <p>FAN publica eventos planejados e não planejados de serviços e nós; ONS transporta esses eventos para clientes e pools compatíveis. FCF permite que pools descartem conexões mortas e criem substitutas. RLB usa advisories do serviço RAC para que novo trabalho prefira a instância que atende melhor ao objetivo configurado.</p>
+          <p>SCAN, FAN, ONS, FCF e RLB melhoram roteamento e recuperação, mas não reproduzem trabalho sozinhos. AC e TAC adicionam replay para solicitações recuperáveis quando driver, atributos do serviço e estado da aplicação tornam o replay seguro.</p>
+          <div class="table-wrap"><table class="data-table"><thead><tr><th>Conceito</th><th>Propósito</th><th>O que não faz sozinho</th></tr></thead><tbody>
+            <tr><td>SCAN</td><td>Fornece nome estável de acesso ao cluster.</td><td>Não reproduz SQL nem preserva trabalho em andamento.</td></tr>
+            <tr><td>FAN / ONS</td><td>Publica e transporta eventos RAC.</td><td>Não corrige aplicações que reutilizam conexões fechadas.</td></tr>
+            <tr><td>FCF</td><td>Invalida conexões mortas em pools integrados.</td><td>Não decide se uma transação pode ser repetida.</td></tr>
+            <tr><td>RLB</td><td>Guia novas solicitações para a melhor instância do objetivo do serviço.</td><td>Não move sessões existentes entre instâncias.</td></tr>
+            <tr><td>AC / TAC</td><td>Pode reproduzir solicitações recuperáveis quando é seguro.</td><td>Não reproduz trabalho stateful inseguro sem limites corretos.</td></tr>
+          </tbody></table></div>
+        </section>
 
- FAN / ONS / RLB / TAC</code></pre>
+        <section id="pt-replay" class="article-section">
+          <h2>4. Replay, limites de solicitação e memória</h2>
+          <p>Replay significa que o stack cliente pode reconstruir uma sessão recuperável e repetir uma unidade lógica de trabalho segura após uma interrupção. O driver precisa conhecer início e fim da solicitação, se o último commit concluiu e se o estado da sessão pode ser restaurado de forma consistente.</p>
+          <p>AC e TAC dependem de atributos de serviço, serviços RAC, eventos FAN/ONS, clientes com RLB e drivers ou pools compatíveis com replay como Oracle JDBC com UCP. TAC automatiza mais rastreamento de estado; AC é mais explícito. Ambos exigem validação da aplicação.</p>
+          <p>Failover também consome memória. Cada sessão substituída ou reproduzida usa memória de processo na instância destino. Durante uma falha de CDB011, CDB012 pode carregar sessões sobreviventes e substitutas, incluindo PGA, UGA, cursores e estado de pacotes.</p>
+          <ul class="best-practice-list"><li>Marque limites de solicitação ou use pools e drivers que possam identificá-los.</li><li>Mantenha solicitações OLTP curtas e sem afinidade oculta de sessão.</li><li>Valide replay com driver, pool, atributos de serviço e workload reais.</li><li>Meça sessões, processos e memória em CDB011 e CDB012 durante operação normal e simulações.</li></ul>
+        </section>
+
+        <section id="pt-taf" class="article-section">
+          <h2>5. Runtime Load Balancing OLTP e modelo de conexão</h2>
+          <p>Runtime load balancing é um mecanismo de service advisory consumido por pools de conexão integrados. Ele não move sessões existentes. Ele publica sinais de qualidade de serviço para que pools suportados escolham a melhor instância RAC ao obter ou criar uma conexão para novo trabalho.</p>
+          <p>Esta seção modifica o serviço OLTP existente <code>CDB01_PDB01.paas.oracle.com</code> para usar connection load balancing <code>SHORT</code> e runtime load balancing <code>SERVICE_TIME</code>. O nome do serviço permanece igual, então clientes podem continuar usando o mesmo descritor ou alias TNS enquanto o serviço publica advisories orientados a tempo de resposta.</p>
+          <p><code>SERVICE_TIME</code> e <code>THROUGHPUT</code> são objetivos de Runtime Load Balancing, mas otimizam sinais diferentes. <code>SERVICE_TIME</code> favorece a instância com melhor tempo de resposta observado para o serviço. Normalmente é a opção mais clara para OLTP quando as solicitações são curtas, interativas e sensíveis a latência.</p>
+          <p><code>THROUGHPUT</code> favorece a instância que conclui a maior taxa de trabalho. Pode ser útil quando a prioridade é o volume total concluído por unidade de tempo, mas pode ser menos intuitivo para OLTP sensível a latência porque a instância de maior throughput nem sempre é a de menor latência para a próxima solicitação curta. Para aplicações mistas ou stateful, valide ambos os objetivos com pool, driver e workload reais.</p>
+          <p>Runtime load balancing funciona melhor para modelos stateless onde conexões são obtidas do pool, usadas por uma solicitação curta e devolvidas ao pool. Habilite Fast Connection Failover e use UCP, WebLogic, OCI ou ODP.NET com eventos FAN e RAC load balancing advisory.</p>
+          <div class="code-card code-bash">
+            <div class="code-toolbar"><span>Aplicar atualização de runtime load balancing</span><button class="copy-btn" type="button">Copiar</button></div>
+            <div class="code-description">Objetivo: modificar o serviço OLTP existente para publicar connection load balancing SHORT e runtime load balancing SERVICE_TIME para pools integrados.</div>
+            <pre><code>srvctl modify service \
+-d $ORACLE_UNQNAME \
+-s CDB01_PDB01.paas.oracle.com \
+-clbgoal SHORT \
+-rlbgoal SERVICE_TIME</code></pre>
           </div>
-          <h3>Comparação de tecnologias de disponibilidade</h3>
-          <div class="table-wrap">
-            <table class="data-table">
-              <thead>
-                <tr><th>Tecnologia</th><th>Reconexão</th><th>Replay</th></tr>
-              </thead>
-              <tbody>
-                <tr><td>SCAN</td><td class="yes">Sim</td><td class="no">Não</td></tr>
-                <tr><td>Fast Connection Failover (FCF)</td><td class="yes">Sim</td><td class="no">Não</td></tr>
-                <tr><td>AC</td><td class="yes">Sim</td><td class="yes">Sim</td></tr>
-                <tr><td>TAC</td><td class="yes">Sim</td><td class="yes">Sim</td></tr>
-              </tbody>
-            </table>
+          <div class="code-card code-bash">
+            <div class="code-toolbar"><span>Reiniciar serviço OLTP após a atualização</span><button class="copy-btn" type="button">Copiar</button></div>
+            <div class="code-description">Objetivo: parar, iniciar e revisar o serviço para recarregar os atributos CLB e RLB atualizados no cluster.</div>
+            <pre><code>srvctl stop service -d $ORACLE_UNQNAME -s CDB01_PDB01.paas.oracle.com
+srvctl start service -d $ORACLE_UNQNAME -s CDB01_PDB01.paas.oracle.com
+srvctl status service -d $ORACLE_UNQNAME -s CDB01_PDB01.paas.oracle.com
+srvctl config service -d $ORACLE_UNQNAME -s CDB01_PDB01.paas.oracle.com</code></pre>
           </div>
-          <div class="acronym-guide" aria-label="Conceito de replay, componentes e implicações de memória">
-            <h2>Conceito de replay, componentes e implicações de memória</h2>
-            <div class="acronym-grid replay-grid">
-              <div class="acronym-card"><strong>Conceito de replay</strong><span>Replay significa que a pilha cliente pode reconstruir uma sessão recuperável e repetir uma unidade lógica de trabalho segura após uma interrupção. SCAN e Fast Connection Failover (FCF) reconectam; Application Continuity (AC) e Transparent Application Continuity (TAC) adicionam replay.</span></div>
-              <div class="acronym-card"><strong>Componentes de replay</strong><span>Atributos de serviço configurados com SRVCTL, serviços Oracle RAC, listeners SCAN, Fast Application Notification (FAN), Oracle Notification Service (ONS), Runtime Load Balancing (RLB) e drivers ou pools cliente compatíveis com replay, como JDBC/UCP.</span></div>
-              <div class="acronym-card"><strong>Requisitos de sessão</strong><span>As aplicações devem se conectar por serviços, não por instâncias fixas. Após falha de nó ou realocação de serviço, sessões substitutas são estabelecidas nas instâncias RAC sobreviventes, portanto os pools precisam de capacidade e novas tentativas suficientes.</span></div>
-              <div class="acronym-card"><strong>Implicações de memória</strong><span>Cada sessão reconstruída ou reproduzida consome memória de processo na instância destino. Durante failover, os nós sobreviventes podem carregar mais sessões e memória Program Global Area (PGA), User Global Area (UGA), cursores e estado de pacotes.</span></div>
-              <div class="acronym-card"><strong>Validação operacional</strong><span>Compare <code>gv$session</code>, <code>gv$process</code>, <code>v$containers</code> e o posicionamento de serviços após escala ou failover. Valide posicionamento balanceado, sessões aceitáveis por instância e margem de memória suficiente.</span></div>
-            </div>
+          <div class="code-card code-text">
+            <div class="code-toolbar"><span>Validar configuração atualizada do serviço</span><button class="copy-btn" type="button">Copiar</button></div>
+            <div class="code-description">Objetivo: confirmar que o SRVCTL reporta os objetivos esperados de connection e runtime load balancing.</div>
+            <pre><code>Connection Load Balancing Goal: <span class="code-highlight">SHORT</span>
+Runtime Load Balancing Goal: <span class="code-highlight">SERVICE_TIME</span></code></pre>
+          </div>
+          <div class="code-card code-sql">
+            <div class="code-toolbar"><span>Verificar configuração em GV$SERVICES</span><button class="copy-btn" type="button">Copiar</button></div>
+            <div class="code-description">Objetivo: validar dentro do banco RAC os atributos de load balancing do serviço por instância.</div>
+            <pre><code>SELECT inst_id,
+       name,
+       clb_goal,
+       goal
+FROM gv$services
+WHERE name = 'CDB01_PDB01.paas.oracle.com'
+ORDER BY inst_id;
+
+-- Esperado por membro ativo do serviço:
+-- CLB_GOAL = SHORT
+-- GOAL     = SERVICE_TIME</code></pre>
           </div>
         </section>
 
         <section id="pt-validation" class="article-section">
-          <h2>Comandos de validação RAC</h2>
-          <div class="section-stack">
-            <details class="content-card" open>
-              <summary>Comandos para executar como usuário do sistema operacional grid</summary>
-              <div class="details-body">
-                <p>Execute estes comandos de validação do Oracle Clusterware como o usuário de sistema operacional <code>grid</code>.</p>
-                <div class="code-card code-bash">
-                  <div class="code-toolbar"><span>Bash</span><button class="copy-btn" type="button">Copiar</button></div>
-                  <pre><code>sudo su - grid
-crsctl check cluster -all
+          <h2>6. Validação RAC e revisão de workload</h2>
+          <p>Após o escalonamento, valide saúde do cluster, posicionamento do serviço, distribuição de sessões, postura de memória e realocação planejada do serviço antes de considerar a implantação RAC de dois nós operacionalmente pronta.</p>
+          <div class="note-box">
+            <strong>Escopo de validação</strong>
+            Execute essas verificações primeiro em uma janela controlada de teste. Substitua os nomes de banco de dados, serviço e instância pelos valores do seu ambiente e compare a saída antes, durante e depois dos testes de failover.
+          </div>
+          <div class="code-card code-bash">
+            <div class="code-toolbar"><span>Comandos de validação RAC</span><button class="copy-btn" type="button">Copiar</button></div>
+            <div class="code-description">Objetivo: confirmar que Clusterware, nós, banco de dados, serviços, SCAN, listeners SCAN e listeners locais estão saudáveis após o escalonamento.</div>
+            <pre><code>crsctl check cluster -all
 crsctl stat res -t
-olsnodes -n</code></pre>
-                </div>
-              </div>
-            </details>
-            <details class="content-card" open>
-              <summary>Comandos para executar como usuário do sistema operacional oracle</summary>
-              <div class="details-body">
-                <p>Execute estas verificações de listeners e banco de dados como o usuário de sistema operacional <code>oracle</code>.</p>
-                <div class="code-card code-bash">
-                  <div class="code-toolbar"><span>Bash</span><button class="copy-btn" type="button">Copiar</button></div>
-                  <pre><code>sudo su - oracle
+olsnodes -n
+
+srvctl status database -db CDB01
+srvctl status service -db CDB01
 srvctl status scan
 srvctl status scan_listener
-srvctl status listener
-srvctl status database -db CDB01</code></pre>
-                </div>
-              </div>
-            </details>
+srvctl status listener</code></pre>
           </div>
-        </section>
-
-        <section id="pt-service-validation" class="article-section">
-          <h2>Validação de serviço antes de mudanças</h2>
-          <div class="section-stack">
-            <div class="content-card">
-              <h3>10. Revisão da configuração do serviço de conexão padrão</h3>
-              <p>Revise a configuração do serviço de conexão padrão e compare suas características atuais antes de aplicar qualquer modificação no serviço.</p>
-              <div class="code-card code-bash">
-                <div class="code-toolbar"><span>Bash</span><button class="copy-btn" type="button">Copiar</button></div>
-                <pre><code>sudo su - oracle
-srvctl config service \
--d $ORACLE_UNQNAME \
--s CDB01_PDB01.paas.oracle.com</code></pre>
-              </div>
-              <div class="table-wrap">
-                <table class="data-table default-config-card">
-                  <thead>
-                    <tr><th>Característica</th><th>Valor</th><th>Valores documentados pela Oracle</th></tr>
-                  </thead>
-                  <tbody>
-                    <tr><td>Failover type</td><td>NONE</td><td>NONE, SESSION, SELECT, TRANSACTION, AUTO</td></tr>
-                    <tr><td>Runtime Load Balancing Goal</td><td>NONE</td><td>NONE, SERVICE_TIME, THROUGHPUT</td></tr>
-                    <tr><td>Connection Load Balancing Goal</td><td>LONG</td><td>SHORT, LONG</td></tr>
-                  </tbody>
-                </table>
-              </div>
-            </div>
-            <div class="content-card">
-              <h3>11. Configuração OLTP recomendada (eficiente em memória)</h3>
-              <p>Para a recomendação OLTP eficiente em memória, mantenha o serviço de conexão padrão e aplique valores de failover em nível de sessão. Isso evita criar outro serviço e mantém estável o destino de conexão da aplicação enquanto adiciona comportamento básico de reconexão.</p>
-              <div class="code-card code-bash">
-                <div class="code-toolbar"><span>Bash</span><button class="copy-btn" type="button">Copiar</button></div>
-                <pre><code>srvctl modify service \
--d $ORACLE_UNQNAME \
--s CDB01_PDB01.paas.oracle.com \
--failovertype SESSION \
--failovermethod BASIC \
--failoverretry 30 \
--failoverdelay 5</code></pre>
-              </div>
-              <div class="table-wrap">
-                <table class="data-table default-config-card">
-                  <thead>
-                    <tr><th>Atributo</th><th>Valor recomendado</th><th>Valores documentados pela Oracle</th></tr>
-                  </thead>
-                  <tbody>
-                    <tr><td>Failover Type</td><td><code>SESSION</code></td><td>SRVCTL: NONE, SESSION, SELECT, TRANSACTION, AUTO; TNS FAILOVER_MODE TYPE: session, select, none</td></tr>
-                    <tr><td>Failover Method</td><td><code>BASIC</code></td><td>SRVCTL: NONE, BASIC; TNS FAILOVER_MODE METHOD: basic, preconnect</td></tr>
-                    <tr><td>Failover Retries</td><td><code>30</code></td><td>Quantidade inteira de tentativas</td></tr>
-                    <tr><td>Failover Delay</td><td><code>5</code></td><td>Atraso inteiro em segundos</td></tr>
-                  </tbody>
-                </table>
-              </div>
-              <div class="code-card code-text">
-                <div class="code-toolbar"><span>TNS</span><button class="copy-btn" type="button">Copiar</button></div>
-                <pre><code>CDB01_PDB01_OLTP=
-    (DESCRIPTION=
-      (ADDRESS=
-        (PROTOCOL=TCP)
-        (HOST=exasc01-scan-jjtmn.private.usw.oraclevcn.com)
-        (PORT=1521))
-      (CONNECT_DATA=
-        (SERVER=DEDICATED)
-        (SERVICE_NAME=CDB01_PDB01.paas.oracle.com)
-        (UR=A)
-        (FAILOVER_MODE=
-          (TYPE=session)
-          (METHOD=basic)
-          (RETRIES=30)
-          (DELAY=5))))
-
-# Java JDBC Thin alias URL:
-# jdbc:oracle:thin:@CDB01_PDB01_OLTP
-# Java JDBC Thin descriptor URL with the same parameters:
-# jdbc:oracle:thin:@(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=exasc01-scan-jjtmn.private.usw.oraclevcn.com)(PORT=1521))(CONNECT_DATA=(SERVER=DEDICATED)(SERVICE_NAME=CDB01_PDB01.paas.oracle.com)(UR=A)(FAILOVER_MODE=(TYPE=session)(METHOD=basic)(RETRIES=30)(DELAY=5))))</code></pre>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <section id="pt-service" class="article-section">
-          <h2>Configuração de serviços e balanceamento de carga</h2>
-          <div class="section-stack">
-            <div class="content-card">
-              <h3>Descritor de conexão Transparent Network Substrate (TNS)</h3>
-              <p>Este descritor do Oracle Net usa o nome de serviço <code>CDB01_PDB01</code>, o nome de host SCAN e as opções de balanceamento de carga e failover para acesso baseado em serviços.</p>
-              <div class="code-card code-text">
-                <div class="code-toolbar"><span>TNS</span><button class="copy-btn" type="button">Copiar</button></div>
-                <pre><code>CDB01_PDB01 =
- (DESCRIPTION=
-   (LOAD_BALANCE=ON)
-   (FAILOVER=ON)
-   (ADDRESS=
-      (PROTOCOL=TCP)
-      (HOST=salesdb-scan.company.com)
-      (PORT=1521))
-   (CONNECT_DATA=
-      (SERVICE_NAME=CDB01_PDB01.paas.oracle.com)))</code></pre>
-              </div>
-            </div>
-            <div class="content-card">
-              <h3>Runtime Load Balancing</h3>
-              <div class="code-card code-bash">
-                <div class="code-toolbar"><span>Bash</span><button class="copy-btn" type="button">Copiar</button></div>
-                <pre><code>srvctl modify service \
--db CDB01 \
--service CDB01_PDB01.paas.oracle.com \
--clbgoal SHORT \
--rlbgoal SERVICE_TIME</code></pre>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <section id="pt-session" class="article-section">
-          <h2>Consultas de distribuição de sessões e memória</h2>
-          <p>Estas consultas Structured Query Language (SQL) usam visões dinâmicas de desempenho da Oracle para comparar sessões de usuário e memória de processos entre instâncias RAC e PDBs.</p>
-          <div class="section-stack">
-            <details class="content-card" open>
-              <summary>Sessões por instância</summary>
-              <div class="details-body">
-                <div class="code-card code-sql">
-                  <div class="code-toolbar"><span>SQL</span><button class="copy-btn" type="button">Copiar</button></div>
-                  <pre><code>SELECT inst_id, COUNT(*)
+          <div class="code-card code-sql">
+            <div class="code-toolbar"><span>Sessões por instância RAC</span><button class="copy-btn" type="button">Copiar</button></div>
+            <div class="code-description">Objetivo: verificar sessões de usuário entre instâncias RAC após escalonamento e roteamento de workload.</div>
+            <pre><code>SELECT inst_id, COUNT(*)
 FROM gv$session
-GROUP BY inst_id;</code></pre>
-                </div>
-              </div>
-            </details>
-            <details class="content-card" open>
-              <summary>Sessões por PDB e instância</summary>
-              <div class="details-body">
-                <div class="code-card code-sql">
-                  <div class="code-toolbar"><span>SQL</span><button class="copy-btn" type="button">Copiar</button></div>
-                  <pre><code>SELECT s.inst_id,
-       p.name pdb_name,
-       COUNT(*) sessions
-FROM gv$session s
-JOIN v$containers p
-  ON s.con_id=p.con_id
-WHERE s.type='USER'
-GROUP BY s.inst_id,p.name
-ORDER BY p.name,s.inst_id;</code></pre>
-                </div>
-              </div>
-            </details>
-            <details class="content-card" open>
-              <summary>Uso de memória por PDB e instância RAC</summary>
-              <div class="details-body">
-                <div class="code-card code-sql">
-                  <div class="code-toolbar"><span>SQL</span><button class="copy-btn" type="button">Copiar</button></div>
-                  <pre><code>SELECT
+GROUP BY inst_id
+ORDER BY inst_id;</code></pre>
+          </div>
+          <div class="code-card code-sql">
+            <div class="code-toolbar"><span>Sessões PDB e PGA por instância</span><button class="copy-btn" type="button">Copiar</button></div>
+            <div class="code-description">Objetivo: revisar contagem de sessões e PGA alocada por PDB e instância RAC.</div>
+            <pre><code>SELECT
     s.inst_id,
     c.name pdb_name,
     ROUND(SUM(p.pga_alloc_mem)/1024/1024,2) pga_mb,
@@ -2909,36 +2444,11 @@ JOIN v$containers c
 WHERE s.type='USER'
 GROUP BY s.inst_id,c.name
 ORDER BY c.name,s.inst_id;</code></pre>
-                </div>
-              </div>
-            </details>
-            <details class="content-card" open>
-              <summary>Distribuição de memória em todo o cluster</summary>
-              <div class="details-body">
-                <div class="code-card code-sql">
-                  <div class="code-toolbar"><span>SQL</span><button class="copy-btn" type="button">Copiar</button></div>
-                  <pre><code>SELECT
-    c.name pdb_name,
-    ROUND(SUM(p.pga_alloc_mem)/1024/1024,2) total_pga_mb,
-    COUNT(*) sessions
-FROM gv$session s
-JOIN gv$process p
-  ON s.inst_id=p.inst_id
- AND s.paddr=p.addr
-JOIN v$containers c
-  ON s.con_id=c.con_id
-WHERE s.type='USER'
-GROUP BY c.name
-ORDER BY total_pga_mb DESC;</code></pre>
-                </div>
-              </div>
-            </details>
-            <details class="content-card" open>
-              <summary>Dashboard de carga de trabalho RAC</summary>
-              <div class="details-body">
-                <div class="code-card code-sql">
-                  <div class="code-toolbar"><span>SQL</span><button class="copy-btn" type="button">Copiar</button></div>
-                  <pre><code>SELECT
+          </div>
+          <div class="code-card code-sql">
+            <div class="code-toolbar"><span>Dashboard de workload RAC</span><button class="copy-btn" type="button">Copiar</button></div>
+            <div class="code-description">Objetivo: combinar sessões, PGA total e PGA média por sessão de usuário para revisar escalonamento e failover.</div>
+            <pre><code>SELECT
     s.inst_id,
     c.name pdb_name,
     COUNT(*) sessions,
@@ -2953,17 +2463,25 @@ JOIN v$containers c
 WHERE s.type='USER'
 GROUP BY s.inst_id,c.name
 ORDER BY c.name,s.inst_id;</code></pre>
-                </div>
-              </div>
-            </details>
+          </div>
+          <div class="code-card code-bash">
+            <div class="code-toolbar"><span>Teste de realocação planejada do serviço</span><button class="copy-btn" type="button">Copiar</button></div>
+            <div class="code-description">Objetivo: simular uma movimentação planejada do serviço e observar comportamento de cliente, pool, FAN, RLB, AC ou TAC.</div>
+            <pre><code>srvctl relocate service \
+-db CDB01 \
+-service CDB01_PDB01.paas.oracle.com \
+-oldinst CDB011 \
+-newinst CDB012</code></pre>
           </div>
         </section>
 
         <section id="pt-ac" class="article-section">
-          <h2>Application Continuity (AC)</h2>
+          <h2>7. Application Continuity (AC)</h2>
           <details class="content-card" open>
             <summary>Configuração de exemplo</summary>
             <div class="details-body">
+              <p>Application Continuity protege o trabalho do usuário ao reconstruir uma sessão de banco de dados recuperável e reproduzir uma requisição segura após manutenção planejada, interrupção de rede ou falha de instância. É mais útil quando a aplicação usa limites de requisição de um pool ou driver compatível, porque o replay deve começar e terminar em uma unidade lógica de trabalho conhecida.</p>
+              <p>O tipo de failover <code>TRANSACTION</code> habilita comportamento de replay de transações para o serviço. <code>commit_outcome</code> ajuda o cliente a determinar se o último commit foi concluído, enquanto <code>replay_init_time</code> e <code>retention</code> definem a janela de início do replay e por quanto tempo as informações de resultado de commit são retidas.</p>
               <p>Exemplo: Server Control Utility (SRVCTL) administra serviços de banco de dados Oracle RAC. Neste guia, <code>CDB01</code> é a Container Database (CDB), e <code>CDB01_PDB01.paas.oracle.com</code> é o serviço da Pluggable Database (PDB).</p>
               <div class="code-card code-bash">
                 <div class="code-toolbar"><span>Bash</span><button class="copy-btn" type="button">Copiar</button></div>
@@ -2980,10 +2498,12 @@ ORDER BY c.name,s.inst_id;</code></pre>
         </section>
 
         <section id="pt-tac" class="article-section">
-          <h2>Transparent Application Continuity (TAC)</h2>
+          <h2>8. Transparent Application Continuity (TAC)</h2>
           <details class="content-card" open>
             <summary>Configuração recomendada</summary>
             <div class="details-body">
+              <p>Transparent Application Continuity é o modo automático de Application Continuity. Ele rastreia o estado de sessão e transacional para clientes compatíveis, para que a sessão de banco de dados possa ser recuperada após uma interrupção recuperável sem exigir que o DBA conheça o caminho de código da aplicação.</p>
+              <p>Use TAC para aplicações em que os limites de requisição possam ser descobertos com segurança e em que a pilha cliente seja compatível com replay, como JDBC/UCP ou drivers Oracle suportados. O tipo de failover <code>AUTO</code> habilita TAC, e <code>session_state DYNAMIC</code> permite que a Oracle rastreie alterações de estado de sessão em vez de exigir um modelo estático fixo.</p>
               <p>Configuração recomendada: SRVCTL aplica os atributos de serviço TAC ao banco de dados <code>CDB01</code> e ao serviço <code>CDB01_PDB01.paas.oracle.com</code> usados neste exemplo.</p>
               <div class="code-card code-bash">
                 <div class="code-toolbar"><span>Bash</span><button class="copy-btn" type="button">Copiar</button></div>
@@ -3000,20 +2520,8 @@ ORDER BY c.name,s.inst_id;</code></pre>
           </details>
         </section>
 
-        <section id="pt-testing" class="article-section">
-          <h2>Testes de alta disponibilidade</h2>
-          <div class="code-card code-bash">
-            <div class="code-toolbar"><span>Bash</span><button class="copy-btn" type="button">Copiar</button></div>
-            <pre><code>srvctl relocate service \
--db CDB01 \
--service CDB01_PDB01.paas.oracle.com \
--oldinst DB26AI1 \
--newinst DB26AI2</code></pre>
-          </div>
-        </section>
-
         <section id="pt-best-practices" class="article-section">
-          <h2>Melhores práticas</h2>
+          <h2>9. Melhores práticas</h2>
           <details class="content-card" open>
             <summary>Lista operacional</summary>
             <div class="details-body">
@@ -3030,43 +2538,16 @@ ORDER BY c.name,s.inst_id;</code></pre>
         </section>
 
         <section id="pt-conclusion" class="article-section">
-          <h2>Conclusão</h2>
+          <h2>10. Conclusão</h2>
           <p>Uma implantação Oracle RAC de dois nós no Exadata Exascale fornece escalabilidade ativo-ativo, balanceamento de carga de trabalho e alta disponibilidade. A combinação de SCAN, FAN, RLB, AC e TAC entrega uma arquitetura resiliente para cargas de trabalho do Oracle Database 26ai.</p>
-        </section>
-
-        <section id="pt-glossary" class="article-section">
-          <h2>Glossário</h2>
-          <p>Estas definições resumem os acrônimos usados no artigo e apontam para documentação oficial da Oracle para referência mais detalhada.</p>
-          <div class="glossary-grid">
-            <article class="glossary-term"><h3>AC <span>Application Continuity</span></h3><p>Alta disponibilidade com capacidade de replay para interrupções recuperáveis quando o replay está habilitado e é seguro.</p></article>
-            <article class="glossary-term"><h3>CDB <span>Container Database</span></h3><p>Contêiner multitenant de banco de dados usado nos exemplos de serviço; os serviços PDB são executados dentro dele.</p></article>
-            <article class="glossary-term"><h3>CRSCTL <span>Controle de Clusterware</span></h3><p>Utilitário de linha de comando usado para verificar e administrar recursos do Oracle Clusterware.</p></article>
-            <article class="glossary-term"><h3>DNS <span>Domain Name System</span></h3><p>Camada de resolução de nomes usada por clientes para resolver nomes como SCAN.</p></article>
-            <article class="glossary-term"><h3>ExaDB-XS <span>Exadata Database Service on Exascale Infrastructure</span></h3><p>Opção de serviço cloud da Oracle para Exadata Exascale Database Service no OCI.</p></article>
-            <article class="glossary-term"><h3>FAN <span>Fast Application Notification</span></h3><p>Estrutura de notificação de eventos de alta disponibilidade do Oracle RAC para eventos planejados e não planejados.</p></article>
-            <article class="glossary-term"><h3>FCF <span>Fast Connection Failover</span></h3><p>Comportamento de failover do cliente que ajuda a reconectar aplicações após mudanças de serviço ou instância.</p></article>
-            <article class="glossary-term"><h3>OCI <span>Oracle Cloud Infrastructure</span></h3><p>Plataforma cloud da Oracle para executar recursos do Exadata Exascale Database Service.</p></article>
-            <article class="glossary-term"><h3>ONS <span>Oracle Notification Service</span></h3><p>Transporte de notificações usado com eventos FAN para clientes conscientes de Oracle RAC.</p></article>
-            <article class="glossary-term"><h3>PDB <span>Pluggable Database</span></h3><p>Contêiner de banco de dados dentro de uma CDB; este artigo usa <code>CDB01_PDB01.paas.oracle.com</code> como nome do serviço PDB.</p></article>
-            <article class="glossary-term"><h3>RAC <span>Real Application Clusters</span></h3><p>Arquitetura Oracle em que várias instâncias em servidores de cluster acessam um banco de dados compartilhado.</p></article>
-            <article class="glossary-term"><h3>RLB <span>Runtime Load Balancing</span></h3><p>Roteamento consciente de serviços que usa informações de carga de trabalho para direcionar conexões entre instâncias RAC.</p></article>
-            <article class="glossary-term"><h3>SCAN <span>Single Client Access Name</span></h3><p>Nome estável de acesso ao cluster usado por clientes em vez de endereços específicos por nó.</p></article>
-            <article class="glossary-term"><h3>SQL <span>Structured Query Language</span></h3><p>Linguagem de consulta usada aqui para inspecionar sessões RAC e distribuição de memória de processos.</p></article>
-            <article class="glossary-term"><h3>SRVCTL <span>Server Control Utility</span></h3><p>Utilitário de linha de comando da Oracle para administrar bancos de dados RAC, serviços, listeners e recursos relacionados.</p></article>
-            <article class="glossary-term"><h3>TAC <span>Transparent Application Continuity</span></h3><p>Modo de Application Continuity que rastreia automaticamente estado de sessão e limites de requisição.</p></article>
-            <article class="glossary-term"><h3>TNS <span>Transparent Network Substrate</span></h3><p>Formato de descritor de conexão do Oracle Net usado para definir serviço, host, balanceamento de carga e failover.</p></article>
-            <article class="glossary-term"><h3>UCP <span>Universal Connection Pool</span></h3><p>Pool de conexões JDBC da Oracle usado comumente com recursos de alta disponibilidade conscientes de RAC.</p></article>
-            <article class="glossary-term"><h3>VIP <span>Virtual IP</span></h3><p>Endereço de rede administrado pelo cluster usado por listeners SCAN e caminhos de acesso de nó.</p></article>
-          </div>
           <h3>Referências oficiais da Oracle</h3>
           <ul class="reference-list">
-            <li><a href="https://docs.oracle.com/en/engineered-systems/exadata-database-exascale/exdxs/overview-exadb-xs-service.html" target="_blank" rel="noopener">Oracle Exadata Database Service on Exascale Infrastructure Overview</a></li>
-            <li><a href="https://docs.oracle.com/en/engineered-systems/exadata-database-machine/exscl/what-is-oracle-exascale.html" target="_blank" rel="noopener">What is Oracle Exadata Exascale?</a></li>
-            <li><a href="https://docs.oracle.com/en/database/oracle/oracle-database/26/racad/index.html" target="_blank" rel="noopener">Oracle Real Application Clusters Administration and Deployment Guide, 26ai</a></li>
-            <li><a href="https://docs.oracle.com/en/database/oracle/oracle-database/26/cwlin/about-the-scan.html" target="_blank" rel="noopener">About the SCAN</a></li>
-            <li><a href="https://docs.oracle.com/en/database/oracle/oracle-database/26/racad/ensuring-application-continuity.html" target="_blank" rel="noopener">Ensuring Application Continuity</a></li>
-            <li><a href="https://docs.oracle.com/en/database/oracle/oracle-database/26/rilin/load-balancing-of-connections-to-oracle-rac-databases.html" target="_blank" rel="noopener">Load Balancing of Connections to Oracle RAC Databases</a></li>
-            <li><a href="https://docs.oracle.com/en/database/oracle/oracle-database/26/haovw/oracle-real-application-clusters-and-oracle-clusterware.html" target="_blank" rel="noopener">Oracle Real Application Clusters and Oracle Clusterware</a></li>
+            <li><a href="https://docs.oracle.com/en/engineered-systems/exadata-database-exascale/exdxs/overview-exadb-xs-service.html" target="_blank" rel="noopener"><span>Exadata Exascale</span><strong>Oracle Exadata Database Service on Exascale Infrastructure Overview</strong><em>docs.oracle.com</em></a></li>
+            <li><a href="https://docs.oracle.com/en/database/oracle/oracle-database/26/racad/index.html" target="_blank" rel="noopener"><span>Administração RAC</span><strong>Oracle Real Application Clusters Administration and Deployment Guide, 26ai</strong><em>docs.oracle.com</em></a></li>
+            <li><a href="https://docs.oracle.com/en/database/oracle/oracle-database/26/cwlin/about-the-scan.html" target="_blank" rel="noopener"><span>Acesso SCAN</span><strong>About the SCAN</strong><em>docs.oracle.com</em></a></li>
+            <li><a href="https://docs.oracle.com/en/database/oracle/oracle-database/26/racad/ensuring-application-continuity.html" target="_blank" rel="noopener"><span>Continuidade e replay</span><strong>Ensuring Application Continuity</strong><em>docs.oracle.com</em></a></li>
+            <li><a href="https://docs.oracle.com/en/database/oracle/oracle-database/26/rilin/load-balancing-of-connections-to-oracle-rac-databases.html" target="_blank" rel="noopener"><span>Load balancing RAC</span><strong>Load Balancing of Connections to Oracle RAC Databases</strong><em>docs.oracle.com</em></a></li>
+            <li><a href="https://docs.oracle.com/en/database/oracle/oracle-database/26/haovw/oracle-real-application-clusters-and-oracle-clusterware.html" target="_blank" rel="noopener"><span>Disponibilidade de cluster</span><strong>Oracle Real Application Clusters and Oracle Clusterware</strong><em>docs.oracle.com</em></a></li>
           </ul>
         </section>
       </main>
@@ -3101,6 +2582,13 @@ ORDER BY c.name,s.inst_id;</code></pre>
     const skipLink = document.querySelector(".skip-link");
     let activeLanguage = "en";
 
+    const savedTheme = window.localStorage.getItem("exascale-cluster-theme");
+    if (savedTheme === "dark" || savedTheme === "light") {
+      body.dataset.theme = savedTheme;
+    } else if (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches) {
+      body.dataset.theme = "dark";
+    }
+
     function setLanguage(language) {
       activeLanguage = language;
       root.lang = language;
@@ -3122,6 +2610,9 @@ ORDER BY c.name,s.inst_id;</code></pre>
 
       backTop.textContent = labels[language].back;
       skipLink.textContent = labels[language].skip;
+      if (window.ExascaleGuideSet) {
+        window.ExascaleGuideSet.applyStaticPage("cluster", "nested");
+      }
       updateThemeLabel();
     }
 
@@ -3139,6 +2630,7 @@ ORDER BY c.name,s.inst_id;</code></pre>
 
     themeToggle.addEventListener("click", () => {
       body.dataset.theme = body.dataset.theme === "dark" ? "light" : "dark";
+      window.localStorage.setItem("exascale-cluster-theme", body.dataset.theme);
       updateThemeLabel();
     });
 

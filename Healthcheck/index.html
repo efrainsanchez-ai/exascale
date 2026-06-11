@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="Oracle Exadata Exascale 26ai RAC operational health check guide covering sections 1 through 8." />
+  <meta name="description" content="Oracle Exadata Exascale 26ai RAC operational health check guide covering sections 1 through 8, with links to connection services and cluster scaling." />
   <title>Exadata Exascale 26ai RAC Health Check</title>
   <script>
     (function () {
@@ -37,6 +37,7 @@
   <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
   <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <script src="../shared-guide-set.js"></script>
   <style>
     :root {
       color-scheme: light;
@@ -1522,40 +1523,41 @@ ORDER BY c.name,s.inst_id;`
         showGlossary: true,
         relativeLinks: [
           { href: "Healthcheck/index.html", label: "RAC Health Check", description: "Clusterware, listener, database, service, SQL, and connectivity validation." },
-          { href: "ConnectionServices/index.html", label: "Connection Services", description: "TNS aliases, default service review, OLTP failover, reporting, batch, RLB, and failover simulation." }
+          { href: "ConnectionServices/index.html", label: "Connection Services", description: "TNS aliases, default service review, OLTP failover, reporting, batch, RLB, and failover simulation." },
+          { href: "Cluster/index.html", label: "Cluster Scaling", description: "Single-node to two-node RAC scaling, SCAN, HA components, validation, AC, and TAC." }
         ],
         copy: {
           en: {
             title: "Exadata Exascale 26ai RAC Overview",
-            subtitle: "Architecture context, continuity concepts, and entry points for the Exascale RAC health check and connection service guides.",
+            subtitle: "Architecture context, continuity concepts, and entry points for the Exascale RAC health check, connection service, and cluster scaling guides.",
             navSubtitle: "26ai RAC Overview",
             highlights: [
               "Start here for the overview, architecture map, and continuity concepts.",
-              "Open Healthcheck/index.html for RAC operational checks, sections 1 through 8.",
-              "Open ConnectionServices/index.html for service and client connection behavior, sections 9 through 17.",
-              "Use the cards in the hero or the table of contents to move between related blogs."
+              "Open Healthcheck for RAC operational checks, sections 1 through 8.",
+              "Open ConnectionServices for service and client connection behavior, sections 9 through 17.",
+              "Open Cluster Scaling for the single-node to two-node RAC scale-out guide."
             ]
           },
           es: {
             title: "Overview de Exadata Exascale 26ai RAC",
-            subtitle: "Contexto de arquitectura, conceptos de continuidad y entradas para las guías de health check RAC y servicios de conexión.",
+            subtitle: "Contexto de arquitectura, conceptos de continuidad y entradas para las guías de health check RAC, servicios de conexión y escalado de clúster.",
             navSubtitle: "Overview RAC 26ai",
             highlights: [
               "Empieza aquí para el overview, el mapa de arquitectura y los conceptos de continuidad.",
-              "Abre Healthcheck/index.html para las revisiones operativas RAC, secciones 1 a 8.",
-              "Abre ConnectionServices/index.html para servicios y conexiones cliente, secciones 9 a 17.",
-              "Usa las tarjetas del encabezado o la tabla de contenido para moverte entre blogs relacionados."
+              "Abre Healthcheck para las revisiones operativas RAC, secciones 1 a 8.",
+              "Abre ConnectionServices para servicios y conexiones cliente, secciones 9 a 17.",
+              "Abre Cluster Scaling para la guía de escalado RAC de un nodo a dos nodos."
             ]
           },
           pt: {
             title: "Overview do Exadata Exascale 26ai RAC",
-            subtitle: "Contexto de arquitetura, conceitos de continuidade e entradas para os guias de health check RAC e serviços de conexão.",
+            subtitle: "Contexto de arquitetura, conceitos de continuidade e entradas para os guias de health check RAC, serviços de conexão e escala de cluster.",
             navSubtitle: "Overview RAC 26ai",
             highlights: [
               "Comece aqui para o overview, o mapa de arquitetura e os conceitos de continuidade.",
-              "Abra Healthcheck/index.html para as verificações operacionais RAC, seções 1 a 8.",
-              "Abra ConnectionServices/index.html para serviços e conexões de cliente, seções 9 a 17.",
-              "Use os cartões do cabeçalho ou o sumário para navegar entre blogs relacionados."
+              "Abra Healthcheck para as verificações operacionais RAC, seções 1 a 8.",
+              "Abra ConnectionServices para serviços e conexões de cliente, seções 9 a 17.",
+              "Abra Cluster Scaling para o guia de escala RAC de um nó para dois nós."
             ]
           }
         }
@@ -1566,7 +1568,8 @@ ORDER BY c.name,s.inst_id;`
         showGlossary: true,
         relativeLinks: [
           { href: "../index.html", label: "Exascale Overview", description: "Architecture context and continuity/service concepts." },
-          { href: "../ConnectionServices/index.html", label: "Connection Services", description: "Sections 9 through 17 for TNS aliases, services, load balancing, and failover simulation." }
+          { href: "../ConnectionServices/index.html", label: "Connection Services", description: "Sections 9 through 17 for TNS aliases, services, load balancing, and failover simulation." },
+          { href: "../Cluster/index.html", label: "Cluster Scaling", description: "Single-node to two-node RAC scaling, SCAN, HA components, validation, AC, and TAC." }
         ],
         copy: {
           en: {
@@ -1575,9 +1578,9 @@ ORDER BY c.name,s.inst_id;`
             navSubtitle: "26ai RAC Health Check",
             highlights: [
               "Use this page for the operational RAC health-check workflow, sections 1 through 8.",
-              "Use ../index.html for overview, architecture, and continuity concepts.",
-              "Use ../ConnectionServices/index.html for TNS aliases, services, load balancing, and failover simulation.",
-              "Use the header cards to move back to the overview or forward to connection services."
+              "Use Exascale Overview for overview, architecture, and continuity concepts.",
+              "Use ConnectionServices for TNS aliases, services, load balancing, and failover simulation.",
+              "Use Cluster Scaling for the single-node to two-node RAC scale-out guide."
             ]
           },
           es: {
@@ -1586,9 +1589,9 @@ ORDER BY c.name,s.inst_id;`
             navSubtitle: "Health Check RAC 26ai",
             highlights: [
               "Usa esta página para el flujo operativo de health check RAC, secciones 1 a 8.",
-              "Usa ../index.html para overview, arquitectura y conceptos de continuidad.",
-              "Usa ../ConnectionServices/index.html para alias TNS, servicios, load balancing y simulación de failover.",
-              "Usa las tarjetas del encabezado para volver al overview o avanzar a servicios de conexión."
+              "Usa Exascale Overview para overview, arquitectura y conceptos de continuidad.",
+              "Usa ConnectionServices para alias TNS, servicios, load balancing y simulación de failover.",
+              "Usa Cluster Scaling para la guía de escalado RAC de un nodo a dos nodos."
             ]
           },
           pt: {
@@ -1597,9 +1600,9 @@ ORDER BY c.name,s.inst_id;`
             navSubtitle: "Health Check RAC 26ai",
             highlights: [
               "Use esta página para o fluxo operacional de health check RAC, seções 1 a 8.",
-              "Use ../index.html para overview, arquitetura e conceitos de continuidade.",
-              "Use ../ConnectionServices/index.html para aliases TNS, serviços, load balancing e simulação de failover.",
-              "Use os cartões do cabeçalho para voltar ao overview ou seguir para serviços de conexão."
+              "Use Exascale Overview para overview, arquitetura e conceitos de continuidade.",
+              "Use ConnectionServices para aliases TNS, serviços, load balancing e simulação de failover.",
+              "Use Cluster Scaling para o guia de escala RAC de um nó para dois nós."
             ]
           }
         }
@@ -1610,7 +1613,8 @@ ORDER BY c.name,s.inst_id;`
         showGlossary: true,
         relativeLinks: [
           { href: "../index.html", label: "Exascale Overview", description: "Architecture context and continuity/service concepts." },
-          { href: "../Healthcheck/index.html", label: "RAC Health Check", description: "Sections 1 through 8 for RAC operational validation." }
+          { href: "../Healthcheck/index.html", label: "RAC Health Check", description: "Sections 1 through 8 for RAC operational validation." },
+          { href: "../Cluster/index.html", label: "Cluster Scaling", description: "Single-node to two-node RAC scaling, SCAN, HA components, validation, AC, and TAC." }
         ],
         copy: {
           en: {
@@ -1619,9 +1623,9 @@ ORDER BY c.name,s.inst_id;`
             navSubtitle: "26ai RAC Services",
             highlights: [
               "Use this page for connection service sections 9 through 17.",
-              "Use ../index.html when you need architecture context before applying service changes.",
-              "Use ../Healthcheck/index.html when you need the prerequisite RAC health checks.",
-              "Use the table of contents to jump directly to TNS, OLTP, reporting, batch, RLB, or failover tests."
+              "Use Exascale Overview when you need architecture context before applying service changes.",
+              "Use Healthcheck when you need the prerequisite RAC health checks.",
+              "Use Cluster Scaling for the single-node to two-node RAC scale-out guide."
             ]
           },
           es: {
@@ -1630,9 +1634,9 @@ ORDER BY c.name,s.inst_id;`
             navSubtitle: "Servicios RAC 26ai",
             highlights: [
               "Usa esta página para las secciones 9 a 17 de servicios de conexión.",
-              "Usa ../index.html cuando necesites contexto de arquitectura antes de aplicar cambios de servicio.",
-              "Usa ../Healthcheck/index.html cuando necesites las revisiones RAC previas.",
-              "Usa la tabla de contenido para saltar directamente a TNS, OLTP, reportes, batch, RLB o pruebas de failover."
+              "Usa Exascale Overview cuando necesites contexto de arquitectura antes de aplicar cambios de servicio.",
+              "Usa Healthcheck cuando necesites las revisiones RAC previas.",
+              "Usa Cluster Scaling para la guía de escalado RAC de un nodo a dos nodos."
             ]
           },
           pt: {
@@ -1641,14 +1645,18 @@ ORDER BY c.name,s.inst_id;`
             navSubtitle: "Serviços RAC 26ai",
             highlights: [
               "Use esta página para as seções 9 a 17 de serviços de conexão.",
-              "Use ../index.html quando precisar de contexto de arquitetura antes de aplicar mudanças de serviço.",
-              "Use ../Healthcheck/index.html quando precisar das verificações RAC prévias.",
-              "Use o sumário para ir direto a TNS, OLTP, relatórios, batch, RLB ou testes de failover."
+              "Use Exascale Overview quando precisar de contexto de arquitetura antes de aplicar mudanças de serviço.",
+              "Use Healthcheck quando precisar das verificações RAC prévias.",
+              "Use Cluster Scaling para o guia de escala RAC de um nó para dois nós."
             ]
           }
         }
       }
     };
+
+    if (window.ExascaleGuideSet) {
+      window.ExascaleGuideSet.applyReactShell(article, pageConfigs);
+    }
 
     function cx(...classes) {
       return classes.filter(Boolean).join(" ");
@@ -2134,7 +2142,7 @@ ORDER BY c.name,s.inst_id;`
                     {pageConfig.relativeLinks.map((link) => (
                       <a key={link.href} href={link.href} className="rounded-lg border border-stone-200 bg-white p-4 text-sm shadow-sm transition hover:border-oracle-red hover:shadow-subtle focus:outline-none focus:ring-2 focus:ring-oracle-red/40 dark:border-stone-700 dark:bg-[#211d1b]">
                         <span className="font-bold text-oracle-red dark:text-orange-300">{link.label}</span>
-                        <span className="mt-1 block leading-6 text-stone-700 dark:text-stone-300">{link.description}</span>
+                        <span className="mt-1 block leading-6 text-stone-700 dark:text-stone-300">{typeof link.description === "string" ? link.description : link.description[lang] || link.description.en}</span>
                       </a>
                     ))}
                   </div>
