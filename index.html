@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="Oracle Exadata Exascale 26ai RAC overview with architecture context and links to health check, connection service, and cluster scaling guides." />
-  <title>Exadata Exascale 26ai RAC Overview</title>
+  <meta name="description" content="Oracle Exadata Exascale RAC overview with architecture context and links to health check, connection service, Resource Manager, and cluster scaling guides." />
+  <title>RAC Overview</title>
   <script>
     (function () {
       const saved = localStorage.getItem("exascale-theme");
@@ -119,7 +119,10 @@
       netConnect: "https://docs.oracle.com/en/database/oracle/oracle-database/26/netag/connecting-database.html",
       ora03113: "https://docs.oracle.com/en/error-help/db/ora-03113/",
       ora17008: "https://docs.oracle.com/en/error-help/db/ora-17008/",
-      ora00028: "https://docs.oracle.com/en/error-help/db/ora-00028/"
+      ora00028: "https://docs.oracle.com/en/error-help/db/ora-00028/",
+      resourceManager: "https://docs.oracle.com/en/database/oracle/oracle-database/26/admin/managing-resources-with-oracle-database-resource-manager.html",
+      dbmsResourceManager: "https://docs.oracle.com/en/database/oracle/oracle-database/26/arpls/DBMS_RESOURCE_MANAGER.html",
+      resourceManagerPlan: "https://docs.oracle.com/en/database/oracle/oracle-database/26/refrn/RESOURCE_MANAGER_PLAN.html"
     };
 
     const commands = {
@@ -740,10 +743,10 @@ ORDER BY c.name,s.inst_id;`
       en: {
         name: "English",
         label: "EN",
-        title: "Exadata Exascale 26ai RAC Health Check Guide",
+        title: "Exadata Exascale RAC Health Check Guide",
         subtitle: "A consistent procedure to validate the health of an Oracle Exadata Exascale RAC deployment in OCI.",
         eyebrow: "Oracle technical article",
-        updated: "Reference links checked June 10, 2026",
+        updated: "Blog last updated June 10, 2026",
         source: "Converted from Exadata_Exascale_26ai_RAC_Health_Check_Guide.md",
         disclaimerTitle: "Educational use and validation required",
         disclaimer: "This content is for educational and planning purposes only. Apply every command and configuration first in a non-production test environment that mirrors your RAC, service, client driver, workload, and failover requirements. The recommended values shown here may not work in your specific environment, may require change-control approval, and can affect availability, connection routing, transaction behavior, memory use, and batch workload placement. Validate with application owners, DBAs, network teams, and Oracle Support guidance before using any setting in production.",
@@ -812,7 +815,7 @@ ORDER BY c.name,s.inst_id;`
             title: "Overview",
             kicker: "Purpose",
             body: "A RAC health check is a layered review of cluster membership, Oracle-managed resources, database services, client naming, and service-based workload placement. Exadata Database Service on Exascale Infrastructure in OCI offers an Oracle-managed Exadata cloud deployment where teams can start with smaller VM clusters, scale compute and storage as needs grow, improve storage efficiency, simplify provisioning, and combine Exadata smart software performance with cloud elasticity and consumption-based economics.",
-            notes: ["Run the sections in order when doing a baseline validation or a post-change check."]
+            postNoteText: ["The operational difference is material. A self-managed RAC cluster can require days or a week of coordinated server, storage, network, Grid Infrastructure, database, and validation work before applications can rely on it. An on-premises Exadata deployment can take weeks when procurement, data center readiness, cabling, firmware alignment, storage layout, networking, database homes, and cluster validation are included. Exascale shifts much of that platform build and lifecycle work into the cloud service: configuration starts from a standardized shape, capacity can scale with less redesign, database and operating system patching follow managed service workflows, and teams spend more time validating workload behavior than rebuilding the infrastructure stack."]
           },
           {
             id: "architecture",
@@ -1144,16 +1147,23 @@ ORDER BY c.name,s.inst_id;`
           }
         ],
         calloutsTitle: "Continuity and Service Concepts",
-        calloutsIntro: "These concepts frame the service and failover terms that appear in RAC, load balancing, and application continuity discussions.",
+        calloutsIntro: "These concepts frame the service, failover, and workload-governance terms that appear in RAC, load balancing, application continuity, and Resource Manager discussions. The database and service configuration is only part of the effort. FAN, RLB, AC, TAC, and Resource Manager deliver value only when the application stack is prepared to use them: the connection pool must consume events and advisories, requests must have clear boundaries, session state must be controlled, workload classes must be mapped correctly, and retry or replay behavior must be tested with the real workload.",
+        calloutsBenefitLead: "When the database services and the application layer are aligned, these features turn the Exadata Exascale architecture into a practical operating model:",
+        calloutsBenefitItems: [
+          "High availability improves because clients react faster to node, service, or session failures.",
+          "Scalability improves because new work can be routed across RAC instances by service objective and workload class.",
+          "Maintenance becomes safer because services can be drained, relocated, or restarted while prepared clients reconnect or replay eligible work instead of depending on static connections."
+        ],
         callouts: [
           { id: "scan", term: "SCAN", name: "Single Client Access Name", text: "A RAC feature that gives clients a single name for access to clustered databases.", ref: refs.scan },
           { id: "rac", term: "RAC", name: "Real Application Clusters", text: "The clustered database architecture whose instances, services, and listeners are checked in this guide.", ref: refs.racListener },
-          { id: "fan", term: "FAN", name: "Fast Application Notification", text: "High availability event notifications used by integrated clients and pools to react quickly to service changes.", ref: refs.fan },
+          { id: "fan", term: "FAN", name: "Fast Application Notification", text: "High availability event notifications used by integrated clients and pools to react quickly to service changes. The application must use a FAN-aware pool or client; otherwise the database can publish events that the application never consumes.", ref: refs.fan },
           { id: "clb", term: "CLB", name: "Connection Load Balancing", text: "Service-level connection distribution goal that influences how new sessions are placed across RAC instances, using SHORT for runtime-advisory-aware pools and LONG for longer-lived sessions.", ref: refs.rlb },
-          { id: "rlb", term: "RLB", name: "Runtime Load Balancing", text: "Connection pool behavior that uses RAC advisory information and service goals such as SERVICE_TIME or THROUGHPUT.", ref: refs.rlb },
+          { id: "rlb", term: "RLB", name: "Runtime Load Balancing", text: "Connection pool behavior that uses RAC advisory information and service goals such as SERVICE_TIME or THROUGHPUT. RLB works best when the application borrows pooled connections for short, stateless requests and returns them promptly.", ref: refs.rlb },
           { id: "taf", term: "TAF", name: "Transparent Application Failover", text: "Client-side failover behavior for supported Oracle Net and JDBC clients, used here for session-style failover examples.", ref: refs.taf },
-          { id: "ac", term: "AC", name: "Application Continuity", text: "A high availability capability for recovering application work after recoverable outages when the service and client support it.", ref: refs.appContinuity },
-          { id: "tac", term: "TAC", name: "Transparent Application Continuity", text: "A mode of Application Continuity that can discover request boundaries for supported applications and clients.", ref: refs.appContinuity }
+          { id: "ac", term: "AC", name: "Application Continuity", text: "A high availability capability for recovering application work after recoverable outages when the service and client support it. The application must avoid unsafe session state, mark or respect request boundaries, and validate which calls can be replayed safely.", ref: refs.appContinuity },
+          { id: "tac", term: "TAC", name: "Transparent Application Continuity", text: "A mode of Application Continuity that can discover request boundaries for supported applications and clients. It reduces application changes for some workloads, but it still requires compatible drivers, predictable request behavior, and testing with real failure scenarios.", ref: refs.appContinuity },
+          { id: "resource-manager", term: "RM", name: "Oracle Database Resource Manager", text: "Database workload governance that complements RAC services by assigning sessions to consumer groups and enforcing plan directives for CPU, parallelism, and runaway work. It helps preserve OLTP capacity during scale, failure, and maintenance events.", ref: refs.resourceManager }
         ],
         glossaryTitle: "Glossary and Oracle Documentation References",
         glossaryIntro: "Reference-backed glossary for the concepts, commands, views, and configuration files used in the guide.",
@@ -1191,6 +1201,10 @@ ORDER BY c.name,s.inst_id;`
           { term: "TAC", text: "Transparent Application Continuity, a mode of Application Continuity for supported applications and clients.", ref: refs.appContinuity },
           { term: "Runtime Load Balancing Goals SERVICE_TIME / THROUGHPUT", text: "Service goals used by Oracle RAC load balancing advisory. SERVICE_TIME emphasizes response time; THROUGHPUT emphasizes the rate at which work completes.", ref: refs.rlb },
           { term: "Connection Load Balancing Goal SHORT / LONG", text: "Service connection balancing settings compared by the guide for default and recommended service configuration.", ref: refs.rlb },
+          { term: "Oracle Database Resource Manager", text: "Database workload governance feature used by the Resource Manager guide to control OLTP, reporting, batch, and administrative workload classes.", ref: refs.resourceManager },
+          { term: "DBMS_RESOURCE_MANAGER", text: "PL/SQL package used in the Resource Manager guide to create pending areas, consumer groups, resource plans, plan directives, and service-name mappings.", ref: refs.dbmsResourceManager },
+          { term: "Consumer group", text: "Resource Manager workload group such as CG_OLTP, CG_REPORTING, CG_BATCH, or CG_ADMIN, used as the target for plan directives and service-name mappings.", ref: refs.resourceManager },
+          { term: "RESOURCE_MANAGER_PLAN", text: "Initialization parameter used by the guide to activate APP_RESOURCE_PLAN for runtime workload governance.", ref: refs.resourceManagerPlan },
           { term: "TNSPING", text: "Oracle Net utility used here to test whether the listener for a service can be reached.", ref: refs.tnsping },
           { term: "SQL*Plus", text: "Oracle command-line client used here to validate a database service connection.", ref: refs.sqlplus },
           { term: "tnsnames.ora / TNS alias", text: "Local naming file and aliases used to map service names to connect descriptors.", ref: refs.tnsnames },
@@ -1205,10 +1219,10 @@ ORDER BY c.name,s.inst_id;`
       es: {
         name: "Español",
         label: "ES",
-        title: "Guía de Health Check para Exadata Exascale 26ai RAC",
+        title: "Guía de Health Check para Exadata Exascale RAC",
         subtitle: "Un procedimiento consistente para validar la salud de una implementación Oracle Exadata Exascale RAC en OCI.",
         eyebrow: "Artículo técnico Oracle",
-        updated: "Referencias revisadas el 10 de junio de 2026",
+        updated: "Blog actualizado por última vez el 10 de junio de 2026",
         source: "Convertido desde Exadata_Exascale_26ai_RAC_Health_Check_Guide.md",
         disclaimerTitle: "Uso educativo y validación obligatoria",
         disclaimer: "Este contenido es solo para fines educativos y de planeación. Aplica cada comando y configuración primero en un ambiente de prueba no productivo que refleje tus requisitos de RAC, servicios, drivers cliente, carga de trabajo y failover. Los valores recomendados aquí podrían no funcionar en tu entorno específico, pueden requerir aprobación de change-control y pueden afectar disponibilidad, enrutamiento de conexiones, comportamiento transaccional, uso de memoria y ubicación de cargas batch. Valida con dueños de aplicación, DBAs, equipos de red y la guía de Oracle Support antes de usar cualquier ajuste en producción.",
@@ -1272,7 +1286,7 @@ ORDER BY c.name,s.inst_id;`
           "Los ejemplos de capa de aplicación incluyen alias TNS, URLs JDBC Thin DESCRIPTION completas, failover de servicio y runtime load balancing."
         ],
         sections: [
-          { id: "overview", title: "Overview", kicker: "Propósito", body: "Un health check RAC es una revisión por capas de membresía de clúster, recursos administrados por Oracle, servicios de base de datos, naming cliente y colocación de cargas basada en servicios. Exadata Database Service on Exascale Infrastructure en OCI ofrece un despliegue Exadata cloud administrado por Oracle donde los equipos pueden comenzar con VM clusters más pequeños, escalar cómputo y almacenamiento conforme crecen las necesidades, mejorar eficiencia de almacenamiento, simplificar el aprovisionamiento y combinar el rendimiento de Exadata smart software con elasticidad cloud y economía basada en consumo.", notes: ["Ejecuta las secciones en orden durante una validación base o una revisión posterior a cambios."] },
+          { id: "overview", title: "Overview", kicker: "Propósito", body: "Un health check RAC es una revisión por capas de membresía de clúster, recursos administrados por Oracle, servicios de base de datos, naming cliente y colocación de cargas basada en servicios. Exadata Database Service on Exascale Infrastructure en OCI ofrece un despliegue Exadata cloud administrado por Oracle donde los equipos pueden comenzar con VM clusters más pequeños, escalar cómputo y almacenamiento conforme crecen las necesidades, mejorar eficiencia de almacenamiento, simplificar el aprovisionamiento y combinar el rendimiento de Exadata smart software con elasticidad cloud y economía basada en consumo.", postNoteText: ["La diferencia operativa es importante. Un clúster RAC autogestionado puede requerir días o una semana de coordinación entre servidores, almacenamiento, red, Grid Infrastructure, base de datos y validación antes de que las aplicaciones puedan depender de él. Un despliegue Exadata on-premises puede tomar semanas cuando se incluyen procurement, preparación del centro de datos, cableado, alineación de firmware, layout de almacenamiento, networking, homes de base de datos y validación del clúster. Exascale traslada gran parte de ese trabajo de construcción y ciclo de vida de la plataforma al servicio cloud: la configuración parte de una forma estandarizada, la capacidad puede escalar con menos rediseño, el patching de base de datos y sistema operativo sigue flujos administrados del servicio, y los equipos dedican más tiempo a validar el comportamiento de la carga que a reconstruir la infraestructura."] },
           { id: "architecture", title: "Contexto de Arquitectura", kicker: "Mapa de alcance", body: "En Oracle Multitenant, la container database (CDB) es el contenedor raíz de base de datos que puede alojar múltiples pluggable databases (PDBs). Cada PDB tiene su propio servicio de conexión por defecto, por lo que las aplicaciones deben conectarse al servicio de la PDB en lugar de apuntar a una instancia RAC individual. Después, la disponibilidad de Oracle RAC depende de Clusterware, instancias de base de datos, servicios, listeners y descriptores de conexión cliente trabajando juntos. El mapa de arquitectura muestra esas dependencias y separa el comportamiento del servicio por defecto de los servicios dedicados para reportes y batch.", infographic: architectureInfographics.es },
           { id: "grid", title: "1. Health Checks de Grid Infrastructure", kicker: "Clusterware y nodos", body: "Oracle Clusterware proporciona el marco de recursos cluster-aware usado por RAC. CRSCTL es la interfaz de Clusterware para revisar salud del clúster, estado de recursos y membresía de nodos antes de comenzar revisiones de base de datos.", code: { type: "bash", label: "Ejecutar como grid", value: commands.grid }, notes: ["La guía fuente indica que olsnodes -i está deprecado."] },
           { id: "asm", title: "2. Verificaciones ASM (No Aplicable a Exascale)", kicker: "Expectativa de almacenamiento Exascale", body: "En la ruta Exadata Exascale usada por esta guía, el almacenamiento se presenta mediante infraestructura administrada por Exascale y no mediante instancias ASM administradas por el cliente. Un recurso ora.asm ausente es una característica esperada, no necesariamente una falla.", code: { type: "bash", label: "Verificación de estado ASM", value: commands.asm }, expected: commands.asmExpected },
@@ -1294,16 +1308,23 @@ ORDER BY c.name,s.inst_id;`
           { id: "operational-notes", title: "Notas Operativas de Exascale", kicker: "Contexto de ejecución", body: "La consistencia operativa importa porque las revisiones RAC cruzan usuarios de sistema operativo, Oracle homes, variables de entorno, nombres de nodo y nombres de servicio. Mantener explícitas esas sustituciones reduce falsos hallazgos durante la validación posterior a cambios.", bullets: ["Comandos de Grid como usuario grid.", "Comandos de base de datos como usuario oracle.", "Usar $ORACLE_UNQNAME.", "Reemplazar <node_name> con valores de olsnodes."] }
         ],
         calloutsTitle: "Conceptos de Continuidad y Servicios",
-        calloutsIntro: "Estos conceptos enmarcan los términos de servicio y failover que aparecen en discusiones de RAC, balanceo de carga y continuidad de aplicaciones.",
+        calloutsIntro: "Estos conceptos enmarcan los términos de servicio, failover y gobierno de carga que aparecen en discusiones de RAC, balanceo de carga, continuidad de aplicaciones y Resource Manager. La configuración de base de datos y servicios es solo parte del esfuerzo. FAN, RLB, AC, TAC y Resource Manager entregan valor solo cuando la pila de aplicación está preparada para usarlos: el pool de conexiones debe consumir eventos y advisories, las solicitudes deben tener límites claros, el estado de sesión debe controlarse, las clases de carga deben mapearse correctamente y el comportamiento de retry o replay debe probarse con la carga real.",
+        calloutsBenefitLead: "Cuando los servicios de base de datos y la capa de aplicación están alineados, estas funciones convierten la arquitectura de Exadata Exascale en un modelo operativo práctico:",
+        calloutsBenefitItems: [
+          "La alta disponibilidad mejora porque los clientes reaccionan más rápido ante fallas de nodo, servicio o sesión.",
+          "La escalabilidad mejora porque el trabajo nuevo puede distribuirse entre instancias RAC según objetivo de servicio y clase de carga.",
+          "El mantenimiento es más seguro porque los servicios pueden drenarse, reubicarse o reiniciarse mientras los clientes preparados reconectan o reproducen trabajo elegible en lugar de depender de conexiones estáticas."
+        ],
         callouts: [
           { id: "scan", term: "SCAN", name: "Single Client Access Name", text: "Función de RAC que ofrece a los clientes un nombre único para acceder a bases de datos en cluster.", ref: refs.scan },
           { id: "rac", term: "RAC", name: "Real Application Clusters", text: "Arquitectura de base de datos en cluster cuyas instancias, servicios y listeners se verifican en esta guía.", ref: refs.racListener },
-          { id: "fan", term: "FAN", name: "Fast Application Notification", text: "Notificaciones de alta disponibilidad usadas por clientes y pools integrados para reaccionar rápido a cambios de servicio.", ref: refs.fan },
+          { id: "fan", term: "FAN", name: "Fast Application Notification", text: "Notificaciones de alta disponibilidad usadas por clientes y pools integrados para reaccionar rápido a cambios de servicio. La aplicación debe usar un pool o cliente compatible con FAN; de lo contrario, la base de datos puede publicar eventos que la aplicación nunca consume.", ref: refs.fan },
           { id: "clb", term: "CLB", name: "Connection Load Balancing", text: "Objetivo de distribución de conexiones a nivel de servicio que influye en cómo se ubican nuevas sesiones entre instancias RAC, usando SHORT para pools con runtime advisory y LONG para sesiones de mayor duración.", ref: refs.rlb },
-          { id: "rlb", term: "RLB", name: "Runtime Load Balancing", text: "Comportamiento de pool de conexiones que usa información RAC advisory y objetivos de servicio como SERVICE_TIME o THROUGHPUT.", ref: refs.rlb },
+          { id: "rlb", term: "RLB", name: "Runtime Load Balancing", text: "Comportamiento de pool de conexiones que usa información RAC advisory y objetivos de servicio como SERVICE_TIME o THROUGHPUT. RLB funciona mejor cuando la aplicación toma conexiones del pool para solicitudes cortas y stateless, y las devuelve rápidamente.", ref: refs.rlb },
           { id: "taf", term: "TAF", name: "Transparent Application Failover", text: "Comportamiento de failover del lado cliente para clientes Oracle Net y JDBC soportados, usado aquí en ejemplos de failover de sesión.", ref: refs.taf },
-          { id: "ac", term: "AC", name: "Application Continuity", text: "Capacidad de alta disponibilidad para recuperar trabajo de aplicación tras interrupciones recuperables cuando el servicio y el cliente lo soportan.", ref: refs.appContinuity },
-          { id: "tac", term: "TAC", name: "Transparent Application Continuity", text: "Modo de Application Continuity que puede descubrir límites de petición en aplicaciones y clientes soportados.", ref: refs.appContinuity }
+          { id: "ac", term: "AC", name: "Application Continuity", text: "Capacidad de alta disponibilidad para recuperar trabajo de aplicación tras interrupciones recuperables cuando el servicio y el cliente lo soportan. La aplicación debe evitar estado de sesión inseguro, marcar o respetar límites de solicitud y validar qué llamadas pueden reproducirse de forma segura.", ref: refs.appContinuity },
+          { id: "tac", term: "TAC", name: "Transparent Application Continuity", text: "Modo de Application Continuity que puede descubrir límites de petición en aplicaciones y clientes soportados. Reduce cambios de aplicación para algunas cargas, pero aun así requiere drivers compatibles, comportamiento de solicitud predecible y pruebas con escenarios reales de falla.", ref: refs.appContinuity },
+          { id: "resource-manager", term: "RM", name: "Oracle Database Resource Manager", text: "Gobierno de carga de base de datos que complementa los servicios RAC al asignar sesiones a consumer groups y aplicar directivas de plan para CPU, paralelismo y trabajo excesivo. Ayuda a preservar capacidad OLTP durante eventos de escalamiento, falla y mantenimiento.", ref: refs.resourceManager }
         ],
         glossaryTitle: "Glosario y Referencias de Documentación Oracle",
         glossaryIntro: "Glosario con referencias para conceptos, comandos, vistas y archivos de configuración usados en la guía.",
@@ -1312,10 +1333,10 @@ ORDER BY c.name,s.inst_id;`
       pt: {
         name: "Português",
         label: "PT",
-        title: "Guia de Health Check para Exadata Exascale 26ai RAC",
+        title: "Guia de Health Check para Exadata Exascale RAC",
         subtitle: "Um procedimento consistente para validar a saúde de uma implantação Oracle Exadata Exascale RAC no OCI.",
         eyebrow: "Artigo técnico Oracle",
-        updated: "Referências verificadas em 10 de junho de 2026",
+        updated: "Blog atualizado pela última vez em 10 de junho de 2026",
         source: "Convertido de Exadata_Exascale_26ai_RAC_Health_Check_Guide.md",
         disclaimerTitle: "Uso educacional e validação obrigatória",
         disclaimer: "Este conteúdo é apenas para fins educacionais e de planejamento. Aplique cada comando e configuração primeiro em um ambiente de teste não produtivo que reflita seus requisitos de RAC, serviços, drivers cliente, carga de trabalho e failover. Os valores recomendados aqui podem não funcionar no seu ambiente específico, podem exigir aprovação de change-control e podem afetar disponibilidade, roteamento de conexões, comportamento transacional, uso de memória e posicionamento de cargas batch. Valide com responsáveis pela aplicação, DBAs, equipes de rede e orientação do Oracle Support antes de usar qualquer ajuste em produção.",
@@ -1379,7 +1400,7 @@ ORDER BY c.name,s.inst_id;`
           "Os exemplos da camada de aplicação incluem aliases TNS, URLs JDBC Thin DESCRIPTION completas, failover de serviço e runtime load balancing."
         ],
         sections: [
-          { id: "overview", title: "Overview", kicker: "Propósito", body: "Um health check RAC é uma revisão em camadas de associação de cluster, recursos gerenciados pela Oracle, serviços de banco, naming cliente e posicionamento de carga baseado em serviços. Exadata Database Service on Exascale Infrastructure no OCI oferece uma implantação Exadata cloud gerenciada pela Oracle onde as equipes podem começar com VM clusters menores, escalar computação e armazenamento conforme a necessidade cresce, melhorar a eficiência de armazenamento, simplificar o provisionamento e combinar o desempenho do Exadata smart software com elasticidade cloud e economia baseada em consumo.", notes: ["Execute as seções em ordem durante uma validação base ou uma revisão após mudanças."] },
+          { id: "overview", title: "Overview", kicker: "Propósito", body: "Um health check RAC é uma revisão em camadas de associação de cluster, recursos gerenciados pela Oracle, serviços de banco, naming cliente e posicionamento de carga baseado em serviços. Exadata Database Service on Exascale Infrastructure no OCI oferece uma implantação Exadata cloud gerenciada pela Oracle onde as equipes podem começar com VM clusters menores, escalar computação e armazenamento conforme a necessidade cresce, melhorar a eficiência de armazenamento, simplificar o provisionamento e combinar o desempenho do Exadata smart software com elasticidade cloud e economia baseada em consumo.", postNoteText: ["A diferença operacional é relevante. Um cluster RAC autogerenciado pode exigir dias ou uma semana de coordenação entre servidores, armazenamento, rede, Grid Infrastructure, banco de dados e validação antes que as aplicações possam depender dele. Uma implantação Exadata on-premises pode levar semanas quando procurement, preparação do data center, cabeamento, alinhamento de firmware, layout de armazenamento, networking, homes de banco e validação do cluster entram no escopo. O Exascale transfere grande parte desse trabalho de construção e ciclo de vida da plataforma para o serviço cloud: a configuração parte de uma forma padronizada, a capacidade pode escalar com menos redesenho, o patching de banco de dados e sistema operacional segue fluxos gerenciados do serviço, e as equipes passam mais tempo validando o comportamento da carga do que reconstruindo a infraestrutura."] },
           { id: "architecture", title: "Contexto de Arquitetura", kicker: "Mapa de escopo", body: "No Oracle Multitenant, o container database (CDB) é o contêiner raiz de banco de dados que pode hospedar múltiplos pluggable databases (PDBs). Cada PDB tem seu próprio serviço de conexão padrão, portanto as aplicações devem conectar ao serviço da PDB em vez de apontar para uma instância RAC individual. Depois, a disponibilidade do Oracle RAC depende de Clusterware, instâncias de banco, serviços, listeners e descritores de conexão cliente trabalhando juntos. O mapa de arquitetura mostra essas dependências e separa o comportamento do serviço padrão dos serviços dedicados para relatórios e batch.", infographic: architectureInfographics.pt },
           { id: "grid", title: "1. Health Checks de Grid Infrastructure", kicker: "Clusterware e nós", body: "O Oracle Clusterware fornece a estrutura de recursos cluster-aware usada pelo RAC. CRSCTL é a interface do Clusterware para verificar saúde do cluster, estado de recursos e associação de nós antes das revisões de banco.", code: { type: "bash", label: "Executar como grid", value: commands.grid }, notes: ["O guia fonte observa que olsnodes -i está obsoleto."] },
           { id: "asm", title: "2. Verificações ASM (Não Aplicável ao Exascale)", kicker: "Expectativa de armazenamento Exascale", body: "Na rota Exadata Exascale usada por esta guia, o armazenamento é apresentado por infraestrutura gerenciada pelo Exascale e não por instâncias ASM gerenciadas pelo cliente. Um recurso ora.asm ausente é uma característica esperada, não necessariamente uma falha.", code: { type: "bash", label: "Verificação de status ASM", value: commands.asm }, expected: commands.asmExpected },
@@ -1401,16 +1422,23 @@ ORDER BY c.name,s.inst_id;`
           { id: "operational-notes", title: "Notas Operacionais Exascale", kicker: "Contexto de execução", body: "Consistência operacional importa porque revisões RAC cruzam usuários de sistema operacional, Oracle homes, variáveis de ambiente, nomes de nó e nomes de serviço. Manter essas substituições explícitas reduz falsos achados durante validação após mudanças.", bullets: ["Comandos de Grid como usuário grid.", "Comandos de banco como usuário oracle.", "Usar $ORACLE_UNQNAME.", "Substituir <node_name> por valores de olsnodes."] }
         ],
         calloutsTitle: "Conceitos de Continuidade e Serviços",
-        calloutsIntro: "Estes conceitos contextualizam os termos de serviço e failover que aparecem em discussões de RAC, balanceamento de carga e continuidade de aplicações.",
+        calloutsIntro: "Estes conceitos contextualizam os termos de serviço, failover e governança de carga que aparecem em discussões de RAC, balanceamento de carga, continuidade de aplicações e Resource Manager. A configuração de banco e serviços é apenas parte do esforço. FAN, RLB, AC, TAC e Resource Manager entregam valor somente quando a pilha da aplicação está preparada para usá-los: o pool de conexões deve consumir eventos e advisories, as requisições devem ter limites claros, o estado de sessão deve ser controlado, as classes de carga devem ser mapeadas corretamente e o comportamento de retry ou replay deve ser testado com a carga real.",
+        calloutsBenefitLead: "Quando os serviços de banco de dados e a camada de aplicação estão alinhados, esses recursos transformam a arquitetura Exadata Exascale em um modelo operacional prático:",
+        calloutsBenefitItems: [
+          "A alta disponibilidade melhora porque os clientes reagem mais rápido a falhas de nó, serviço ou sessão.",
+          "A escalabilidade melhora porque novo trabalho pode ser roteado entre instâncias RAC por objetivo de serviço e classe de carga.",
+          "A manutenção se torna mais segura porque serviços podem ser drenados, realocados ou reiniciados enquanto clientes preparados reconectam ou reproduzem trabalho elegível em vez de depender de conexões estáticas."
+        ],
         callouts: [
           { id: "scan", term: "SCAN", name: "Single Client Access Name", text: "Recurso de RAC que oferece aos clientes um nome único para acessar bancos em cluster.", ref: refs.scan },
           { id: "rac", term: "RAC", name: "Real Application Clusters", text: "Arquitetura de banco em cluster cujas instâncias, serviços e listeners são verificados neste guia.", ref: refs.racListener },
-          { id: "fan", term: "FAN", name: "Fast Application Notification", text: "Notificações de alta disponibilidade usadas por clientes e pools integrados para reagir rapidamente a mudanças de serviço.", ref: refs.fan },
+          { id: "fan", term: "FAN", name: "Fast Application Notification", text: "Notificações de alta disponibilidade usadas por clientes e pools integrados para reagir rapidamente a mudanças de serviço. A aplicação deve usar um pool ou cliente compatível com FAN; caso contrário, o banco pode publicar eventos que a aplicação nunca consome.", ref: refs.fan },
           { id: "clb", term: "CLB", name: "Connection Load Balancing", text: "Objetivo de distribuição de conexões no nível do serviço que influencia como novas sessões são posicionadas entre instâncias RAC, usando SHORT para pools com runtime advisory e LONG para sessões de maior duração.", ref: refs.rlb },
-          { id: "rlb", term: "RLB", name: "Runtime Load Balancing", text: "Comportamento de pool de conexões que usa informações RAC advisory e objetivos de serviço como SERVICE_TIME ou THROUGHPUT.", ref: refs.rlb },
+          { id: "rlb", term: "RLB", name: "Runtime Load Balancing", text: "Comportamento de pool de conexões que usa informações RAC advisory e objetivos de serviço como SERVICE_TIME ou THROUGHPUT. RLB funciona melhor quando a aplicação usa conexões do pool para requisições curtas e stateless, devolvendo-as rapidamente.", ref: refs.rlb },
           { id: "taf", term: "TAF", name: "Transparent Application Failover", text: "Comportamento de failover do lado cliente para clientes Oracle Net e JDBC suportados, usado aqui em exemplos de failover de sessão.", ref: refs.taf },
-          { id: "ac", term: "AC", name: "Application Continuity", text: "Capacidade de alta disponibilidade para recuperar trabalho de aplicação após interrupções recuperáveis quando serviço e cliente oferecem suporte.", ref: refs.appContinuity },
-          { id: "tac", term: "TAC", name: "Transparent Application Continuity", text: "Modo de Application Continuity que pode descobrir limites de requisição em aplicações e clientes suportados.", ref: refs.appContinuity }
+          { id: "ac", term: "AC", name: "Application Continuity", text: "Capacidade de alta disponibilidade para recuperar trabalho de aplicação após interrupções recuperáveis quando serviço e cliente oferecem suporte. A aplicação deve evitar estado de sessão inseguro, marcar ou respeitar limites de requisição e validar quais chamadas podem ser reproduzidas com segurança.", ref: refs.appContinuity },
+          { id: "tac", term: "TAC", name: "Transparent Application Continuity", text: "Modo de Application Continuity que pode descobrir limites de requisição em aplicações e clientes suportados. Ele reduz mudanças de aplicação para algumas cargas, mas ainda exige drivers compatíveis, comportamento de requisição previsível e testes com cenários reais de falha.", ref: refs.appContinuity },
+          { id: "resource-manager", term: "RM", name: "Oracle Database Resource Manager", text: "Governança de carga de banco de dados que complementa serviços RAC ao atribuir sessões a consumer groups e aplicar diretivas de plano para CPU, paralelismo e trabalho excessivo. Ajuda a preservar capacidade OLTP durante eventos de escala, falha e manutenção.", ref: refs.resourceManager }
         ],
         glossaryTitle: "Glossário e Referências de Documentação Oracle",
         glossaryIntro: "Glossário com referências para conceitos, comandos, views e arquivos de configuração usados no guia.",
@@ -1524,40 +1552,41 @@ ORDER BY c.name,s.inst_id;`
         relativeLinks: [
           { href: "Healthcheck/index.html", label: "RAC Health Check", description: "Clusterware, listener, database, service, SQL, and connectivity validation." },
           { href: "ConnectionServices/index.html", label: "Connection Services", description: "TNS aliases, default service review, OLTP failover, reporting, batch, RLB, and failover simulation." },
+          { href: "ResourceManager/index.html", label: "Resource Manager", description: "Service-based consumer groups, CPU shares, DOP limits, activation, and validation." },
           { href: "Cluster/index.html", label: "Cluster Scaling", description: "Single-node to two-node RAC scaling, SCAN, HA components, validation, AC, and TAC." }
         ],
         copy: {
           en: {
-            title: "Exadata Exascale 26ai RAC Overview",
+            title: "RAC Overview",
             subtitle: "Architecture context, continuity concepts, and entry points for the Exascale RAC health check, connection service, and cluster scaling guides.",
-            navSubtitle: "26ai RAC Overview",
+            navSubtitle: "RAC Overview",
             highlights: [
               "Start here for the overview, architecture map, and continuity concepts.",
               "Open Healthcheck for RAC operational checks, sections 1 through 8.",
               "Open ConnectionServices for service and client connection behavior, sections 9 through 17.",
-              "Open Cluster Scaling for the single-node to two-node RAC scale-out guide."
+              "Open Resource Manager for service-based consumer groups and workload governance."
             ]
           },
           es: {
-            title: "Overview de Exadata Exascale 26ai RAC",
+            title: "Overview RAC",
             subtitle: "Contexto de arquitectura, conceptos de continuidad y entradas para las guías de health check RAC, servicios de conexión y escalado de clúster.",
-            navSubtitle: "Overview RAC 26ai",
+            navSubtitle: "Overview RAC",
             highlights: [
               "Empieza aquí para el overview, el mapa de arquitectura y los conceptos de continuidad.",
               "Abre Healthcheck para las revisiones operativas RAC, secciones 1 a 8.",
               "Abre ConnectionServices para servicios y conexiones cliente, secciones 9 a 17.",
-              "Abre Cluster Scaling para la guía de escalado RAC de un nodo a dos nodos."
+              "Abre Resource Manager para consumer groups por servicio y gobierno de carga."
             ]
           },
           pt: {
-            title: "Overview do Exadata Exascale 26ai RAC",
+            title: "Overview RAC",
             subtitle: "Contexto de arquitetura, conceitos de continuidade e entradas para os guias de health check RAC, serviços de conexão e escala de cluster.",
-            navSubtitle: "Overview RAC 26ai",
+            navSubtitle: "Overview RAC",
             highlights: [
               "Comece aqui para o overview, o mapa de arquitetura e os conceitos de continuidade.",
               "Abra Healthcheck para as verificações operacionais RAC, seções 1 a 8.",
               "Abra ConnectionServices para serviços e conexões de cliente, seções 9 a 17.",
-              "Abra Cluster Scaling para o guia de escala RAC de um nó para dois nós."
+              "Abra Resource Manager para consumer groups por serviço e governança de carga."
             ]
           }
         }
@@ -1573,9 +1602,9 @@ ORDER BY c.name,s.inst_id;`
         ],
         copy: {
           en: {
-            title: "Exadata Exascale 26ai RAC Health Check",
+            title: "Exadata Exascale RAC Health Check",
             subtitle: "Operational checks for Grid Infrastructure, storage expectations, listeners, database state, services, SQL views, and connectivity.",
-            navSubtitle: "26ai RAC Health Check",
+            navSubtitle: "RAC Health Check",
             highlights: [
               "Use this page for the operational RAC health-check workflow, sections 1 through 8.",
               "Use Exascale Overview for overview, architecture, and continuity concepts.",
@@ -1584,9 +1613,9 @@ ORDER BY c.name,s.inst_id;`
             ]
           },
           es: {
-            title: "Health Check de Exadata Exascale 26ai RAC",
+            title: "Health Check de Exadata Exascale RAC",
             subtitle: "Revisiones operativas de Grid Infrastructure, expectativas de almacenamiento, listeners, estado de base de datos, servicios, vistas SQL y conectividad.",
-            navSubtitle: "Health Check RAC 26ai",
+            navSubtitle: "Health Check RAC",
             highlights: [
               "Usa esta página para el flujo operativo de health check RAC, secciones 1 a 8.",
               "Usa Exascale Overview para overview, arquitectura y conceptos de continuidad.",
@@ -1595,9 +1624,9 @@ ORDER BY c.name,s.inst_id;`
             ]
           },
           pt: {
-            title: "Health Check do Exadata Exascale 26ai RAC",
+            title: "Health Check do Exadata Exascale RAC",
             subtitle: "Verificações operacionais de Grid Infrastructure, expectativas de armazenamento, listeners, estado do banco, serviços, views SQL e conectividade.",
-            navSubtitle: "Health Check RAC 26ai",
+            navSubtitle: "Health Check RAC",
             highlights: [
               "Use esta página para o fluxo operacional de health check RAC, seções 1 a 8.",
               "Use Exascale Overview para overview, arquitetura e conceitos de continuidade.",
@@ -1618,9 +1647,9 @@ ORDER BY c.name,s.inst_id;`
         ],
         copy: {
           en: {
-            title: "Exadata Exascale 26ai RAC Connection Services",
+            title: "Exadata Exascale RAC Connection Services",
             subtitle: "TNS aliases, default service review, OLTP failover, reporting and batch services, runtime load balancing, and failover simulation.",
-            navSubtitle: "26ai RAC Services",
+            navSubtitle: "RAC Services",
             highlights: [
               "Use this page for connection service sections 9 through 17.",
               "Use Exascale Overview when you need architecture context before applying service changes.",
@@ -1629,9 +1658,9 @@ ORDER BY c.name,s.inst_id;`
             ]
           },
           es: {
-            title: "Servicios de Conexión Exadata Exascale 26ai RAC",
+            title: "Servicios de Conexión Exadata Exascale RAC",
             subtitle: "Alias TNS, revisión del servicio por defecto, failover OLTP, servicios de reportes y batch, runtime load balancing y simulación de failover.",
-            navSubtitle: "Servicios RAC 26ai",
+            navSubtitle: "Servicios RAC",
             highlights: [
               "Usa esta página para las secciones 9 a 17 de servicios de conexión.",
               "Usa Exascale Overview cuando necesites contexto de arquitectura antes de aplicar cambios de servicio.",
@@ -1640,9 +1669,9 @@ ORDER BY c.name,s.inst_id;`
             ]
           },
           pt: {
-            title: "Serviços de Conexão Exadata Exascale 26ai RAC",
+            title: "Serviços de Conexão Exadata Exascale RAC",
             subtitle: "Aliases TNS, revisão do serviço padrão, failover OLTP, serviços de relatórios e batch, runtime load balancing e simulação de failover.",
-            navSubtitle: "Serviços RAC 26ai",
+            navSubtitle: "Serviços RAC",
             highlights: [
               "Use esta página para as seções 9 a 17 de serviços de conexão.",
               "Use Exascale Overview quando precisar de contexto de arquitetura antes de aplicar mudanças de serviço.",
@@ -1930,6 +1959,10 @@ ORDER BY c.name,s.inst_id;`
     }
 
     function ArticleSection({ section, controls }) {
+      const postNoteTextClass = section.id === "overview"
+        ? "space-y-3 max-w-3xl text-base leading-7 text-stone-700 dark:text-stone-300"
+        : "space-y-2 text-sm leading-6 text-stone-700 dark:text-stone-300";
+
       const content = (
         <div className="space-y-5">
           <div className="space-y-2">
@@ -1979,7 +2012,7 @@ ORDER BY c.name,s.inst_id;`
             <CodePanel key={`${section.id}-${block.label}`} block={block} controls={controls} />
           ))}
           {section.postNoteText && (
-            <div className="space-y-2 text-sm leading-6 text-stone-700 dark:text-stone-300">
+            <div className={postNoteTextClass}>
               {section.postNoteText.map((note) => <p key={note}>{note}</p>)}
             </div>
           )}
@@ -2030,7 +2063,7 @@ ORDER BY c.name,s.inst_id;`
                   <CodePanel key={`${section.id}-${block.label}`} block={block} controls={controls} />
                 ))}
                 {section.postNoteText && (
-                  <div className="space-y-2 text-sm leading-6 text-stone-700 dark:text-stone-300">
+                  <div className={postNoteTextClass}>
                     {section.postNoteText.map((note) => <p key={note}>{note}</p>)}
                   </div>
                 )}
@@ -2043,11 +2076,14 @@ ORDER BY c.name,s.inst_id;`
     }
 
     function App() {
-      const [lang, setLang] = useState("en");
+      const initialLanguage = window.ExascaleGuideSet ? window.ExascaleGuideSet.languageFromLocation() : "en";
+      const [lang, setLang] = useState(initialLanguage);
       const [dark, setDark] = useState(() => document.documentElement.classList.contains("dark"));
       const t = article[lang];
       const pageConfig = pageConfigs[pageVariant];
       const pageCopy = pageConfig.copy[lang] || pageConfig.copy.en;
+      const seriesBrand = pageConfig.seriesBrand || { title: "Oracle Exadata Exascale 26ai", subtitle: "Series" };
+      const relativeLinks = (pageConfig.relativeLinksByLanguage && pageConfig.relativeLinksByLanguage[lang]) || pageConfig.relativeLinks;
       const sectionSet = new Set(pageConfig.sectionIds);
       const visibleSections = t.sections.filter((section) => sectionSet.has(section.id));
 
@@ -2074,8 +2110,8 @@ ORDER BY c.name,s.inst_id;`
                 <div className="flex items-center gap-3">
                   <div className="h-9 w-9 rounded-md bg-oracle-red shadow-sm" aria-hidden="true"></div>
                   <div>
-                    <p className="text-sm font-semibold text-stone-900 dark:text-white">Oracle Exadata Exascale</p>
-                    <p className="text-xs text-stone-600 dark:text-stone-400">{pageCopy.navSubtitle}</p>
+                    <p className="text-sm font-semibold text-stone-900 dark:text-white">{seriesBrand.title}</p>
+                    <p className="text-xs text-stone-600 dark:text-stone-400">{seriesBrand.subtitle}</p>
                   </div>
                 </div>
                 <div className="flex flex-wrap items-center gap-2">
@@ -2119,7 +2155,7 @@ ORDER BY c.name,s.inst_id;`
                     <Disclaimer title={t.disclaimerTitle} text={t.disclaimer} />
                   </div>
                   <div className="mt-5 grid gap-3 sm:grid-cols-2">
-                    {pageConfig.relativeLinks.map((link) => (
+                    {relativeLinks.map((link) => (
                       <a key={link.href} href={link.href} className="rounded-lg border border-stone-200 bg-white p-4 text-sm shadow-sm transition hover:border-oracle-red hover:shadow-subtle focus:outline-none focus:ring-2 focus:ring-oracle-red/40 dark:border-stone-700 dark:bg-[#211d1b]">
                         <span className="font-bold text-oracle-red dark:text-orange-300">{link.label}</span>
                         <span className="mt-1 block leading-6 text-stone-700 dark:text-stone-300">{typeof link.description === "string" ? link.description : link.description[lang] || link.description.en}</span>
@@ -2176,6 +2212,14 @@ ORDER BY c.name,s.inst_id;`
                   <p className="text-xs font-semibold uppercase tracking-[0.16em] text-oracle-red dark:text-orange-300">RAC context</p>
                   <h2 className="text-2xl font-bold tracking-tight text-stone-950 dark:text-white sm:text-3xl">{t.calloutsTitle}</h2>
                   <p className="max-w-3xl text-base leading-7 text-stone-700 dark:text-stone-300">{t.calloutsIntro}</p>
+                  <div className="mt-4 max-w-3xl text-base leading-7 text-stone-700 dark:text-stone-300">
+                    <p>{t.calloutsBenefitLead}</p>
+                    <ul className="mt-2 space-y-1">
+                      {t.calloutsBenefitItems.map((item) => (
+                        <li key={item}>{item}</li>
+                      ))}
+                    </ul>
+                  </div>
                 </div>
                 <div className="mt-7 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
                   {t.callouts.map((item) => (

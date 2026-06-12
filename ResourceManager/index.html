@@ -1,0 +1,1288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Oracle Exadata Exascale Resource Manager guide for governing OLTP, reporting, batch, and administrative workloads with service-based consumer groups." />
+  <title>Exadata Exascale Resource Manager</title>
+  <link rel="icon" href="data:," />
+  <script>
+    (function () {
+      const saved = localStorage.getItem("exascale-theme");
+      const prefersDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+      if (saved === "dark" || (!saved && prefersDark)) document.documentElement.classList.add("dark");
+    })();
+  </script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            oracle: {
+              red: "#c74634",
+              deep: "#5f2b24",
+              sand: "#f7f4f2",
+              ink: "#1f1b1a",
+              graphite: "#312d2a"
+            }
+          },
+          boxShadow: {
+            subtle: "0 18px 50px rgba(31, 27, 26, 0.08)"
+          }
+        }
+      }
+    };
+  </script>
+  <script src="../shared-guide-set.js"></script>
+  <style>
+    :root {
+      color-scheme: light;
+      --code-bg: #171412;
+      --code-border: rgba(199, 70, 52, 0.32);
+    }
+    .dark {
+      color-scheme: dark;
+      --code-bg: #12100f;
+      --code-border: rgba(255, 166, 148, 0.24);
+    }
+    html {
+      scroll-behavior: smooth;
+    }
+    body {
+      font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      text-rendering: optimizeLegibility;
+    }
+    code, pre, kbd, samp {
+      font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+    }
+    section {
+      scroll-margin-top: 96px;
+    }
+    .article-gradient {
+      background:
+        linear-gradient(135deg, rgba(199, 70, 52, 0.11), transparent 36%),
+        linear-gradient(180deg, #fff 0%, #faf8f7 100%);
+    }
+    .dark .article-gradient {
+      background:
+        linear-gradient(135deg, rgba(199, 70, 52, 0.18), transparent 38%),
+        linear-gradient(180deg, #171412 0%, #211d1b 100%);
+    }
+    .code-card {
+      overflow: hidden;
+      border-radius: 8px;
+      border: 1px solid rgba(14, 165, 233, 0.35);
+      background: #101922;
+      box-shadow: 0 8px 24px rgba(31, 27, 26, 0.12);
+    }
+    .code-text {
+      background: #171412;
+      border-color: rgba(120, 113, 108, 0.35);
+    }
+    .code-toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      padding: 0.5rem 1rem;
+    }
+    .code-type {
+      color: #e7e5e4;
+      font-size: 0.75rem;
+      font-weight: 600;
+      line-height: 1rem;
+      text-transform: uppercase;
+    }
+    .copy-btn {
+      border-radius: 6px;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      background: rgba(255, 255, 255, 0.1);
+      color: #ffffff;
+      font-size: 0.75rem;
+      font-weight: 600;
+      line-height: 1rem;
+      padding: 0.25rem 0.75rem;
+      transition: background 160ms ease, border-color 160ms ease;
+    }
+    .copy-btn:hover {
+      background: rgba(255, 255, 255, 0.18);
+    }
+    .copy-btn:focus-visible {
+      outline: 2px solid rgba(255, 255, 255, 0.65);
+      outline-offset: 2px;
+    }
+    .code-description {
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      color: #e7e5e4;
+      font-size: 0.875rem;
+      font-weight: 400;
+      line-height: 1.5rem;
+      padding: 0.75rem 1rem;
+    }
+    .objective-label {
+      font-weight: 600;
+    }
+    .code-card pre {
+      color: #f5f5f4;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      font-size: 13px;
+      font-weight: 400;
+      line-height: 24px;
+      margin: 0;
+      overflow-x: auto;
+      padding: 1rem;
+      white-space: pre;
+      -webkit-font-smoothing: antialiased;
+    }
+    .code-card pre code {
+      color: inherit;
+      font: inherit;
+      font-weight: 400;
+    }
+    .code-scroll::-webkit-scrollbar {
+      height: 10px;
+      width: 10px;
+    }
+    .code-scroll::-webkit-scrollbar-track {
+      background: rgba(255,255,255,0.08);
+    }
+    .code-scroll::-webkit-scrollbar-thumb {
+      background: rgba(255,255,255,0.28);
+      border-radius: 999px;
+    }
+    .language-switch {
+      display: inline-flex;
+      gap: 0.35rem;
+      align-items: center;
+      border: 1px solid rgba(120, 113, 108, 0.35);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.72);
+      padding: 0.25rem;
+    }
+    .dark .language-switch {
+      background: rgba(31, 27, 26, 0.8);
+      border-color: rgba(120, 113, 108, 0.45);
+    }
+    .language-switch button {
+      border-radius: 6px;
+      padding: 0.45rem 0.7rem;
+      font-size: 0.75rem;
+      font-weight: 800;
+      color: #57534e;
+    }
+    .dark .language-switch button {
+      color: #d6d3d1;
+    }
+    .language-switch button[aria-pressed="true"] {
+      background: #c74634;
+      color: #ffffff;
+    }
+  </style>
+</head>
+<body class="bg-white text-oracle-ink antialiased dark:bg-[#171412] dark:text-stone-100">
+  <a href="#article" class="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-md focus:bg-white focus:px-4 focus:py-2 focus:text-sm focus:font-bold focus:text-oracle-red focus:shadow-subtle">Skip to article</a>
+
+  <header id="top" class="article-gradient border-b border-stone-200 dark:border-stone-800">
+    <div class="mx-auto max-w-7xl px-5 py-6 sm:px-8">
+      <nav class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between" aria-label="Page controls">
+        <div class="flex items-center gap-3">
+          <div class="h-9 w-9 rounded-md bg-oracle-red shadow-sm" aria-hidden="true"></div>
+          <div>
+            <p class="text-sm font-semibold text-stone-900 dark:text-white" data-series-brand-title>Oracle Exadata Exascale 26ai</p>
+            <p class="text-xs text-stone-600 dark:text-stone-400" data-series-brand-subtitle>Series</p>
+          </div>
+        </div>
+        <div class="flex flex-wrap items-center gap-2">
+          <div class="language-switch" role="group" aria-label="Language">
+            <button type="button" data-language-button="en" aria-pressed="true">EN</button>
+            <button type="button" data-language-button="es" aria-pressed="false">ES</button>
+            <button type="button" data-language-button="pt" aria-pressed="false">PT</button>
+          </div>
+          <button id="theme-toggle" type="button" class="rounded-lg border border-stone-300 bg-white px-3 py-2 text-sm font-semibold text-stone-700 shadow-sm transition hover:bg-stone-100 focus:outline-none focus:ring-2 focus:ring-oracle-red/60 dark:border-stone-700 dark:bg-stone-900 dark:text-stone-200 dark:hover:bg-stone-800" aria-pressed="false">Dark</button>
+        </div>
+      </nav>
+
+      <div class="grid gap-5 py-6 sm:gap-6 sm:py-10 lg:grid-cols-[minmax(0,1fr)_360px] lg:items-end lg:gap-8 lg:py-12">
+        <div class="max-w-4xl">
+          <p class="text-sm font-semibold uppercase tracking-[0.18em] text-oracle-red dark:text-orange-300">Oracle technical article</p>
+          <h1 class="mt-4 text-3xl font-bold leading-tight tracking-tight text-stone-950 dark:text-white sm:text-5xl lg:text-6xl">Governing Workloads with Database Resource Manager</h1>
+          <p class="mt-4 max-w-3xl text-base leading-7 text-stone-700 dark:text-stone-300 sm:text-lg sm:leading-8">A service-based Resource Manager pattern for OLTP, reporting, batch, and administrative workloads that builds on the connection services guide.</p>
+          <div class="mt-5 flex min-w-0 flex-wrap gap-3 text-sm text-stone-600 dark:text-stone-400">
+            <span class="max-w-full rounded-md border border-stone-300 bg-white px-3 py-1.5 break-words dark:border-stone-700 dark:bg-stone-900">Blog last updated June 12, 2026</span>
+          </div>
+          <details class="disclaimer mt-5 max-w-3xl rounded-lg border border-amber-300 bg-amber-50 text-amber-950 dark:border-amber-500/40 dark:bg-amber-950/25 dark:text-amber-100">
+            <summary class="cursor-pointer list-none px-4 py-3 text-sm font-bold uppercase tracking-[0.14em] focus:outline-none focus:ring-2 focus:ring-amber-500/50">Educational use and validation required <span class="ml-2 whitespace-nowrap text-xs font-semibold normal-case tracking-normal text-amber-800 underline underline-offset-2 dark:text-amber-200">click here</span></summary>
+            <p class="border-t border-amber-200 px-4 pb-4 pt-3 text-sm leading-6 dark:border-amber-500/30">This content is for educational and planning purposes only. Apply every command and configuration first in a non-production test environment that mirrors your RAC, service, client driver, workload, and failover requirements. The recommended values shown here may not work in your specific environment, may require change-control approval, and can affect availability, connection routing, transaction behavior, memory use, and batch workload placement. Validate with application owners, DBAs, network teams, and Oracle Support guidance before using any setting in production.</p>
+          </details>
+          <div class="related-links mt-5 grid gap-3 sm:grid-cols-2" aria-label="Navigate the guide set">
+            <a href="../index.html" class="rounded-lg border border-stone-200 bg-white p-4 text-sm shadow-sm transition hover:border-oracle-red hover:shadow-subtle focus:outline-none focus:ring-2 focus:ring-oracle-red/40 dark:border-stone-700 dark:bg-[#211d1b]"><strong class="text-oracle-red dark:text-orange-300">Exascale Overview</strong><span class="mt-1 block leading-6 text-stone-700 dark:text-stone-300">Architecture context, continuity concepts, and shared glossary.</span></a>
+            <a href="../ConnectionServices/index.html" class="rounded-lg border border-stone-200 bg-white p-4 text-sm shadow-sm transition hover:border-oracle-red hover:shadow-subtle focus:outline-none focus:ring-2 focus:ring-oracle-red/40 dark:border-stone-700 dark:bg-[#211d1b]"><strong class="text-oracle-red dark:text-orange-300">Connection Services</strong><span class="mt-1 block leading-6 text-stone-700 dark:text-stone-300">Dedicated OLTP, reporting, and batch services used by this guide.</span></a>
+          </div>
+        </div>
+        <aside class="hero-visual rounded-lg border border-stone-200 bg-white p-4 shadow-subtle dark:border-stone-700 dark:bg-[#211d1b] sm:p-5" aria-label="Navigate the guide set">
+          <h2 class="visual-caption text-sm font-bold uppercase tracking-[0.16em] text-stone-500 dark:text-stone-400"><span>Navigate the guide set</span></h2>
+          <ul class="hero-highlights mt-3 space-y-1.5 sm:mt-4 sm:space-y-3">
+            <li class="highlight flex gap-3 text-sm leading-5 text-stone-700 dark:text-stone-300 sm:leading-6"><span class="mt-2 h-2 w-2 flex-none rounded-full bg-oracle-red" aria-hidden="true"></span><span><b>Use this page</b>: Create consumer groups and an application resource plan.</span></li>
+            <li class="highlight flex gap-3 text-sm leading-5 text-stone-700 dark:text-stone-300 sm:leading-6"><span class="mt-2 h-2 w-2 flex-none rounded-full bg-oracle-red" aria-hidden="true"></span><span><b>Use Connection Services</b>: Confirm dedicated OLTP, reporting, and batch services first.</span></li>
+            <li class="highlight flex gap-3 text-sm leading-5 text-stone-700 dark:text-stone-300 sm:leading-6"><span class="mt-2 h-2 w-2 flex-none rounded-full bg-oracle-red" aria-hidden="true"></span><span><b>Use Healthcheck</b>: Validate RAC state before applying workload governance.</span></li>
+          </ul>
+        </aside>
+      </div>
+    </div>
+  </header>
+
+  <div class="sticky top-0 z-30 border-b border-stone-200 bg-white/95 backdrop-blur lg:hidden dark:border-stone-800 dark:bg-[#171412]/95">
+    <nav class="mx-auto flex max-w-7xl gap-2 overflow-x-auto px-5 py-3" aria-label="Table of contents">
+      <a href="#overview" class="whitespace-nowrap rounded-md border border-stone-200 px-3 py-1.5 text-sm font-medium text-stone-700 dark:border-stone-700 dark:text-stone-300">Overview</a>
+      <a href="#architecture" class="whitespace-nowrap rounded-md border border-stone-200 px-3 py-1.5 text-sm font-medium text-stone-700 dark:border-stone-700 dark:text-stone-300">Architecture</a>
+      <a href="#security-model" class="whitespace-nowrap rounded-md border border-stone-200 px-3 py-1.5 text-sm font-medium text-stone-700 dark:border-stone-700 dark:text-stone-300">Security Model</a>
+      <a href="#consumer-groups" class="whitespace-nowrap rounded-md border border-stone-200 px-3 py-1.5 text-sm font-medium text-stone-700 dark:border-stone-700 dark:text-stone-300">Consumer Groups</a>
+      <a href="#resource-plan" class="whitespace-nowrap rounded-md border border-stone-200 px-3 py-1.5 text-sm font-medium text-stone-700 dark:border-stone-700 dark:text-stone-300">Resource Plan</a>
+      <a href="#validation" class="whitespace-nowrap rounded-md border border-stone-200 px-3 py-1.5 text-sm font-medium text-stone-700 dark:border-stone-700 dark:text-stone-300">Validation</a>
+      <a href="#disable" class="whitespace-nowrap rounded-md border border-stone-200 px-3 py-1.5 text-sm font-medium text-stone-700 dark:border-stone-700 dark:text-stone-300">Disable Plan</a>
+    </nav>
+  </div>
+
+  <main id="article" class="mx-auto grid max-w-7xl gap-8 px-5 py-8 sm:px-8 lg:grid-cols-[280px_minmax(0,1fr)] lg:py-12">
+    <aside class="hidden lg:block">
+      <div class="sticky top-6 rounded-lg border border-stone-200 bg-white p-4 shadow-sm dark:border-stone-800 dark:bg-[#211d1b]">
+        <h2 class="text-xs font-bold uppercase tracking-[0.16em] text-stone-500 dark:text-stone-400">Table of contents</h2>
+        <nav class="mt-4 space-y-1" aria-label="Table of contents">
+          <a href="#overview" class="block rounded-md px-3 py-2 text-sm font-medium text-stone-700 transition hover:bg-stone-100 hover:text-oracle-red dark:text-stone-300 dark:hover:bg-stone-800 dark:hover:text-orange-200">Overview</a>
+          <a href="#architecture" class="block rounded-md px-3 py-2 text-sm font-medium text-stone-700 transition hover:bg-stone-100 hover:text-oracle-red dark:text-stone-300 dark:hover:bg-stone-800 dark:hover:text-orange-200">Architecture</a>
+          <a href="#security-model" class="block rounded-md px-3 py-2 text-sm font-medium text-stone-700 transition hover:bg-stone-100 hover:text-oracle-red dark:text-stone-300 dark:hover:bg-stone-800 dark:hover:text-orange-200">Security Model</a>
+          <a href="#consumer-groups" class="block rounded-md px-3 py-2 text-sm font-medium text-stone-700 transition hover:bg-stone-100 hover:text-oracle-red dark:text-stone-300 dark:hover:bg-stone-800 dark:hover:text-orange-200">Consumer Groups</a>
+          <a href="#resource-plan" class="block rounded-md px-3 py-2 text-sm font-medium text-stone-700 transition hover:bg-stone-100 hover:text-oracle-red dark:text-stone-300 dark:hover:bg-stone-800 dark:hover:text-orange-200">Resource Plan</a>
+          <a href="#service-mapping" class="block rounded-md px-3 py-2 text-sm font-medium text-stone-700 transition hover:bg-stone-100 hover:text-oracle-red dark:text-stone-300 dark:hover:bg-stone-800 dark:hover:text-orange-200">Service Mapping</a>
+          <a href="#enable" class="block rounded-md px-3 py-2 text-sm font-medium text-stone-700 transition hover:bg-stone-100 hover:text-oracle-red dark:text-stone-300 dark:hover:bg-stone-800 dark:hover:text-orange-200">Enable Plan</a>
+          <a href="#validation" class="block rounded-md px-3 py-2 text-sm font-medium text-stone-700 transition hover:bg-stone-100 hover:text-oracle-red dark:text-stone-300 dark:hover:bg-stone-800 dark:hover:text-orange-200">Validation</a>
+          <a href="#best-practices" class="block rounded-md px-3 py-2 text-sm font-medium text-stone-700 transition hover:bg-stone-100 hover:text-oracle-red dark:text-stone-300 dark:hover:bg-stone-800 dark:hover:text-orange-200">Best Practices</a>
+          <a href="#disable" class="block rounded-md px-3 py-2 text-sm font-medium text-stone-700 transition hover:bg-stone-100 hover:text-oracle-red dark:text-stone-300 dark:hover:bg-stone-800 dark:hover:text-orange-200">Disable Plan</a>
+          <a href="#documentation" class="block rounded-md px-3 py-2 text-sm font-medium text-stone-700 transition hover:bg-stone-100 hover:text-oracle-red dark:text-stone-300 dark:hover:bg-stone-800 dark:hover:text-orange-200">References</a>
+        </nav>
+      </div>
+    </aside>
+
+    <article class="min-w-0">
+      <section id="overview" class="border-t border-stone-200 py-10 dark:border-stone-800">
+        <p class="text-xs font-semibold uppercase tracking-[0.16em] text-oracle-red dark:text-orange-300">Purpose</p>
+        <h2 class="mt-2 text-2xl font-bold tracking-tight text-stone-950 dark:text-white sm:text-3xl">Overview</h2>
+        <p class="mt-3 max-w-3xl text-base leading-7 text-stone-700 dark:text-stone-300">This article extends the Connection Services configuration from the previous blog and demonstrates how to use Oracle Database Resource Manager to govern database workloads connected through dedicated OLTP, reporting, and batch services. Oracle Database Resource Manager is the database-native control plane for sessions that compete for system and database resources: it classifies sessions into consumer groups, activates a resource plan, and uses plan directives to allocate CPU, constrain parallel execution, and make workload priority explicit inside the database.</p>
+        <p class="mt-4 max-w-3xl text-base leading-7 text-stone-700 dark:text-stone-300">Connection Services and users provide the classification signals. The <code class="rounded bg-stone-100 px-1.5 py-0.5 text-sm font-semibold text-oracle-deep dark:bg-stone-800 dark:text-orange-200">SOE</code> account remains the schema owner and is treated as an administrative identity. Application users such as <code class="rounded bg-stone-100 px-1.5 py-0.5 text-sm font-semibold text-oracle-deep dark:bg-stone-800 dark:text-orange-200">SOE_OLTP</code>, <code class="rounded bg-stone-100 px-1.5 py-0.5 text-sm font-semibold text-oracle-deep dark:bg-stone-800 dark:text-orange-200">SOE_REPORTS</code>, and <code class="rounded bg-stone-100 px-1.5 py-0.5 text-sm font-semibold text-oracle-deep dark:bg-stone-800 dark:text-orange-200">SOE_BATCH</code> connect through workload-specific RAC services. Resource Manager then maps the user and service attributes used at login to the matching consumer group, so the same PDB can serve multiple user communities without treating every active session equally.</p>
+        <div class="mt-5 grid gap-3 sm:grid-cols-3">
+          <div class="rounded-lg border border-stone-200 bg-stone-50 p-4 dark:border-stone-700 dark:bg-stone-900/45"><p class="text-sm font-bold text-stone-950 dark:text-white">OLTP</p><p class="mt-1 break-words font-mono text-xs text-oracle-red dark:text-orange-300">CDB01_PDB01.paas.oracle.com</p><p class="mt-2 text-xs leading-5 text-stone-600 dark:text-stone-400">Preferred: CDB011, CDB012. Available: none.</p></div>
+          <div class="rounded-lg border border-stone-200 bg-stone-50 p-4 dark:border-stone-700 dark:bg-stone-900/45"><p class="text-sm font-bold text-stone-950 dark:text-white">Reporting</p><p class="mt-1 break-words font-mono text-xs text-oracle-red dark:text-orange-300">CDB01_PDB01_REPORTS.paas.oracle.com</p><p class="mt-2 text-xs leading-5 text-stone-600 dark:text-stone-400">Preferred: CDB012. Available: CDB011.</p></div>
+          <div class="rounded-lg border border-stone-200 bg-stone-50 p-4 dark:border-stone-700 dark:bg-stone-900/45"><p class="text-sm font-bold text-stone-950 dark:text-white">Batch</p><p class="mt-1 break-words font-mono text-xs text-oracle-red dark:text-orange-300">CDB01_PDB01_BATCH.paas.oracle.com</p><p class="mt-2 text-xs leading-5 text-stone-600 dark:text-stone-400">Preferred: CDB011. Available: CDB012.</p></div>
+        </div>
+        <p class="mt-5 max-w-3xl text-base leading-7 text-stone-700 dark:text-stone-300">The example uses the Swingbench SOE schema while keeping the Resource Manager configuration generic and reusable.</p>
+        <div class="mt-5 rounded-lg border-l-4 border-oracle-red bg-red-50 px-4 py-3 text-sm leading-6 text-stone-700 dark:border-orange-300 dark:bg-orange-950/20 dark:text-stone-300">
+          <p class="font-semibold text-stone-950 dark:text-stone-100">Integration pattern</p>
+          <p class="mt-1">Connection Services decide how clients enter the PDB; database users and roles decide what those sessions can do; Resource Manager decides how much shared database capacity each workload class can consume when OLTP, reporting, batch, and administration run at the same time.</p>
+          <a href="../Cluster/index.html#en-architecture" class="mt-3 inline-flex rounded-md text-sm font-semibold text-oracle-red underline-offset-4 hover:underline dark:text-orange-300">Reference: 2. Architecture Evolution</a>
+        </div>
+      </section>
+
+      <section id="architecture" class="border-t border-stone-200 py-10 dark:border-stone-800">
+        <p class="text-xs font-semibold uppercase tracking-[0.16em] text-oracle-red dark:text-orange-300">Scope map</p>
+        <h2 class="mt-2 text-2xl font-bold tracking-tight text-stone-950 dark:text-white sm:text-3xl">Architecture</h2>
+        <p class="mt-3 max-w-3xl text-base leading-7 text-stone-700 dark:text-stone-300">Connection Services identifies workload classes through dedicated RAC services. Resource Manager uses service-name mapping rules to place sessions into consumer groups, and the active plan applies directives to those groups.</p>
+        <div class="mt-6 overflow-hidden rounded-lg border border-stone-200 bg-stone-50 shadow-sm dark:border-stone-700 dark:bg-[#211d1b]">
+          <div class="border-b border-stone-200 bg-white px-5 py-4 dark:border-stone-700 dark:bg-stone-900/45">
+            <h3 class="text-base font-bold text-stone-950 dark:text-white">Service-to-consumer-group governance flow</h3>
+            <p class="mt-1 text-sm leading-6 text-stone-700 dark:text-stone-300">Users connect through workload-specific services; Resource Manager maps those sessions to consumer groups; business-hours and after-hours plans enforce the CPU and parallel execution policy.</p>
+          </div>
+          <div class="grid gap-4 p-4 lg:grid-cols-4">
+            <div class="rounded-lg border border-stone-200 bg-white p-4 dark:border-stone-700 dark:bg-stone-900/45">
+              <p class="text-xs font-bold uppercase tracking-[0.16em] text-oracle-red dark:text-orange-300">Users</p>
+              <div class="mt-4 space-y-3">
+                <div class="rounded-md border border-stone-200 bg-stone-50 p-3 dark:border-stone-700 dark:bg-[#171412]"><p class="text-sm font-bold text-stone-950 dark:text-white">SOE_OLTP</p><p class="text-xs text-stone-600 dark:text-stone-400">Transactional sessions</p></div>
+                <div class="rounded-md border border-stone-200 bg-stone-50 p-3 dark:border-stone-700 dark:bg-[#171412]"><p class="text-sm font-bold text-stone-950 dark:text-white">SOE_REPORTS</p><p class="text-xs text-stone-600 dark:text-stone-400">Read-only reporting sessions</p></div>
+                <div class="rounded-md border border-stone-200 bg-stone-50 p-3 dark:border-stone-700 dark:bg-[#171412]"><p class="text-sm font-bold text-stone-950 dark:text-white">SOE_BATCH</p><p class="text-xs text-stone-600 dark:text-stone-400">Restartable batch sessions</p></div>
+                <div class="rounded-md border border-stone-200 bg-stone-50 p-3 dark:border-stone-700 dark:bg-[#171412]"><p class="text-sm font-bold text-stone-950 dark:text-white">SOE</p><p class="text-xs text-stone-600 dark:text-stone-400">Schema owner and administrative sessions</p></div>
+              </div>
+            </div>
+            <div class="rounded-lg border border-stone-200 bg-white p-4 dark:border-stone-700 dark:bg-stone-900/45">
+              <p class="text-xs font-bold uppercase tracking-[0.16em] text-oracle-red dark:text-orange-300">Connection Services</p>
+              <div class="mt-4 space-y-3">
+                <div class="rounded-md border border-stone-200 bg-stone-50 p-3 dark:border-stone-700 dark:bg-[#171412]"><p class="break-words font-mono text-xs text-oracle-red dark:text-orange-300">CDB01_PDB01.paas.oracle.com</p><p class="mt-1 text-xs text-stone-600 dark:text-stone-400">Default PDB service reused for OLTP and SOE owner access</p></div>
+                <div class="rounded-md border border-stone-200 bg-stone-50 p-3 dark:border-stone-700 dark:bg-[#171412]"><p class="break-words font-mono text-xs text-oracle-red dark:text-orange-300">CDB01_PDB01_REPORTS.paas.oracle.com</p><p class="mt-1 text-xs text-stone-600 dark:text-stone-400">Reporting entry point</p></div>
+                <div class="rounded-md border border-stone-200 bg-stone-50 p-3 dark:border-stone-700 dark:bg-[#171412]"><p class="break-words font-mono text-xs text-oracle-red dark:text-orange-300">CDB01_PDB01_BATCH.paas.oracle.com</p><p class="mt-1 text-xs text-stone-600 dark:text-stone-400">Batch entry point</p></div>
+                <div class="rounded-md border border-stone-200 bg-stone-50 p-3 dark:border-stone-700 dark:bg-[#171412]"><p class="break-words font-mono text-xs text-oracle-red dark:text-orange-300">User mapping override</p><p class="mt-1 text-xs text-stone-600 dark:text-stone-400">SOE maps to CG_ADMIN even on the default PDB service</p></div>
+              </div>
+            </div>
+            <div class="rounded-lg border border-stone-200 bg-white p-4 dark:border-stone-700 dark:bg-stone-900/45">
+              <p class="text-xs font-bold uppercase tracking-[0.16em] text-oracle-red dark:text-orange-300">Resource Manager</p>
+              <div class="mt-4 space-y-3">
+                <div class="rounded-md border border-stone-200 bg-stone-50 p-3 dark:border-stone-700 dark:bg-[#171412]"><p class="text-sm font-bold text-stone-950 dark:text-white">CG_OLTP</p><p class="text-xs text-stone-600 dark:text-stone-400">75% level-1 CPU share, serial operations</p></div>
+                <div class="rounded-md border border-stone-200 bg-stone-50 p-3 dark:border-stone-700 dark:bg-[#171412]"><p class="text-sm font-bold text-stone-950 dark:text-white">CG_REPORTING</p><p class="text-xs text-stone-600 dark:text-stone-400">DOP 2 business hours, DOP 4 after hours</p></div>
+                <div class="rounded-md border border-stone-200 bg-stone-50 p-3 dark:border-stone-700 dark:bg-[#171412]"><p class="text-sm font-bold text-stone-950 dark:text-white">CG_BATCH</p><p class="text-xs text-stone-600 dark:text-stone-400">Serial business hours, DOP 2 after hours</p></div>
+                <div class="rounded-md border border-stone-200 bg-stone-50 p-3 dark:border-stone-700 dark:bg-[#171412]"><p class="text-sm font-bold text-stone-950 dark:text-white">CG_ADMIN</p><p class="text-xs text-stone-600 dark:text-stone-400">50% level-1 CPU share, default DOP</p></div>
+              </div>
+            </div>
+            <div class="rounded-lg border border-stone-200 bg-white p-4 dark:border-stone-700 dark:bg-stone-900/45">
+              <p class="text-xs font-bold uppercase tracking-[0.16em] text-oracle-red dark:text-orange-300">Resource Plans</p>
+              <div class="mt-4 space-y-3">
+                <div class="rounded-md border border-oracle-red/30 bg-red-50 p-3 dark:border-orange-300/30 dark:bg-orange-950/20"><p class="break-words font-mono text-xs font-bold text-oracle-red dark:text-orange-300">APP_RM_BUSINESS_HOURS</p><p class="mt-1 text-xs text-stone-700 dark:text-stone-300">8 AM-6 PM Central: OLTP serial, reports DOP 2, batch serial</p></div>
+                <div class="rounded-md border border-oracle-red/30 bg-red-50 p-3 dark:border-orange-300/30 dark:bg-orange-950/20"><p class="break-words font-mono text-xs font-bold text-oracle-red dark:text-orange-300">APP_RM_AFTER_HOURS</p><p class="mt-1 text-xs text-stone-700 dark:text-stone-300">After 6 PM Central: OLTP serial, reports DOP 4, batch DOP 2</p></div>
+                <div class="rounded-md border border-stone-200 bg-stone-50 p-3 dark:border-stone-700 dark:bg-[#171412]"><p class="text-sm font-bold text-stone-950 dark:text-white">Manual plan switch</p><p class="mt-1 text-xs text-stone-600 dark:text-stone-400">Use ALTER SYSTEM during the demo; Scheduler windows can automate later</p></div>
+              </div>
+            </div>
+          </div>
+          <div class="border-t border-stone-200 bg-white px-5 py-4 dark:border-stone-700 dark:bg-stone-900/45">
+            <div class="rounded-lg border border-oracle-red/25 bg-red-50 p-4 text-sm leading-6 text-stone-700 dark:border-orange-300/30 dark:bg-orange-950/20 dark:text-stone-300">
+              <p class="font-semibold text-stone-950 dark:text-stone-100">Runtime enforcement path</p>
+              <p class="mt-1">Only one PDB Resource Manager plan is active at a time. Mapping rules place sessions into consumer groups, then the currently active business-hours or after-hours plan applies the CPU shares, parallel limits, and reporting timeout to those groups.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="security-model" class="border-t border-stone-200 py-10 dark:border-stone-800">
+        <p class="text-xs font-semibold uppercase tracking-[0.16em] text-oracle-red dark:text-orange-300">Reusable access model</p>
+        <h2 class="mt-2 text-2xl font-bold tracking-tight text-stone-950 dark:text-white sm:text-3xl">Security Model</h2>
+        <p class="mt-3 max-w-3xl text-base leading-7 text-stone-700 dark:text-stone-300">Use roles to keep the schema grants reusable and separate from service-based workload routing. The <code class="rounded bg-stone-100 px-1.5 py-0.5 text-sm font-semibold text-oracle-deep dark:bg-stone-800 dark:text-orange-200">SOE</code> account owns the Swingbench objects and should not be used as the normal OLTP application login. Create <code class="rounded bg-stone-100 px-1.5 py-0.5 text-sm font-semibold text-oracle-deep dark:bg-stone-800 dark:text-orange-200">SOE_OLTP</code> for transactional application traffic, then reserve <code class="rounded bg-stone-100 px-1.5 py-0.5 text-sm font-semibold text-oracle-deep dark:bg-stone-800 dark:text-orange-200">SOE</code> for owner or administrative operations governed by <code class="rounded bg-stone-100 px-1.5 py-0.5 text-sm font-semibold text-oracle-deep dark:bg-stone-800 dark:text-orange-200">CG_ADMIN</code>.</p>
+        <p class="mt-4 max-w-3xl text-base leading-7 text-stone-700 dark:text-stone-300">Run the security setup from <code class="rounded bg-stone-100 px-1.5 py-0.5 text-sm font-semibold text-oracle-deep dark:bg-stone-800 dark:text-orange-200">PDB01</code> as <code class="rounded bg-stone-100 px-1.5 py-0.5 text-sm font-semibold text-oracle-deep dark:bg-stone-800 dark:text-orange-200">SYSTEM</code> or another approved user with DBA-level privileges in the PDB. These commands create roles and users and grant object privileges, so connecting through the PDB service first prevents accidentally running PDB-local DDL in the wrong container.</p>
+        <div class="mt-5 code-card"><div class="code-toolbar"><span class="code-type">SQL</span><button class="copy-btn" type="button">Copy</button></div><div class="code-description code-objective"><span class="objective-label">Objective:</span> Connect to PDB01 as SYSTEM or another PDB DBA-level account, then verify the current container before running security-model DDL.</div><pre class="code-scroll"><code>sqlplus system@CDB01_PDB01
+SHOW CON_NAME</code></pre></div>
+        <div class="mt-5 code-card"><div class="code-toolbar"><span class="code-type">SQL</span><button class="copy-btn" type="button">Copy</button></div><div class="code-description code-objective"><span class="objective-label">Objective:</span> Configure SQL*Plus output once for the remaining setup and validation snippets in this session.</div><pre class="code-scroll"><code>SET LINESIZE 220
+SET PAGESIZE 100
+SET TRIMSPOOL ON
+SET TAB OFF
+SET SERVEROUTPUT ON
+COLUMN username FORMAT A30
+COLUMN service_name FORMAT A50
+COLUMN resource_consumer_group FORMAT A30</code></pre></div>
+        <div class="mt-5 overflow-x-auto rounded-lg border border-stone-200 bg-white dark:border-stone-700 dark:bg-[#211d1b]">
+          <table class="min-w-[760px] border-collapse text-left text-sm">
+            <thead class="bg-stone-100 text-stone-700 dark:bg-stone-800 dark:text-stone-200">
+              <tr>
+                <th class="px-4 py-3 font-semibold">User</th>
+                <th class="px-4 py-3 font-semibold">Grants</th>
+                <th class="px-4 py-3 font-semibold">Connection service</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-stone-200 dark:divide-stone-700">
+              <tr>
+                <td class="px-4 py-3 align-top font-medium text-stone-900 dark:text-stone-100">SOE</td>
+                <td class="px-4 py-3 align-top text-stone-700 dark:text-stone-300">Schema owner for Swingbench SOE objects; administrative identity governed by CG_ADMIN through user mapping priority.</td>
+                <td class="px-4 py-3 align-top font-mono text-xs text-oracle-red dark:text-orange-300">CDB01_PDB01.paas.oracle.com</td>
+              </tr>
+              <tr>
+                <td class="px-4 py-3 align-top font-medium text-stone-900 dark:text-stone-100">SOE_OLTP</td>
+                <td class="px-4 py-3 align-top text-stone-700 dark:text-stone-300">CREATE SESSION; APP_READWRITE_ROLE with DML on SOE tables, SELECT on SOE readable objects, SELECT on SOE sequences, EXECUTE on SOE program units/types, and private synonyms for SOE objects.</td>
+                <td class="px-4 py-3 align-top font-mono text-xs text-oracle-red dark:text-orange-300">CDB01_PDB01.paas.oracle.com</td>
+              </tr>
+              <tr>
+                <td class="px-4 py-3 align-top font-medium text-stone-900 dark:text-stone-100">SOE_REPORTS</td>
+                <td class="px-4 py-3 align-top text-stone-700 dark:text-stone-300">CREATE SESSION; APP_REPORTING_ROLE with SELECT on SOE readable objects, EXECUTE on SOE program units/types for the Swingbench PL/SQL workload, and private synonyms for SOE objects used by reports.</td>
+                <td class="px-4 py-3 align-top font-mono text-xs text-oracle-red dark:text-orange-300">CDB01_PDB01_REPORTS.paas.oracle.com</td>
+              </tr>
+              <tr>
+                <td class="px-4 py-3 align-top font-medium text-stone-900 dark:text-stone-100">SOE_BATCH</td>
+                <td class="px-4 py-3 align-top text-stone-700 dark:text-stone-300">CREATE SESSION; APP_READWRITE_ROLE with DML on SOE tables, SELECT on SOE readable objects, SELECT on SOE sequences, EXECUTE on SOE program units/types, and private synonyms for SOE objects.</td>
+                <td class="px-4 py-3 align-top font-mono text-xs text-oracle-red dark:text-orange-300">CDB01_PDB01_BATCH.paas.oracle.com</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="mt-5 space-y-5">
+          <div class="code-card"><div class="code-toolbar"><span class="code-type">SQL</span><button class="copy-btn" type="button">Copy</button></div><div class="code-description code-objective"><span class="objective-label">Objective:</span> Create reusable roles for reporting and batch application access.</div><pre class="code-scroll"><code>CREATE ROLE APP_READONLY_ROLE;
+CREATE ROLE APP_REPORTING_ROLE;
+CREATE ROLE APP_READWRITE_ROLE;</code></pre></div>
+          <div class="rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 text-sm leading-6 text-amber-950 dark:border-amber-500/40 dark:bg-amber-950/25 dark:text-amber-100">
+            <p class="font-semibold">Swingbench PL/SQL reporting note</p>
+            <p class="mt-1">The Swingbench <code class="rounded bg-white px-1.5 py-0.5 text-xs font-semibold text-oracle-deep dark:bg-stone-900 dark:text-orange-200">orderentryplsql</code> workload calls package routines during initialization and execution. If you use that workload through the reporting service for Resource Manager testing, the reporting user needs <code class="rounded bg-white px-1.5 py-0.5 text-xs font-semibold text-oracle-deep dark:bg-stone-900 dark:text-orange-200">EXECUTE</code> on SOE program units and synonyms for the package names it references. For production reporting, keep reporting access least-privilege and avoid granting executable packages that can modify data.</p>
+          </div>
+          <div class="code-card"><div class="code-toolbar"><span class="code-type">PL/SQL</span><button class="copy-btn" type="button">Copy</button></div><div class="code-description code-objective"><span class="objective-label">Objective:</span> Grant SOE object privileges to the reusable application roles across tables, views, sequences, and executable objects.</div><pre class="code-scroll"><code>BEGIN
+  FOR obj IN (
+    SELECT object_name, object_type
+    FROM dba_objects
+    WHERE owner = 'SOE'
+      AND object_type IN (
+        'TABLE',
+        'VIEW',
+        'MATERIALIZED VIEW',
+        'SEQUENCE',
+        'PACKAGE',
+        'PROCEDURE',
+        'FUNCTION',
+        'TYPE'
+      )
+    ORDER BY object_type, object_name
+  )
+  LOOP
+    IF obj.object_type IN ('TABLE', 'VIEW', 'MATERIALIZED VIEW') THEN
+      EXECUTE IMMEDIATE
+        'GRANT SELECT ON SOE.' ||
+        obj.object_name ||
+        ' TO APP_READONLY_ROLE';
+
+      EXECUTE IMMEDIATE
+        'GRANT SELECT ON SOE.' ||
+        obj.object_name ||
+        ' TO APP_REPORTING_ROLE';
+
+      EXECUTE IMMEDIATE
+        'GRANT SELECT ON SOE.' ||
+        obj.object_name ||
+        ' TO APP_READWRITE_ROLE';
+    END IF;
+
+    IF obj.object_type = 'TABLE' THEN
+      EXECUTE IMMEDIATE
+        'GRANT INSERT, UPDATE, DELETE ON SOE.' ||
+        obj.object_name ||
+        ' TO APP_READWRITE_ROLE';
+    END IF;
+
+    IF obj.object_type = 'SEQUENCE' THEN
+      EXECUTE IMMEDIATE
+        'GRANT SELECT ON SOE.' ||
+        obj.object_name ||
+        ' TO APP_READWRITE_ROLE';
+    END IF;
+
+    IF obj.object_type IN ('PACKAGE', 'PROCEDURE', 'FUNCTION', 'TYPE') THEN
+      EXECUTE IMMEDIATE
+        'GRANT EXECUTE ON SOE.' ||
+        obj.object_name ||
+        ' TO APP_REPORTING_ROLE';
+
+      EXECUTE IMMEDIATE
+        'GRANT EXECUTE ON SOE.' ||
+        obj.object_name ||
+        ' TO APP_READWRITE_ROLE';
+    END IF;
+  END LOOP;
+END;
+/</code></pre></div>
+          <div class="code-card"><div class="code-toolbar"><span class="code-type">SQL</span><button class="copy-btn" type="button">Copy</button></div><div class="code-description code-objective"><span class="objective-label">Objective:</span> Create dedicated application users for OLTP, reporting, and batch workloads while keeping SOE as the schema owner.</div><pre class="code-scroll"><code>CREATE USER SOE_OLTP IDENTIFIED BY "&lt;password&gt;";
+GRANT CREATE SESSION TO SOE_OLTP;
+
+CREATE USER SOE_REPORTS IDENTIFIED BY "&lt;password&gt;";
+GRANT CREATE SESSION TO SOE_REPORTS;
+
+CREATE USER SOE_BATCH IDENTIFIED BY "&lt;password&gt;";
+GRANT CREATE SESSION TO SOE_BATCH;</code></pre></div>
+          <div class="code-card"><div class="code-toolbar"><span class="code-type">SQL</span><button class="copy-btn" type="button">Copy</button></div><div class="code-description code-objective"><span class="objective-label">Objective:</span> Assign application roles to the workload users.</div><pre class="code-scroll"><code>GRANT APP_REPORTING_ROLE TO SOE_REPORTS;
+GRANT APP_READWRITE_ROLE TO SOE_OLTP;
+GRANT APP_READWRITE_ROLE TO SOE_BATCH;</code></pre></div>
+          <div class="code-card"><div class="code-toolbar"><span class="code-type">PL/SQL</span><button class="copy-btn" type="button">Copy</button></div><div class="code-description code-objective"><span class="objective-label">Objective:</span> Create private synonyms so workload users can reference SOE objects without prefixing each object with SOE.</div><pre class="code-scroll"><code>BEGIN
+  FOR obj IN (
+    SELECT object_name, object_type
+    FROM dba_objects
+    WHERE owner = 'SOE'
+      AND object_type IN (
+        'TABLE',
+        'VIEW',
+        'MATERIALIZED VIEW',
+        'SEQUENCE',
+        'PACKAGE',
+        'PROCEDURE',
+        'FUNCTION',
+        'TYPE'
+      )
+    ORDER BY object_type, object_name
+  )
+  LOOP
+    IF obj.object_type IN (
+      'TABLE',
+      'VIEW',
+      'MATERIALIZED VIEW',
+      'PACKAGE',
+      'PROCEDURE',
+      'FUNCTION',
+      'TYPE'
+    ) THEN
+      EXECUTE IMMEDIATE
+        'CREATE OR REPLACE SYNONYM SOE_REPORTS.' ||
+        obj.object_name ||
+        ' FOR SOE.' ||
+        obj.object_name;
+    END IF;
+
+    EXECUTE IMMEDIATE
+      'CREATE OR REPLACE SYNONYM SOE_OLTP.' ||
+      obj.object_name ||
+      ' FOR SOE.' ||
+      obj.object_name;
+
+    EXECUTE IMMEDIATE
+      'CREATE OR REPLACE SYNONYM SOE_BATCH.' ||
+      obj.object_name ||
+      ' FOR SOE.' ||
+      obj.object_name;
+  END LOOP;
+END;
+/</code></pre></div>
+        </div>
+      </section>
+
+      <section id="consumer-groups" class="border-t border-stone-200 py-10 dark:border-stone-800">
+        <p class="text-xs font-semibold uppercase tracking-[0.16em] text-oracle-red dark:text-orange-300">Workload classes</p>
+        <h2 class="mt-2 text-2xl font-bold tracking-tight text-stone-950 dark:text-white sm:text-3xl">Consumer Groups</h2>
+        <p class="mt-3 max-w-3xl text-base leading-7 text-stone-700 dark:text-stone-300">Create one consumer group per workload class so the resource plan can apply predictable CPU and parallel execution limits. Oracle documentation defines a consumer group as a collection of sessions grouped by processing needs; Resource Manager allocates resources to consumer groups rather than to individual sessions. That makes the group the correct abstraction for OLTP users, report users, batch users, and administrators.</p>
+        <p class="mt-4 max-w-3xl text-base leading-7 text-stone-700 dark:text-stone-300">In this guide, sessions are assigned automatically through user-name and service-name mapping rules. The Oracle user name and the database service used by the client at login are both supported mapping attributes. User-name mappings have higher priority in this pattern so <code class="rounded bg-stone-100 px-1.5 py-0.5 text-sm font-semibold text-oracle-deep dark:bg-stone-800 dark:text-orange-200">SOE</code> remains administrative even if it connects through a service that would otherwise map to a workload group.</p>
+        <div class="mt-5 flex flex-wrap gap-2"><span class="rounded-md border border-stone-200 bg-white px-2.5 py-1 text-xs font-semibold text-stone-700 dark:border-stone-700 dark:bg-stone-900 dark:text-stone-300">CG_OLTP</span><span class="rounded-md border border-stone-200 bg-white px-2.5 py-1 text-xs font-semibold text-stone-700 dark:border-stone-700 dark:bg-stone-900 dark:text-stone-300">CG_REPORTING</span><span class="rounded-md border border-stone-200 bg-white px-2.5 py-1 text-xs font-semibold text-stone-700 dark:border-stone-700 dark:bg-stone-900 dark:text-stone-300">CG_BATCH</span><span class="rounded-md border border-stone-200 bg-white px-2.5 py-1 text-xs font-semibold text-stone-700 dark:border-stone-700 dark:bg-stone-900 dark:text-stone-300">CG_ADMIN</span></div>
+        <div class="mt-5 grid gap-3 sm:grid-cols-2">
+          <div class="rounded-lg border border-stone-200 bg-stone-50 p-4 dark:border-stone-700 dark:bg-stone-900/45"><p class="text-sm font-bold text-stone-950 dark:text-white">Mapping happens at session startup</p><p class="mt-2 text-sm leading-6 text-stone-700 dark:text-stone-300">Resource Manager determines an initial consumer group from configured mapping rules. User-name mapping protects owner accounts, while service-name mapping keeps workload identity tied to the connection endpoint.</p></div>
+          <div class="rounded-lg border border-stone-200 bg-stone-50 p-4 dark:border-stone-700 dark:bg-stone-900/45"><p class="text-sm font-bold text-stone-950 dark:text-white">Ungrouped sessions need a policy</p><p class="mt-2 text-sm leading-6 text-stone-700 dark:text-stone-300">Oracle includes special consumer groups such as OTHER_GROUPS for sessions not assigned elsewhere. Validate your final production plan includes required fallback directives.</p></div>
+        </div>
+        <p class="mt-5 max-w-3xl text-base leading-7 text-stone-700 dark:text-stone-300">Assuming the same privileged <code class="rounded bg-stone-100 px-1.5 py-0.5 text-sm font-semibold text-oracle-deep dark:bg-stone-800 dark:text-orange-200">PDB01</code> session is still open from the Security Model section, execute the following Resource Manager commands in that session.</p>
+        <div class="mt-5 code-card"><div class="code-toolbar"><span class="code-type">PL/SQL</span><button class="copy-btn" type="button">Copy</button></div><div class="code-description code-objective"><span class="objective-label">Objective:</span> Create the Resource Manager consumer groups used by the application plan.</div><pre class="code-scroll"><code>BEGIN
+  DBMS_RESOURCE_MANAGER.CREATE_PENDING_AREA();
+
+  DBMS_RESOURCE_MANAGER.CREATE_CONSUMER_GROUP(
+      CONSUMER_GROUP =&gt; 'CG_OLTP',
+      COMMENT =&gt; 'Transactional workload');
+
+  DBMS_RESOURCE_MANAGER.CREATE_CONSUMER_GROUP(
+      CONSUMER_GROUP =&gt; 'CG_REPORTING',
+      COMMENT =&gt; 'Reporting workload');
+
+  DBMS_RESOURCE_MANAGER.CREATE_CONSUMER_GROUP(
+      CONSUMER_GROUP =&gt; 'CG_BATCH',
+      COMMENT =&gt; 'Batch workload');
+
+  DBMS_RESOURCE_MANAGER.CREATE_CONSUMER_GROUP(
+      CONSUMER_GROUP =&gt; 'CG_ADMIN',
+      COMMENT =&gt; 'Administrative workload');
+
+  DBMS_RESOURCE_MANAGER.SUBMIT_PENDING_AREA();
+END;
+/</code></pre></div>
+      </section>
+
+      <section id="resource-plan" class="border-t border-stone-200 py-10 dark:border-stone-800">
+        <p class="text-xs font-semibold uppercase tracking-[0.16em] text-oracle-red dark:text-orange-300">Plan directives</p>
+        <h2 class="mt-2 text-2xl font-bold tracking-tight text-stone-950 dark:text-white sm:text-3xl">Resource Plan</h2>
+        <p class="mt-3 max-w-3xl text-base leading-7 text-stone-700 dark:text-stone-300">A resource plan is the policy container that becomes effective when it is activated. Resource plan directives connect that plan to consumer groups and specify how resources are allocated to each group. Oracle documents CPU management attributes such as <code class="rounded bg-stone-100 px-1.5 py-0.5 text-sm font-semibold text-oracle-deep dark:bg-stone-800 dark:text-orange-200">MGMT_P1</code> as the level-1 CPU allocation mechanism used by this example, documents <code class="rounded bg-stone-100 px-1.5 py-0.5 text-sm font-semibold text-oracle-deep dark:bg-stone-800 dark:text-orange-200">PARALLEL_DEGREE_LIMIT_P1</code> as a directive attribute that limits the degree of parallelism for operations in a group, and documents switching directives such as <code class="rounded bg-stone-100 px-1.5 py-0.5 text-sm font-semibold text-oracle-deep dark:bg-stone-800 dark:text-orange-200">SWITCH_GROUP</code> and <code class="rounded bg-stone-100 px-1.5 py-0.5 text-sm font-semibold text-oracle-deep dark:bg-stone-800 dark:text-orange-200">SWITCH_ELAPSED_TIME</code> for handling sessions that cross a runtime threshold.</p>
+        <p class="mt-4 max-w-3xl text-base leading-7 text-stone-700 dark:text-stone-300">Create two plans for an 8 ECPU-per-VM Exascale environment. The business-hours plan, used from 8:00 AM to 6:00 PM Central Time, forces OLTP and batch operations to run serially with <code class="rounded bg-stone-100 px-1.5 py-0.5 text-sm font-semibold text-oracle-deep dark:bg-stone-800 dark:text-orange-200">PARALLEL_DEGREE_LIMIT_P1 =&gt; 0</code>, allows reporting a modest DOP 2, and cancels reporting calls that exceed 10 minutes of elapsed runtime. The after-hours plan keeps OLTP serial, raises reporting to DOP 4, and allows batch DOP 2. A DOP limit of 1 is not the same as explicitly forcing serial execution: Oracle documents <code class="rounded bg-stone-100 px-1.5 py-0.5 text-sm font-semibold text-oracle-deep dark:bg-stone-800 dark:text-orange-200">0</code> as the value that makes all operations serial, while <code class="rounded bg-stone-100 px-1.5 py-0.5 text-sm font-semibold text-oracle-deep dark:bg-stone-800 dark:text-orange-200">1</code> is still a parallel-degree limit. Each plan also includes the required <code class="rounded bg-stone-100 px-1.5 py-0.5 text-sm font-semibold text-oracle-deep dark:bg-stone-800 dark:text-orange-200">OTHER_GROUPS</code> fallback directive for sessions that do not match one of the application groups.</p>
+        <div class="mt-5 overflow-x-auto rounded-lg border border-stone-200 bg-white dark:border-stone-700 dark:bg-[#211d1b]">
+          <table class="min-w-[760px] border-collapse text-left text-sm">
+            <thead class="bg-stone-100 text-stone-700 dark:bg-stone-800 dark:text-stone-200"><tr><th class="px-4 py-3 font-semibold">Consumer Group</th><th class="px-4 py-3 font-semibold">CPU %</th><th class="px-4 py-3 font-semibold">Business Hours Parallel Limit</th><th class="px-4 py-3 font-semibold">After-Hours Parallel Limit</th><th class="px-4 py-3 font-semibold">Runtime Guardrail</th></tr></thead>
+            <tbody class="divide-y divide-stone-200 dark:divide-stone-700"><tr><td class="px-4 py-3 font-medium">CG_OLTP</td><td class="px-4 py-3">75</td><td class="px-4 py-3">0 / serial</td><td class="px-4 py-3">0 / serial</td><td class="px-4 py-3">None</td></tr><tr><td class="px-4 py-3 font-medium">CG_REPORTING</td><td class="px-4 py-3">15</td><td class="px-4 py-3">2</td><td class="px-4 py-3">4</td><td class="px-4 py-3">Cancel current report call after 600 seconds elapsed</td></tr><tr><td class="px-4 py-3 font-medium">CG_BATCH</td><td class="px-4 py-3">5</td><td class="px-4 py-3">0 / serial</td><td class="px-4 py-3">2</td><td class="px-4 py-3">None</td></tr><tr><td class="px-4 py-3 font-medium">CG_ADMIN</td><td class="px-4 py-3">50</td><td class="px-4 py-3">Default / unrestricted by this directive</td><td class="px-4 py-3">Default / unrestricted by this directive</td><td class="px-4 py-3">None</td></tr><tr><td class="px-4 py-3 font-medium">OTHER_GROUPS</td><td class="px-4 py-3">0</td><td class="px-4 py-3">Default</td><td class="px-4 py-3">Default</td><td class="px-4 py-3">Required fallback for unmapped sessions</td></tr></tbody>
+          </table>
+        </div>
+        <div class="mt-5 rounded-lg border-l-4 border-oracle-red bg-red-50 px-4 py-3 text-sm leading-6 text-stone-700 dark:border-orange-300 dark:bg-orange-950/20 dark:text-stone-300">
+          <p class="font-semibold text-stone-950 dark:text-stone-100">Documentation-aligned validation note</p>
+          <p class="mt-1">Oracle documentation also describes utilization limits, active session pools, parallel statement queuing, session switching, and Resource Manager monitoring views. This guide keeps the plans narrow: CPU shares, serial OLTP operations, business-hours protection for batch, higher after-hours parallel limits for reporting and batch, a reporting elapsed-time guardrail, required <code class="rounded bg-white px-1.5 py-0.5 text-xs font-semibold text-oracle-deep dark:bg-stone-900 dark:text-orange-200">OTHER_GROUPS</code> fallback handling, service-name mappings, and runtime validation. The reporting group uses <code class="rounded bg-white px-1.5 py-0.5 text-xs font-semibold text-oracle-deep dark:bg-stone-900 dark:text-orange-200">SWITCH_ELAPSED_TIME =&gt; 600</code> with <code class="rounded bg-white px-1.5 py-0.5 text-xs font-semibold text-oracle-deep dark:bg-stone-900 dark:text-orange-200">SWITCH_GROUP =&gt; 'CANCEL_SQL'</code> to cancel only the current report call after 10 elapsed minutes in both plans. The admin group intentionally omits a DOP limit so DBA-driven schema reorganization or maintenance can use parallelism when appropriate. Before production, validate whether your plan also needs utilization caps, active session limits, or different runaway-session handling.</p>
+          <a href="https://docs.oracle.com/en/database/oracle/oracle-database/26/admin/managing-resources-with-oracle-database-resource-manager.html" target="_blank" rel="noreferrer" class="mt-3 inline-flex rounded-md text-sm font-semibold text-oracle-red underline-offset-4 hover:underline dark:text-orange-300">Oracle documentation: Managing Resources with Oracle Database Resource Manager</a>
+        </div>
+        <div class="mt-5 rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 text-sm leading-6 text-amber-950 dark:border-amber-500/40 dark:bg-amber-950/25 dark:text-amber-100">
+          <p class="font-semibold">If you already hit ORA-29377</p>
+          <p class="mt-1">Clear the pending area, then rerun the plan creation block with the <code class="rounded bg-white px-1.5 py-0.5 text-xs font-semibold text-oracle-deep dark:bg-stone-900 dark:text-orange-200">OTHER_GROUPS</code> directive included. The earlier consumer group block can remain as-is if it completed successfully.</p>
+        </div>
+        <p class="mt-5 max-w-3xl text-base leading-7 text-stone-700 dark:text-stone-300">Before creating or enabling the application plan, check the current <code class="rounded bg-stone-100 px-1.5 py-0.5 text-sm font-semibold text-oracle-deep dark:bg-stone-800 dark:text-orange-200">RESOURCE_MANAGER_PLAN</code> value in <code class="rounded bg-stone-100 px-1.5 py-0.5 text-sm font-semibold text-oracle-deep dark:bg-stone-800 dark:text-orange-200">PDB01</code>. By default, there should not be an application resource plan active for this PDB, so this check should return a blank value.</p>
+        <div class="mt-5 code-card"><div class="code-toolbar"><span class="code-type">SQL</span><button class="copy-btn" type="button">Copy</button></div><div class="code-description code-objective"><span class="objective-label">Objective:</span> Show the current PDB RESOURCE_MANAGER_PLAN value before creating or activating the business-hours and after-hours plans.</div><pre class="code-scroll"><code>SHOW PARAMETER resource_manager_plan</code></pre></div>
+        <div class="mt-5 code-card code-text"><div class="code-toolbar"><span class="code-type">Output</span><button class="copy-btn" type="button">Copy</button></div><div class="code-description code-objective"><span class="objective-label">Objective:</span> Expected default output when no PDB resource plan is active.</div><pre class="code-scroll"><code>NAME                                 TYPE        VALUE
+------------------------------------ ----------- ------------------------------
+resource_manager_plan                string</code></pre></div>
+        <div class="mt-5 code-card"><div class="code-toolbar"><span class="code-type">PL/SQL</span><button class="copy-btn" type="button">Copy</button></div><div class="code-description code-objective"><span class="objective-label">Objective:</span> Create business-hours and after-hours Resource Manager plans with reusable constants for CPU shares, parallel limits, and report runtime guardrails.</div><pre class="code-scroll"><code>DECLARE
+  c_business_plan                  CONSTANT VARCHAR2(30) := 'APP_RM_BUSINESS_HOURS';
+  c_after_hours_plan               CONSTANT VARCHAR2(30) := 'APP_RM_AFTER_HOURS';
+  c_oltp_cpu                       CONSTANT PLS_INTEGER := 75;
+  c_reporting_cpu                  CONSTANT PLS_INTEGER := 15;
+  c_batch_cpu                      CONSTANT PLS_INTEGER := 5;
+  c_admin_cpu                      CONSTANT PLS_INTEGER := 50;
+  c_other_groups_cpu               CONSTANT PLS_INTEGER := 0;
+  -- 0 forces serial operations. 1 is a DOP cap, not the serial switch.
+  c_oltp_parallel_limit            CONSTANT PLS_INTEGER := 0;
+  c_business_reporting_parallel    CONSTANT PLS_INTEGER := 2;
+  c_business_batch_parallel        CONSTANT PLS_INTEGER := 0;
+  -- After hours, increase reporting and batch parallelism while keeping OLTP serial.
+  c_after_hours_reporting_parallel CONSTANT PLS_INTEGER := 4;
+  c_after_hours_batch_parallel     CONSTANT PLS_INTEGER := 2;
+  c_reporting_elapsed_limit        CONSTANT PLS_INTEGER := 600;
+
+  PROCEDURE create_workload_plan(
+      p_plan_name                IN VARCHAR2,
+      p_reporting_parallel_limit IN PLS_INTEGER,
+      p_batch_parallel_limit     IN PLS_INTEGER,
+      p_comment                  IN VARCHAR2)
+  IS
+  BEGIN
+    DBMS_RESOURCE_MANAGER.CREATE_PLAN(
+        PLAN =&gt; p_plan_name,
+        COMMENT =&gt; p_comment);
+
+    DBMS_RESOURCE_MANAGER.CREATE_PLAN_DIRECTIVE(
+        PLAN =&gt; p_plan_name,
+        GROUP_OR_SUBPLAN =&gt; 'CG_OLTP',
+        MGMT_P1 =&gt; c_oltp_cpu,
+        PARALLEL_DEGREE_LIMIT_P1 =&gt; c_oltp_parallel_limit);
+
+    DBMS_RESOURCE_MANAGER.CREATE_PLAN_DIRECTIVE(
+        PLAN =&gt; p_plan_name,
+        GROUP_OR_SUBPLAN =&gt; 'CG_REPORTING',
+        MGMT_P1 =&gt; c_reporting_cpu,
+        PARALLEL_DEGREE_LIMIT_P1 =&gt; p_reporting_parallel_limit,
+        SWITCH_GROUP =&gt; 'CANCEL_SQL',
+        SWITCH_ELAPSED_TIME =&gt; c_reporting_elapsed_limit,
+        SWITCH_FOR_CALL =&gt; TRUE);
+
+    DBMS_RESOURCE_MANAGER.CREATE_PLAN_DIRECTIVE(
+        PLAN =&gt; p_plan_name,
+        GROUP_OR_SUBPLAN =&gt; 'CG_BATCH',
+        MGMT_P1 =&gt; c_batch_cpu,
+        PARALLEL_DEGREE_LIMIT_P1 =&gt; p_batch_parallel_limit);
+
+    DBMS_RESOURCE_MANAGER.CREATE_PLAN_DIRECTIVE(
+        PLAN =&gt; p_plan_name,
+        GROUP_OR_SUBPLAN =&gt; 'CG_ADMIN',
+        MGMT_P1 =&gt; c_admin_cpu);
+
+    DBMS_RESOURCE_MANAGER.CREATE_PLAN_DIRECTIVE(
+        PLAN =&gt; p_plan_name,
+        GROUP_OR_SUBPLAN =&gt; 'OTHER_GROUPS',
+        MGMT_P1 =&gt; c_other_groups_cpu);
+  END create_workload_plan;
+BEGIN
+  DBMS_RESOURCE_MANAGER.CREATE_PENDING_AREA();
+
+  create_workload_plan(
+      p_plan_name =&gt; c_business_plan,
+      p_reporting_parallel_limit =&gt; c_business_reporting_parallel,
+      p_batch_parallel_limit =&gt; c_business_batch_parallel,
+      p_comment =&gt; 'Business-hours plan: reports DOP 2, batch serial');
+
+  create_workload_plan(
+      p_plan_name =&gt; c_after_hours_plan,
+      p_reporting_parallel_limit =&gt; c_after_hours_reporting_parallel,
+      p_batch_parallel_limit =&gt; c_after_hours_batch_parallel,
+      p_comment =&gt; 'After-hours plan: reports DOP 4, batch DOP 2');
+
+  DBMS_RESOURCE_MANAGER.SUBMIT_PENDING_AREA();
+END;
+/</code></pre></div>
+        <p class="mt-5 max-w-3xl text-base leading-7 text-stone-700 dark:text-stone-300">Oracle creates some Resource Manager plans by default. Filter those out when the goal is to review only the application plans created for this demo.</p>
+        <div class="mt-5 code-card"><div class="code-toolbar"><span class="code-type">SQL</span><button class="copy-btn" type="button">Copy</button></div><div class="code-description code-objective"><span class="objective-label">Objective:</span> Display user-defined Resource Manager plan directives and exclude common Oracle-maintained default plans.</div><pre class="code-scroll"><code>SET LINESIZE 220
+SET PAGESIZE 100
+
+COLUMN plan FORMAT A30
+COLUMN group_or_subplan FORMAT A20
+COLUMN comments FORMAT A55
+COLUMN mgmt_p1 FORMAT 999 HEADING 'CPU'
+COLUMN parallel_degree_limit_p1 FORMAT 999 HEADING 'PAR'
+COLUMN switch_group FORMAT A15
+COLUMN switch_elapsed_time FORMAT 999999 HEADING 'SECONDS'
+
+SELECT
+    plan,
+    group_or_subplan,
+    mgmt_p1,
+    parallel_degree_limit_p1,
+    switch_group,
+    switch_elapsed_time,
+    comments
+FROM dba_rsrc_plan_directives
+WHERE plan NOT LIKE 'ORA$%'
+  AND plan NOT IN (
+      'APPQOS_PLAN',
+      'DEFAULT_PLAN',
+      'DEFAULT_MAINTENANCE_PLAN',
+      'DSS_PLAN',
+      'ETL_CRITICAL_PLAN',
+      'INTERNAL_QUIESCE',
+      'INTERNAL_PLAN',
+      'MIXED_WORKLOAD_PLAN'
+  )
+ORDER BY plan, group_or_subplan;</code></pre></div>
+        <p class="mt-5 max-w-3xl text-base leading-7 text-stone-700 dark:text-stone-300">If you remove the filter, the catalog can also show Oracle-maintained or precreated plans such as <code class="rounded bg-stone-100 px-1.5 py-0.5 text-sm font-semibold text-oracle-deep dark:bg-stone-800 dark:text-orange-200">APPQOS_PLAN</code>, <code class="rounded bg-stone-100 px-1.5 py-0.5 text-sm font-semibold text-oracle-deep dark:bg-stone-800 dark:text-orange-200">ETL_CRITICAL_PLAN</code>, <code class="rounded bg-stone-100 px-1.5 py-0.5 text-sm font-semibold text-oracle-deep dark:bg-stone-800 dark:text-orange-200">DSS_PLAN</code>, and <code class="rounded bg-stone-100 px-1.5 py-0.5 text-sm font-semibold text-oracle-deep dark:bg-stone-800 dark:text-orange-200">INTERNAL_QUIESCE</code>, depending on the database version and environment. Do not delete those unless Oracle documentation or Oracle Support explicitly directs you to do so. Oracle documents that Resource Manager elements are stored in data dictionary views and that some Resource Manager groups are always present or used for automatic database activity.</p>
+        <a href="https://docs.oracle.com/en/database/oracle/oracle-database/26/admin/managing-resources-with-oracle-database-resource-manager.html#GUID-F3717FD0-3022-42BD-B50C-5F783C02689F" target="_blank" rel="noreferrer" class="mt-3 inline-flex rounded-md text-sm font-semibold text-oracle-red underline-offset-4 hover:underline dark:text-orange-300">Oracle documentation: Consumer Groups, Plans, and Plan Directives</a>
+        <div class="mt-5 code-card"><div class="code-toolbar"><span class="code-type">PL/SQL</span><button class="copy-btn" type="button">Copy</button></div><div class="code-description code-objective"><span class="objective-label">Objective:</span> Delete a specific Resource Manager plan during cleanup or reruns. Replace the placeholder with the exact plan name to remove.</div><pre class="code-scroll"><code>BEGIN
+  DBMS_RESOURCE_MANAGER.CREATE_PENDING_AREA();
+
+  DBMS_RESOURCE_MANAGER.DELETE_PLAN(
+      PLAN =&gt; '&lt;PLAN_NAME&gt;');
+
+  DBMS_RESOURCE_MANAGER.SUBMIT_PENDING_AREA();
+END;
+/</code></pre></div>
+        <div class="mt-5 code-card"><div class="code-toolbar"><span class="code-type">PL/SQL</span><button class="copy-btn" type="button">Copy</button></div><div class="code-description code-objective"><span class="objective-label">Objective:</span> Clear an unsubmitted Resource Manager pending area after a failed plan validation, then rerun the corrected plan creation block.</div><pre class="code-scroll"><code>BEGIN
+  DBMS_RESOURCE_MANAGER.CLEAR_PENDING_AREA();
+END;
+/</code></pre></div>
+      </section>
+
+      <section id="service-mapping" class="border-t border-stone-200 py-10 dark:border-stone-800">
+        <p class="text-xs font-semibold uppercase tracking-[0.16em] text-oracle-red dark:text-orange-300">User and service routing</p>
+        <h2 class="mt-2 text-2xl font-bold tracking-tight text-stone-950 dark:text-white sm:text-3xl">User and Service-Based Mapping</h2>
+        <p class="mt-3 max-w-3xl text-base leading-7 text-stone-700 dark:text-stone-300">Map owner and application users first, then map RAC service names to the consumer groups that should govern sessions entering through those services. The default PDB service <code class="rounded bg-stone-100 px-1.5 py-0.5 text-sm font-semibold text-oracle-deep dark:bg-stone-800 dark:text-orange-200">CDB01_PDB01.paas.oracle.com</code> is reused for OLTP and for <code class="rounded bg-stone-100 px-1.5 py-0.5 text-sm font-semibold text-oracle-deep dark:bg-stone-800 dark:text-orange-200">SOE</code> schema-owner access.</p>
+        <p class="mt-4 max-w-3xl text-base leading-7 text-stone-700 dark:text-stone-300">Resource Manager evaluates mapping attributes by priority and uses the highest-priority match for the session. In this plan, explicit switches have priority 1, Oracle user mappings have priority 2, and service-name mappings have priority 3. That means a user-specific mapping wins over a service mapping when both could apply to the same connection.</p>
+        <div class="mt-5 grid gap-3 md:grid-cols-3">
+          <div class="rounded-lg border border-stone-200 bg-stone-50 p-4 dark:border-stone-700 dark:bg-stone-900/45"><p class="text-xs font-bold uppercase tracking-[0.16em] text-oracle-red dark:text-orange-300">Priority 1</p><p class="mt-1 text-sm font-bold text-stone-950 dark:text-white">Explicit switch</p><p class="mt-2 text-sm leading-6 text-stone-700 dark:text-stone-300">Reserved for manual or programmatic consumer group switches.</p></div>
+          <div class="rounded-lg border border-stone-200 bg-stone-50 p-4 dark:border-stone-700 dark:bg-stone-900/45"><p class="text-xs font-bold uppercase tracking-[0.16em] text-oracle-red dark:text-orange-300">Priority 2</p><p class="mt-1 text-sm font-bold text-stone-950 dark:text-white">Oracle user</p><p class="mt-2 text-sm leading-6 text-stone-700 dark:text-stone-300">User mappings protect <code class="rounded bg-white px-1 py-0.5 text-xs font-semibold text-oracle-deep dark:bg-stone-800 dark:text-orange-200">SOE</code> and route <code class="rounded bg-white px-1 py-0.5 text-xs font-semibold text-oracle-deep dark:bg-stone-800 dark:text-orange-200">SOE_OLTP</code>.</p></div>
+          <div class="rounded-lg border border-stone-200 bg-stone-50 p-4 dark:border-stone-700 dark:bg-stone-900/45"><p class="text-xs font-bold uppercase tracking-[0.16em] text-oracle-red dark:text-orange-300">Priority 3</p><p class="mt-1 text-sm font-bold text-stone-950 dark:text-white">Service name</p><p class="mt-2 text-sm leading-6 text-stone-700 dark:text-stone-300">Service mappings route sessions that do not have a higher-priority user match.</p></div>
+        </div>
+        <div class="mt-5 overflow-x-auto rounded-lg border border-stone-200 bg-white dark:border-stone-700 dark:bg-[#211d1b]">
+          <table class="min-w-[860px] border-collapse text-left text-sm">
+            <thead class="bg-stone-100 text-stone-700 dark:bg-stone-800 dark:text-stone-200">
+              <tr>
+                <th class="px-4 py-3 font-semibold">Session connects as</th>
+                <th class="px-4 py-3 font-semibold">Connection service</th>
+                <th class="px-4 py-3 font-semibold">Priority</th>
+                <th class="px-4 py-3 font-semibold">Final consumer group</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-stone-200 dark:divide-stone-700">
+              <tr>
+                <td class="px-4 py-3 align-top font-mono text-xs text-stone-700 dark:text-stone-300">SOE</td>
+                <td class="px-4 py-3 align-top font-mono text-xs text-stone-700 dark:text-stone-300">CDB01_PDB01.paas.oracle.com</td>
+                <td class="px-4 py-3 align-top font-semibold text-oracle-red dark:text-orange-300">Priority 2</td>
+                <td class="px-4 py-3 align-top font-mono text-xs text-stone-700 dark:text-stone-300">CG_ADMIN</td>
+              </tr>
+              <tr>
+                <td colspan="4" class="bg-stone-50 px-4 py-3 text-sm leading-6 text-stone-700 dark:bg-stone-900/45 dark:text-stone-300"><code class="rounded bg-white px-1 py-0.5 text-xs font-semibold text-oracle-deep dark:bg-stone-800 dark:text-orange-200">ORACLE_USER = SOE</code> protects the schema owner by user mapping, so it remains administrative even on the default service.</td>
+              </tr>
+              <tr>
+                <td class="px-4 py-3 align-top font-mono text-xs text-stone-700 dark:text-stone-300">SOE_OLTP</td>
+                <td class="px-4 py-3 align-top font-mono text-xs text-stone-700 dark:text-stone-300">CDB01_PDB01.paas.oracle.com</td>
+                <td class="px-4 py-3 align-top font-semibold text-oracle-red dark:text-orange-300">Priority 2</td>
+                <td class="px-4 py-3 align-top font-mono text-xs text-stone-700 dark:text-stone-300">CG_OLTP</td>
+              </tr>
+              <tr>
+                <td colspan="4" class="bg-stone-50 px-4 py-3 text-sm leading-6 text-stone-700 dark:bg-stone-900/45 dark:text-stone-300"><code class="rounded bg-white px-1 py-0.5 text-xs font-semibold text-oracle-deep dark:bg-stone-800 dark:text-orange-200">ORACLE_USER = SOE_OLTP</code> explicitly routes the transactional user to OLTP. This also documents that the default PDB service is the OLTP entry point.</td>
+              </tr>
+              <tr>
+                <td class="px-4 py-3 align-top text-sm font-semibold text-stone-900 dark:text-stone-100">Any user without a higher-priority mapping</td>
+                <td class="px-4 py-3 align-top font-mono text-xs text-stone-700 dark:text-stone-300">CDB01_PDB01.paas.oracle.com</td>
+                <td class="px-4 py-3 align-top font-semibold text-oracle-red dark:text-orange-300">Priority 3</td>
+                <td class="px-4 py-3 align-top font-mono text-xs text-stone-700 dark:text-stone-300">CG_OLTP</td>
+              </tr>
+              <tr>
+                <td colspan="4" class="bg-stone-50 px-4 py-3 text-sm leading-6 text-stone-700 dark:bg-stone-900/45 dark:text-stone-300"><code class="rounded bg-white px-1 py-0.5 text-xs font-semibold text-oracle-deep dark:bg-stone-800 dark:text-orange-200">SERVICE_NAME = CDB01_PDB01.paas.oracle.com</code> reuses the default service as the OLTP default for sessions that are not special-cased by user.</td>
+              </tr>
+              <tr>
+                <td class="px-4 py-3 align-top font-mono text-xs text-stone-700 dark:text-stone-300">SOE_REPORTS</td>
+                <td class="px-4 py-3 align-top font-mono text-xs text-stone-700 dark:text-stone-300">CDB01_PDB01_REPORTS.paas.oracle.com</td>
+                <td class="px-4 py-3 align-top font-semibold text-oracle-red dark:text-orange-300">Priority 3</td>
+                <td class="px-4 py-3 align-top font-mono text-xs text-stone-700 dark:text-stone-300">CG_REPORTING</td>
+              </tr>
+              <tr>
+                <td colspan="4" class="bg-stone-50 px-4 py-3 text-sm leading-6 text-stone-700 dark:bg-stone-900/45 dark:text-stone-300"><code class="rounded bg-white px-1 py-0.5 text-xs font-semibold text-oracle-deep dark:bg-stone-800 dark:text-orange-200">SERVICE_NAME = CDB01_PDB01_REPORTS.paas.oracle.com</code> classifies report sessions so they inherit the reporting DOP and 10-minute elapsed-time guardrail.</td>
+              </tr>
+              <tr>
+                <td class="px-4 py-3 align-top font-mono text-xs text-stone-700 dark:text-stone-300">SOE_BATCH</td>
+                <td class="px-4 py-3 align-top font-mono text-xs text-stone-700 dark:text-stone-300">CDB01_PDB01_BATCH.paas.oracle.com</td>
+                <td class="px-4 py-3 align-top font-semibold text-oracle-red dark:text-orange-300">Priority 3</td>
+                <td class="px-4 py-3 align-top font-mono text-xs text-stone-700 dark:text-stone-300">CG_BATCH</td>
+              </tr>
+              <tr>
+                <td colspan="4" class="bg-stone-50 px-4 py-3 text-sm leading-6 text-stone-700 dark:bg-stone-900/45 dark:text-stone-300"><code class="rounded bg-white px-1 py-0.5 text-xs font-semibold text-oracle-deep dark:bg-stone-800 dark:text-orange-200">SERVICE_NAME = CDB01_PDB01_BATCH.paas.oracle.com</code> classifies batch work through its dedicated service so it can be throttled separately from OLTP and reporting.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="mt-5 max-w-3xl text-base leading-7 text-stone-700 dark:text-stone-300"><code class="rounded bg-stone-100 px-1.5 py-0.5 text-sm font-semibold text-oracle-deep dark:bg-stone-800 dark:text-orange-200">SET_CONSUMER_GROUP_MAPPING_PRI</code> sets which mapping attribute wins when more than one rule could match a session. <code class="rounded bg-stone-100 px-1.5 py-0.5 text-sm font-semibold text-oracle-deep dark:bg-stone-800 dark:text-orange-200">SET_CONSUMER_GROUP_MAPPING</code> then creates the actual user or service rule that points to a consumer group.</p>
+        <p class="mt-4 max-w-3xl text-base leading-7 text-stone-700 dark:text-stone-300">For this design, <code class="rounded bg-stone-100 px-1.5 py-0.5 text-sm font-semibold text-oracle-deep dark:bg-stone-800 dark:text-orange-200">ORACLE_USER =&gt; 2</code> and <code class="rounded bg-stone-100 px-1.5 py-0.5 text-sm font-semibold text-oracle-deep dark:bg-stone-800 dark:text-orange-200">SERVICE_NAME =&gt; 3</code> is important because <code class="rounded bg-stone-100 px-1.5 py-0.5 text-sm font-semibold text-oracle-deep dark:bg-stone-800 dark:text-orange-200">SOE</code> and <code class="rounded bg-stone-100 px-1.5 py-0.5 text-sm font-semibold text-oracle-deep dark:bg-stone-800 dark:text-orange-200">SOE_OLTP</code> can connect through the same default service, but their user mappings still win over the service mapping.</p>
+        <p class="mt-4 max-w-3xl text-base leading-7 text-stone-700 dark:text-stone-300">These Resource Manager changes must also run inside a pending area, so the block opens with <code class="rounded bg-stone-100 px-1.5 py-0.5 text-sm font-semibold text-oracle-deep dark:bg-stone-800 dark:text-orange-200">CREATE_PENDING_AREA</code> and finishes with <code class="rounded bg-stone-100 px-1.5 py-0.5 text-sm font-semibold text-oracle-deep dark:bg-stone-800 dark:text-orange-200">SUBMIT_PENDING_AREA</code>.</p>
+        <div class="mt-5 code-card"><div class="code-toolbar"><span class="code-type">PL/SQL</span><button class="copy-btn" type="button">Copy</button></div><div class="code-description code-objective"><span class="objective-label">Objective:</span> Prioritize user mappings, map SOE to CG_ADMIN, map SOE_OLTP to CG_OLTP, and map workload services to their Resource Manager consumer groups.</div><pre class="code-scroll"><code>BEGIN
+  DBMS_RESOURCE_MANAGER.CREATE_PENDING_AREA();
+
+  DBMS_RESOURCE_MANAGER.SET_CONSUMER_GROUP_MAPPING_PRI(
+      EXPLICIT =&gt; 1,
+      ORACLE_USER =&gt; 2,
+      SERVICE_NAME =&gt; 3,
+      CLIENT_OS_USER =&gt; 4,
+      CLIENT_PROGRAM =&gt; 5,
+      CLIENT_MACHINE =&gt; 6,
+      MODULE_NAME =&gt; 7,
+      MODULE_NAME_ACTION =&gt; 8,
+      SERVICE_MODULE =&gt; 9,
+      SERVICE_MODULE_ACTION =&gt; 10,
+      CLIENT_ID =&gt; 11);
+
+  DBMS_RESOURCE_MANAGER.SET_CONSUMER_GROUP_MAPPING(
+      ATTRIBUTE =&gt; DBMS_RESOURCE_MANAGER.ORACLE_USER,
+      VALUE =&gt; 'SOE',
+      CONSUMER_GROUP =&gt; 'CG_ADMIN');
+
+  DBMS_RESOURCE_MANAGER.SET_CONSUMER_GROUP_MAPPING(
+      ATTRIBUTE =&gt; DBMS_RESOURCE_MANAGER.ORACLE_USER,
+      VALUE =&gt; 'SOE_OLTP',
+      CONSUMER_GROUP =&gt; 'CG_OLTP');
+
+  DBMS_RESOURCE_MANAGER.SET_CONSUMER_GROUP_MAPPING(
+      ATTRIBUTE =&gt; DBMS_RESOURCE_MANAGER.SERVICE_NAME,
+      VALUE =&gt; 'CDB01_PDB01.paas.oracle.com',
+      CONSUMER_GROUP =&gt; 'CG_OLTP');
+
+  DBMS_RESOURCE_MANAGER.SET_CONSUMER_GROUP_MAPPING(
+      ATTRIBUTE =&gt; DBMS_RESOURCE_MANAGER.SERVICE_NAME,
+      VALUE =&gt; 'CDB01_PDB01_REPORTS.paas.oracle.com',
+      CONSUMER_GROUP =&gt; 'CG_REPORTING');
+
+  DBMS_RESOURCE_MANAGER.SET_CONSUMER_GROUP_MAPPING(
+      ATTRIBUTE =&gt; DBMS_RESOURCE_MANAGER.SERVICE_NAME,
+      VALUE =&gt; 'CDB01_PDB01_BATCH.paas.oracle.com',
+      CONSUMER_GROUP =&gt; 'CG_BATCH');
+
+  DBMS_RESOURCE_MANAGER.SUBMIT_PENDING_AREA();
+END;
+/</code></pre></div>
+      </section>
+
+      <section id="enable" class="border-t border-stone-200 py-10 dark:border-stone-800">
+        <p class="text-xs font-semibold uppercase tracking-[0.16em] text-oracle-red dark:text-orange-300">Activation</p>
+        <h2 class="mt-2 text-2xl font-bold tracking-tight text-stone-950 dark:text-white sm:text-3xl">Enable Resource Manager</h2>
+        <p class="mt-3 max-w-3xl text-base leading-7 text-stone-700 dark:text-stone-300">After the plan and mappings are in place, connect directly to <code class="rounded bg-stone-100 px-1.5 py-0.5 text-sm font-semibold text-oracle-deep dark:bg-stone-800 dark:text-orange-200">PDB01</code> and activate the PDB resource plan there. Oracle documentation states that a session must be in the PDB to enable or disable a PDB resource plan for that PDB.</p>
+        <p class="mt-4 max-w-3xl text-base leading-7 text-stone-700 dark:text-stone-300">This does not have to be a <code class="rounded bg-stone-100 px-1.5 py-0.5 text-sm font-semibold text-oracle-deep dark:bg-stone-800 dark:text-orange-200">SYS</code> session. For <code class="rounded bg-stone-100 px-1.5 py-0.5 text-sm font-semibold text-oracle-deep dark:bg-stone-800 dark:text-orange-200">ALTER SYSTEM</code> in a PDB, Oracle requires the current container to be the PDB and the connected account to have the <code class="rounded bg-stone-100 px-1.5 py-0.5 text-sm font-semibold text-oracle-deep dark:bg-stone-800 dark:text-orange-200">ALTER SYSTEM</code> system privilege, granted either commonly or locally in the PDB. A privileged account such as <code class="rounded bg-stone-100 px-1.5 py-0.5 text-sm font-semibold text-oracle-deep dark:bg-stone-800 dark:text-orange-200">SYSTEM</code> can be used if it connects to <code class="rounded bg-stone-100 px-1.5 py-0.5 text-sm font-semibold text-oracle-deep dark:bg-stone-800 dark:text-orange-200">PDB01</code> and has that privilege; otherwise use an approved DBA account with the required privilege.</p>
+        <div class="mt-5 rounded-lg border-l-4 border-oracle-red bg-red-50 px-4 py-3 text-sm leading-6 text-stone-700 dark:border-orange-300 dark:bg-orange-950/20 dark:text-stone-300">
+          <p class="font-semibold text-stone-950 dark:text-stone-100">Connection check</p>
+          <p class="mt-1">Before setting the plan, confirm the session container with <code class="rounded bg-white px-1.5 py-0.5 text-xs font-semibold text-oracle-deep dark:bg-stone-900 dark:text-orange-200">SHOW CON_NAME</code>. If the result is not <code class="rounded bg-white px-1.5 py-0.5 text-xs font-semibold text-oracle-deep dark:bg-stone-900 dark:text-orange-200">PDB01</code>, reconnect through the PDB service or switch to the PDB before running the command.</p>
+        </div>
+        <div class="mt-5 code-card"><div class="code-toolbar"><span class="code-type">SQL</span><button class="copy-btn" type="button">Copy</button></div><div class="code-description code-objective"><span class="objective-label">Objective:</span> Connect to PDB01 with an account that has ALTER SYSTEM privilege, verify the current container, and activate the business-hours Resource Manager plan.</div><pre class="code-scroll"><code>CONNECT system@CDB01_PDB01
+SHOW CON_NAME
+
+ALTER SYSTEM SET RESOURCE_MANAGER_PLAN='APP_RM_BUSINESS_HOURS';</code></pre></div>
+        <p class="mt-5 max-w-3xl text-base leading-7 text-stone-700 dark:text-stone-300">For this blog, switch plans manually during validation. Use the business-hours plan from 8:00 AM to 6:00 PM Central Time. After 6:00 PM Central Time, switch to the after-hours plan to allow report DOP 4 and batch DOP 2. At 8:00 AM Central Time, switch back to the business-hours plan to protect OLTP.</p>
+        <div class="mt-5 grid gap-5 lg:grid-cols-2">
+          <div class="code-card"><div class="code-toolbar"><span class="code-type">SQL</span><button class="copy-btn" type="button">Copy</button></div><div class="code-description code-objective"><span class="objective-label">Objective:</span> Manually switch to the after-hours plan after 6:00 PM Central Time.</div><pre class="code-scroll"><code>ALTER SYSTEM SET RESOURCE_MANAGER_PLAN='APP_RM_AFTER_HOURS';</code></pre></div>
+          <div class="code-card"><div class="code-toolbar"><span class="code-type">SQL</span><button class="copy-btn" type="button">Copy</button></div><div class="code-description code-objective"><span class="objective-label">Objective:</span> Manually switch back to the business-hours plan at 8:00 AM Central Time.</div><pre class="code-scroll"><code>ALTER SYSTEM SET RESOURCE_MANAGER_PLAN='APP_RM_BUSINESS_HOURS';</code></pre></div>
+        </div>
+        <div class="mt-5 rounded-lg border-l-4 border-oracle-red bg-red-50 px-4 py-3 text-sm leading-6 text-stone-700 dark:border-orange-300 dark:bg-orange-950/20 dark:text-stone-300">
+          <p class="font-semibold text-stone-950 dark:text-stone-100">Automation research note</p>
+          <p class="mt-1">Oracle Scheduler windows are the supported mechanism to automate time-based Resource Manager plan changes. A Scheduler window can be associated with a <code class="rounded bg-white px-1.5 py-0.5 text-xs font-semibold text-oracle-deep dark:bg-stone-900 dark:text-orange-200">resource_plan</code>; when the window opens, Oracle switches to that plan, and when the window closes, it restores the appropriate plan. For this blog, the switch remains manual so the plan change is explicit during the demo.</p>
+          <a href="https://docs.oracle.com/en/database/oracle/oracle-database/26/arpls/DBMS_SCHEDULER.html" target="_blank" rel="noreferrer" class="mt-3 inline-flex rounded-md text-sm font-semibold text-oracle-red underline-offset-4 hover:underline dark:text-orange-300">Oracle documentation: DBMS_SCHEDULER CREATE_WINDOW</a>
+        </div>
+        <div class="mt-5 rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 text-sm leading-6 text-amber-950 dark:border-amber-500/40 dark:bg-amber-950/25 dark:text-amber-100">
+          <p class="font-semibold">Demo validation flow</p>
+          <p class="mt-1">For demo purposes, open a separate SQL*Plus session as <code class="rounded bg-white px-1.5 py-0.5 text-xs font-semibold text-oracle-deep dark:bg-stone-900 dark:text-orange-200">SOE</code> and keep it connected. Then use a separate <code class="rounded bg-white px-1.5 py-0.5 text-xs font-semibold text-oracle-deep dark:bg-stone-900 dark:text-orange-200">SYSTEM</code> session to run the validation query. This avoids granting broad privileges to <code class="rounded bg-white px-1.5 py-0.5 text-xs font-semibold text-oracle-deep dark:bg-stone-900 dark:text-orange-200">SOE</code> and still proves that the user mapping assigns <code class="rounded bg-white px-1.5 py-0.5 text-xs font-semibold text-oracle-deep dark:bg-stone-900 dark:text-orange-200">SOE</code> to <code class="rounded bg-white px-1.5 py-0.5 text-xs font-semibold text-oracle-deep dark:bg-stone-900 dark:text-orange-200">CG_ADMIN</code>.</p>
+        </div>
+        <div class="mt-5 code-card"><div class="code-toolbar"><span class="code-type">SQL</span><button class="copy-btn" type="button">Copy</button></div><div class="code-description code-objective"><span class="objective-label">Objective:</span> In a separate demo session, connect as SOE through the default PDB service and keep the session open for SYSTEM-side validation.</div><pre class="code-scroll"><code>sqlplus soe@CDB01_PDB01
+SHOW USER
+SHOW CON_NAME
+
+SELECT user FROM dual;
+
+-- Keep this SOE session connected while SYSTEM runs the validation query.</code></pre></div>
+        <div class="mt-5 rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 text-sm leading-6 text-amber-950 dark:border-amber-500/40 dark:bg-amber-950/25 dark:text-amber-100">
+          <p class="font-semibold">If a workload is already running</p>
+          <p class="mt-1">Oracle documents that a resource plan can be changed dynamically without restarting the database, and the currently active plan controls allocation for sessions in consumer groups. However, session-to-consumer-group mapping is assigned when a session is created. If uncontrolled sessions were already connected before the user and service mappings were created or activated, validate their current consumer group in <code class="rounded bg-white px-1.5 py-0.5 text-xs font-semibold text-oracle-deep dark:bg-stone-900 dark:text-orange-200">GV$SESSION</code>; reconnect or explicitly switch sessions if they are still in an unexpected group such as <code class="rounded bg-white px-1.5 py-0.5 text-xs font-semibold text-oracle-deep dark:bg-stone-900 dark:text-orange-200">OTHER_GROUPS</code>. For runaway report calls, do not rely on mid-flight activation as the only control; enable the plan before opening load to guarantee the intended classification and limits from the start of each call.</p>
+        </div>
+      </section>
+
+      <section id="validation" class="border-t border-stone-200 py-10 dark:border-stone-800">
+        <p class="text-xs font-semibold uppercase tracking-[0.16em] text-oracle-red dark:text-orange-300">Runtime evidence</p>
+        <h2 class="mt-2 text-2xl font-bold tracking-tight text-stone-950 dark:text-white sm:text-3xl">Validation</h2>
+        <p class="mt-3 max-w-3xl text-base leading-7 text-stone-700 dark:text-stone-300">Validate the connected service name and Resource Manager consumer group for user sessions from <code class="rounded bg-stone-100 px-1.5 py-0.5 text-sm font-semibold text-oracle-deep dark:bg-stone-800 dark:text-orange-200">GV$SESSION</code>. Run this from <code class="rounded bg-stone-100 px-1.5 py-0.5 text-sm font-semibold text-oracle-deep dark:bg-stone-800 dark:text-orange-200">SYSTEM</code> or another approved DBA-level account while the demo <code class="rounded bg-stone-100 px-1.5 py-0.5 text-sm font-semibold text-oracle-deep dark:bg-stone-800 dark:text-orange-200">SOE</code> session remains connected. This avoids version-specific column differences in <code class="rounded bg-stone-100 px-1.5 py-0.5 text-sm font-semibold text-oracle-deep dark:bg-stone-800 dark:text-orange-200">GV$RSRC_SESSION_INFO</code>, and it reports the service for each session row rather than the service of the DBA session running the query.</p>
+        <div class="mt-5 code-card"><div class="code-toolbar"><span class="code-type">SQL</span><button class="copy-btn" type="button">Copy</button></div><div class="code-description code-objective"><span class="objective-label">Objective:</span> Connect as SYSTEM, format output, and show user sessions with their service name and active Resource Manager consumer group.</div><pre class="code-scroll"><code>CONNECT system@CDB01_PDB01
+SHOW CON_NAME
+
+SET LINESIZE 220
+SET PAGESIZE 100
+
+COLUMN inst_id FORMAT 999 HEADING 'INST'
+COLUMN sid FORMAT 999999
+COLUMN serial# FORMAT 999999
+COLUMN username FORMAT A20
+COLUMN service_name FORMAT A45
+COLUMN resource_consumer_group FORMAT A30
+
+SELECT
+    s.inst_id,
+    s.sid,
+    s.serial#,
+    s.username,
+    s.service_name,
+    s.resource_consumer_group
+FROM gv$session s
+WHERE s.type = 'USER'
+  AND s.username IS NOT NULL
+ORDER BY s.inst_id, s.username, s.sid;</code></pre></div>
+        <p class="mt-5 max-w-3xl text-base leading-7 text-stone-700 dark:text-stone-300">Use SQL*Plus report formatting when you need readable instance subtotals without making the SQL harder to maintain. The query returns only the real grouped session rows; <code class="rounded bg-stone-100 px-1.5 py-0.5 text-sm font-semibold text-oracle-deep dark:bg-stone-800 dark:text-orange-200">BREAK</code> and <code class="rounded bg-stone-100 px-1.5 py-0.5 text-sm font-semibold text-oracle-deep dark:bg-stone-800 dark:text-orange-200">COMPUTE</code> add the separator line, the <code class="rounded bg-stone-100 px-1.5 py-0.5 text-sm font-semibold text-oracle-deep dark:bg-stone-800 dark:text-orange-200">INSTANCE TOTAL</code> rows, the blank line between instances, and the final report total.</p>
+        <div class="mt-5 code-card"><div class="code-toolbar"><span class="code-type">SQL</span><button class="copy-btn" type="button">Copy</button></div><div class="code-description code-objective"><span class="objective-label">Objective:</span> Summarize workload connection distribution by RAC instance, add per-instance totals, and show the cluster-wide total.</div><pre class="code-scroll"><code>SET LINESIZE 220
+SET PAGESIZE 100
+
+COLUMN inst FORMAT A8 HEADING 'INST'
+COLUMN username FORMAT A20
+COLUMN service_name FORMAT A45
+COLUMN resource_consumer_group FORMAT A30
+COLUMN sessions FORMAT 999999 HEADING 'SESSIONS'
+
+BREAK ON inst SKIP 1 ON REPORT
+COMPUTE SUM LABEL 'INSTANCE TOTAL' OF sessions ON inst
+COMPUTE SUM LABEL 'GRAND TOTAL' OF sessions ON REPORT
+
+SELECT
+    TO_CHAR(s.inst_id) inst,
+    s.username,
+    s.service_name,
+    NVL(s.resource_consumer_group, '-') resource_consumer_group,
+    COUNT(*) sessions
+FROM gv$session s
+WHERE s.type = 'USER'
+  AND s.username IS NOT NULL
+GROUP BY
+    s.inst_id,
+    s.username,
+    s.service_name,
+    NVL(s.resource_consumer_group, '-')
+ORDER BY
+    s.inst_id,
+    s.username,
+    s.service_name,
+    NVL(s.resource_consumer_group, '-');</code></pre></div>
+        <p class="mt-5 max-w-3xl text-base leading-7 text-stone-700 dark:text-stone-300">Run the cleanup snippet only after you finish monitoring the report. SQL*Plus keeps the last SQL statement in its buffer, so after the report runs once you can type <code class="rounded bg-stone-100 px-1.5 py-0.5 text-sm font-semibold text-oracle-deep dark:bg-stone-800 dark:text-orange-200">R</code> to rerun that same report with the current session counts. When you no longer need to refresh the output, clear the report formatting with the following commands.</p>
+        <div class="mt-5 code-card"><div class="code-toolbar"><span class="code-type">SQL</span><button class="copy-btn" type="button">Copy</button></div><div class="code-description code-objective"><span class="objective-label">Objective:</span> Clear SQL*Plus report formatting after you finish rerunning the validation report.</div><pre class="code-scroll"><code>CLEAR BREAKS
+CLEAR COMPUTES</code></pre></div>
+      </section>
+
+      <section id="best-practices" class="border-t border-stone-200 py-10 dark:border-stone-800">
+        <p class="text-xs font-semibold uppercase tracking-[0.16em] text-oracle-red dark:text-orange-300">Operational guidance</p>
+        <h2 class="mt-2 text-2xl font-bold tracking-tight text-stone-950 dark:text-white sm:text-3xl">Best Practices</h2>
+        <ol class="mt-5 grid gap-3 sm:grid-cols-2">
+          <li class="rounded-lg border border-stone-200 bg-stone-50 px-4 py-3 text-sm text-stone-700 dark:border-stone-700 dark:bg-stone-900/45 dark:text-stone-300">Use dedicated services for OLTP, reporting, and batch workloads.</li>
+          <li class="rounded-lg border border-stone-200 bg-stone-50 px-4 py-3 text-sm text-stone-700 dark:border-stone-700 dark:bg-stone-900/45 dark:text-stone-300">Map services to consumer groups.</li>
+          <li class="rounded-lg border border-stone-200 bg-stone-50 px-4 py-3 text-sm text-stone-700 dark:border-stone-700 dark:bg-stone-900/45 dark:text-stone-300">Keep the Resource Manager plan generic and reusable.</li>
+          <li class="rounded-lg border border-stone-200 bg-stone-50 px-4 py-3 text-sm text-stone-700 dark:border-stone-700 dark:bg-stone-900/45 dark:text-stone-300">Use roles instead of direct grants.</li>
+          <li class="rounded-lg border border-stone-200 bg-stone-50 px-4 py-3 text-sm text-stone-700 dark:border-stone-700 dark:bg-stone-900/45 dark:text-stone-300">Use reports DOP 2 and batch serial during business hours; raise reports to DOP 4 and batch to DOP 2 after hours.</li>
+          <li class="rounded-lg border border-stone-200 bg-stone-50 px-4 py-3 text-sm text-stone-700 dark:border-stone-700 dark:bg-stone-900/45 dark:text-stone-300">Isolate reporting and batch workloads from transactional users.</li>
+          <li class="rounded-lg border border-stone-200 bg-stone-50 px-4 py-3 text-sm text-stone-700 dark:border-stone-700 dark:bg-stone-900/45 dark:text-stone-300">Treat reporting and batch workloads as restartable.</li>
+          <li class="rounded-lg border border-stone-200 bg-stone-50 px-4 py-3 text-sm text-stone-700 dark:border-stone-700 dark:bg-stone-900/45 dark:text-stone-300">Use runtime load balancing only when using FAN-aware pools.</li>
+        </ol>
+      </section>
+
+      <section id="summary" class="border-t border-stone-200 py-10 dark:border-stone-800">
+        <p class="text-xs font-semibold uppercase tracking-[0.16em] text-oracle-red dark:text-orange-300">Summary</p>
+        <h2 class="mt-2 text-2xl font-bold tracking-tight text-stone-950 dark:text-white sm:text-3xl">Connection Services plus Resource Manager</h2>
+        <p class="mt-3 max-w-3xl text-base leading-7 text-stone-700 dark:text-stone-300">Connection Services identifies workload classes through dedicated RAC services. Resource Manager enforces CPU allocation, concurrency controls, and parallel execution limits. Together they provide a scalable governance model for Exadata Exascale deployments.</p>
+      </section>
+
+      <section id="disable" class="border-t border-stone-200 py-10 dark:border-stone-800">
+        <p class="text-xs font-semibold uppercase tracking-[0.16em] text-oracle-red dark:text-orange-300">Disable plan</p>
+        <h2 class="mt-2 text-2xl font-bold tracking-tight text-stone-950 dark:text-white sm:text-3xl">Disable Resource Manager</h2>
+        <p class="mt-3 max-w-3xl text-base leading-7 text-stone-700 dark:text-stone-300">To disable the active PDB Resource Manager plan, set <code class="rounded bg-stone-100 px-1.5 py-0.5 text-sm font-semibold text-oracle-deep dark:bg-stone-800 dark:text-orange-200">RESOURCE_MANAGER_PLAN</code> back to a blank value while connected to <code class="rounded bg-stone-100 px-1.5 py-0.5 text-sm font-semibold text-oracle-deep dark:bg-stone-800 dark:text-orange-200">PDB01</code> with an account that has the required <code class="rounded bg-stone-100 px-1.5 py-0.5 text-sm font-semibold text-oracle-deep dark:bg-stone-800 dark:text-orange-200">ALTER SYSTEM</code> privilege. This stops the PDB from using the active business-hours or after-hours Resource Manager plan.</p>
+        <div class="mt-5 code-card"><div class="code-toolbar"><span class="code-type">SQL</span><button class="copy-btn" type="button">Copy</button></div><div class="code-description code-objective"><span class="objective-label">Objective:</span> Disable the active PDB Resource Manager plan and return RESOURCE_MANAGER_PLAN to a blank value.</div><pre class="code-scroll"><code>ALTER SYSTEM SET RESOURCE_MANAGER_PLAN='';</code></pre></div>
+      </section>
+
+      <section id="documentation" class="border-t border-stone-200 py-10 dark:border-stone-800">
+        <p class="text-xs font-semibold uppercase tracking-[0.16em] text-oracle-red dark:text-orange-300">Oracle references</p>
+        <h2 class="mt-2 text-2xl font-bold tracking-tight text-stone-950 dark:text-white sm:text-3xl">Oracle Official Documentation</h2>
+        <div class="mt-5 flex flex-wrap gap-2">
+          <a href="https://docs.oracle.com/en/database/oracle/oracle-database/26/admin/managing-resources-with-oracle-database-resource-manager.html" target="_blank" rel="noreferrer" class="rounded-md border border-oracle-red/30 bg-white px-3 py-2 text-sm font-semibold text-oracle-red underline-offset-4 hover:underline dark:border-orange-300/30 dark:bg-[#211d1b] dark:text-orange-300">Managing Resources with Oracle Database Resource Manager</a>
+          <a href="https://docs.oracle.com/en/database/oracle/oracle-database/26/arpls/DBMS_RESOURCE_MANAGER.html" target="_blank" rel="noreferrer" class="rounded-md border border-oracle-red/30 bg-white px-3 py-2 text-sm font-semibold text-oracle-red underline-offset-4 hover:underline dark:border-orange-300/30 dark:bg-[#211d1b] dark:text-orange-300">DBMS_RESOURCE_MANAGER</a>
+          <a href="https://docs.oracle.com/en/database/oracle/oracle-database/26/refrn/RESOURCE_MANAGER_PLAN.html" target="_blank" rel="noreferrer" class="rounded-md border border-oracle-red/30 bg-white px-3 py-2 text-sm font-semibold text-oracle-red underline-offset-4 hover:underline dark:border-orange-300/30 dark:bg-[#211d1b] dark:text-orange-300">RESOURCE_MANAGER_PLAN</a>
+        </div>
+        <div class="mt-5 flex flex-wrap gap-3">
+          <a href="../index.html#documentation" class="inline-flex rounded-md bg-oracle-red px-4 py-2 text-sm font-bold text-white shadow-sm transition hover:bg-oracle-deep focus:outline-none focus:ring-2 focus:ring-oracle-red/50">Series documentation</a>
+          <a href="../index.html#glossary" class="inline-flex rounded-md border border-stone-300 bg-white px-4 py-2 text-sm font-bold text-stone-800 shadow-sm transition hover:border-oracle-red hover:text-oracle-red focus:outline-none focus:ring-2 focus:ring-oracle-red/50 dark:border-stone-700 dark:bg-stone-900 dark:text-stone-100 dark:hover:text-orange-300">Series glossary</a>
+        </div>
+      </section>
+    </article>
+  </main>
+
+  <footer class="site-footer border-t border-stone-200 bg-stone-50 px-5 py-8 text-center text-sm text-stone-600 dark:border-stone-800 dark:bg-[#12100f] dark:text-stone-400">
+    <div class="mx-auto max-w-4xl">
+      <details class="disclaimer rounded-lg border border-amber-300 bg-amber-50 text-left text-amber-950 dark:border-amber-500/40 dark:bg-amber-950/25 dark:text-amber-100">
+        <summary class="cursor-pointer list-none px-4 py-3 text-sm font-bold uppercase tracking-[0.14em] focus:outline-none focus:ring-2 focus:ring-amber-500/50">Educational use and validation required <span class="ml-2 whitespace-nowrap text-xs font-semibold normal-case tracking-normal text-amber-800 underline underline-offset-2 dark:text-amber-200">click here</span></summary>
+        <p class="border-t border-amber-200 px-4 pb-4 pt-3 text-sm leading-6 dark:border-amber-500/30">This content is for educational and planning purposes only. Apply every command and configuration first in a non-production test environment that mirrors your RAC, service, client driver, workload, and failover requirements. The recommended values shown here may not work in your specific environment, may require change-control approval, and can affect availability, connection routing, transaction behavior, memory use, and batch workload placement. Validate with application owners, DBAs, network teams, and Oracle Support guidance before using any setting in production.</p>
+      </details>
+      <p class="mt-5">Blog last updated June 12, 2026</p>
+    </div>
+  </footer>
+
+  <button id="back-top" type="button" class="fixed bottom-5 right-5 rounded-lg border border-stone-300 bg-white px-4 py-3 text-sm font-bold text-stone-800 shadow-subtle transition hover:border-oracle-red hover:text-oracle-red focus:outline-none focus:ring-2 focus:ring-oracle-red/50 dark:border-stone-700 dark:bg-stone-900 dark:text-stone-100 dark:hover:text-orange-300">Back to top</button>
+
+  <script>
+    (function () {
+      const themeButton = document.getElementById("theme-toggle");
+      const backTop = document.getElementById("back-top");
+      const languageButtons = document.querySelectorAll("[data-language-button]");
+      const textNodes = [];
+      const labels = {
+        en: { dark: "Dark", light: "Light", back: "Back to top", copied: "Copied", skip: "Skip to article" },
+        es: { dark: "Oscuro", light: "Claro", back: "Volver arriba", copied: "Copiado", skip: "Saltar al artículo" },
+        pt: { dark: "Escuro", light: "Claro", back: "Voltar ao topo", copied: "Copiado", skip: "Ir para o artigo" }
+      };
+      const translations = {
+        es: {
+          "Oracle technical article": "Artículo técnico de Oracle",
+          "Educational use and validation required": "Uso educativo y validación requerida",
+          "This content is for educational and planning purposes only. Apply every command and configuration first in a non-production test environment that mirrors your RAC, service, client driver, workload, and failover requirements. The recommended values shown here may not work in your specific environment, may require change-control approval, and can affect availability, connection routing, transaction behavior, memory use, and batch workload placement. Validate with application owners, DBAs, network teams, and Oracle Support guidance before using any setting in production.": "Este contenido es solo para fines educativos y de planificación. Aplica cada comando y configuración primero en un entorno de prueba no productivo que refleje tus requisitos de RAC, servicio, controlador cliente, carga de trabajo y failover. Los valores recomendados aquí pueden no funcionar en tu entorno específico, pueden requerir aprobación de control de cambios y pueden afectar disponibilidad, enrutamiento de conexiones, comportamiento transaccional, uso de memoria y ubicación de cargas batch. Valida con dueños de aplicaciones, DBAs, equipos de red y la guía de Oracle Support antes de usar cualquier configuración en producción.",
+          "Governing Workloads with Database Resource Manager": "Gobierno de cargas con Database Resource Manager",
+          "A service-based Resource Manager pattern for OLTP, reporting, batch, and administrative workloads that builds on the connection services guide.": "Un patrón de Resource Manager basado en servicios para cargas OLTP, reportes, batch y administración, construido sobre la guía de Connection Services.",
+          "Blog last updated June 12, 2026": "Blog actualizado por última vez el 12 de junio de 2026",
+          "Navigate the guide set": "Navegar las guías",
+          "Table of contents": "Tabla de contenido",
+          "Overview": "Overview",
+          "Architecture": "Arquitectura",
+          "Security Model": "Modelo de seguridad",
+          "Consumer Groups": "Consumer Groups",
+          "Resource Plan": "Plan de recursos",
+          "Validation": "Validación",
+          "Disable Plan": "Deshabilitar plan",
+          "Service Mapping": "Mapeo de servicios",
+          "Enable Plan": "Habilitar plan",
+          "Best Practices": "Mejores prácticas",
+          "References": "Referencias",
+          "Purpose": "Propósito",
+          "This article extends the Connection Services configuration from the previous blog and demonstrates how to use Oracle Database Resource Manager to govern database workloads connected through dedicated OLTP, reporting, and batch services. Oracle Database Resource Manager is the database-native control plane for sessions that compete for system and database resources: it classifies sessions into consumer groups, activates a resource plan, and uses plan directives to allocate CPU, constrain parallel execution, and make workload priority explicit inside the database.": "Este artículo extiende la configuración de Connection Services del blog anterior y demuestra cómo usar Oracle Database Resource Manager para gobernar cargas de base de datos conectadas mediante servicios dedicados de OLTP, reportes y batch. Oracle Database Resource Manager es el plano de control nativo de la base de datos para sesiones que compiten por recursos del sistema y de la base de datos: clasifica sesiones en consumer groups, activa un resource plan y usa directivas para asignar CPU, limitar la ejecución paralela y hacer explícita la prioridad de carga dentro de la base de datos.",
+          "Connection Services and users provide the classification signals. The": "Connection Services y los usuarios proporcionan las señales de clasificación. La cuenta",
+          "account remains the schema owner and is treated as an administrative identity. Application users such as": "permanece como propietaria del esquema y se trata como identidad administrativa. Usuarios de aplicación como",
+          "connect through workload-specific RAC services. Resource Manager then maps the user and service attributes used at login to the matching consumer group, so the same PDB can serve multiple user communities without treating every active session equally.": "se conectan mediante servicios RAC específicos por carga. Resource Manager asigna los atributos de usuario y servicio usados al iniciar sesión al consumer group correspondiente, de modo que la misma PDB puede atender varias comunidades sin tratar todas las sesiones activas por igual.",
+          "Preferred: CDB011, CDB012. Available: none.": "Preferred: CDB011, CDB012. Available: ninguno.",
+          "Preferred: CDB012. Available: CDB011.": "Preferred: CDB012. Available: CDB011.",
+          "Preferred: CDB011. Available: CDB012.": "Preferred: CDB011. Available: CDB012.",
+          "The example uses the Swingbench SOE schema while keeping the Resource Manager configuration generic and reusable.": "El ejemplo usa el esquema Swingbench SOE manteniendo la configuración de Resource Manager genérica y reutilizable.",
+          "Integration pattern": "Patrón de integración",
+          "Connection Services decide how clients enter the PDB; database users and roles decide what those sessions can do; Resource Manager decides how much shared database capacity each workload class can consume when OLTP, reporting, batch, and administration run at the same time.": "Connection Services decide cómo entran los clientes a la PDB; los usuarios y roles de base de datos deciden qué pueden hacer esas sesiones; Resource Manager decide cuánta capacidad compartida puede consumir cada clase de carga cuando OLTP, reportes, batch y administración se ejecutan al mismo tiempo.",
+          "Reference: 2. Architecture Evolution": "Referencia: 2. Evolución de arquitectura",
+          "Scope map": "Mapa de alcance",
+          "Connection Services identifies workload classes through dedicated RAC services. Resource Manager uses service-name mapping rules to place sessions into consumer groups, and the active plan applies directives to those groups.": "Connection Services identifica clases de carga mediante servicios RAC dedicados. Resource Manager usa reglas de mapeo por nombre de servicio para colocar sesiones en consumer groups, y el plan activo aplica directivas a esos grupos.",
+          "Service-to-consumer-group governance flow": "Flujo de gobierno de servicio a consumer group",
+          "Users connect through workload-specific services; Resource Manager maps those sessions to consumer groups; business-hours and after-hours plans enforce the CPU and parallel execution policy.": "Los usuarios se conectan mediante servicios específicos por carga; Resource Manager mapea esas sesiones a consumer groups; los planes de horario laboral y fuera de horario aplican la política de CPU y ejecución paralela.",
+          "Users": "Usuarios",
+          "Transactional sessions": "Sesiones transaccionales",
+          "Read-only reporting sessions": "Sesiones de reportes de solo lectura",
+          "Restartable batch sessions": "Sesiones batch reiniciables",
+          "Schema owner and administrative sessions": "Propietario del esquema y sesiones administrativas",
+          "Connection Services": "Connection Services",
+          "Default PDB service reused for OLTP and SOE owner access": "Servicio PDB por defecto reutilizado para OLTP y acceso del propietario SOE",
+          "Reporting entry point": "Punto de entrada de reportes",
+          "Batch entry point": "Punto de entrada batch",
+          "User mapping override": "Anulación por mapeo de usuario",
+          "SOE maps to CG_ADMIN even on the default PDB service": "SOE se mapea a CG_ADMIN incluso en el servicio PDB por defecto",
+          "Resource Manager": "Resource Manager",
+          "75% level-1 CPU share, serial operations": "75% de CPU nivel 1, operaciones seriales",
+          "DOP 2 business hours, DOP 4 after hours": "DOP 2 en horario laboral, DOP 4 fuera de horario",
+          "Serial business hours, DOP 2 after hours": "Serial en horario laboral, DOP 2 fuera de horario",
+          "50% level-1 CPU share, default DOP": "50% de CPU nivel 1, DOP por defecto",
+          "Resource Plans": "Planes de recursos",
+          "8 AM-6 PM Central: OLTP serial, reports DOP 2, batch serial": "8 AM-6 PM Central: OLTP serial, reportes DOP 2, batch serial",
+          "After 6 PM Central: OLTP serial, reports DOP 4, batch DOP 2": "Después de 6 PM Central: OLTP serial, reportes DOP 4, batch DOP 2",
+          "Manual plan switch": "Cambio manual de plan",
+          "Use ALTER SYSTEM during the demo; Scheduler windows can automate later": "Usa ALTER SYSTEM durante la demo; Scheduler windows puede automatizarlo después",
+          "Runtime enforcement path": "Ruta de aplicación en runtime",
+          "Only one PDB Resource Manager plan is active at a time. Mapping rules place sessions into consumer groups, then the currently active business-hours or after-hours plan applies the CPU shares, parallel limits, and reporting timeout to those groups.": "Solo un plan de Resource Manager de la PDB está activo a la vez. Las reglas de mapeo colocan sesiones en consumer groups; luego el plan activo de horario laboral o fuera de horario aplica cuotas de CPU, límites paralelos y timeout de reportes a esos grupos.",
+          "Reusable access model": "Modelo de acceso reutilizable",
+          "Workload classes": "Clases de carga",
+          "Plan directives": "Directivas del plan",
+          "User and service routing": "Ruteo por usuario y servicio",
+          "User and Service-Based Mapping": "Mapeo basado en usuario y servicio",
+          "Activation": "Activación",
+          "Enable Resource Manager": "Habilitar Resource Manager",
+          "Runtime evidence": "Evidencia en runtime",
+          "Operational guidance": "Guía operativa",
+          "Summary": "Resumen",
+          "Connection Services plus Resource Manager": "Connection Services más Resource Manager",
+          "Disable plan": "Deshabilitar plan",
+          "Disable Resource Manager": "Deshabilitar Resource Manager",
+          "Oracle references": "Referencias de Oracle",
+          "Oracle Official Documentation": "Documentación oficial de Oracle",
+          "Series documentation": "Documentación de la serie",
+          "Series glossary": "Glosario de la serie",
+          "Use dedicated services for OLTP, reporting, and batch workloads.": "Usa servicios dedicados para cargas OLTP, reportes y batch.",
+          "Map services to consumer groups.": "Mapea servicios a consumer groups.",
+          "Keep the Resource Manager plan generic and reusable.": "Mantén el plan de Resource Manager genérico y reutilizable.",
+          "Use roles instead of direct grants.": "Usa roles en lugar de grants directos.",
+          "Use reports DOP 2 and batch serial during business hours; raise reports to DOP 4 and batch to DOP 2 after hours.": "Usa reportes DOP 2 y batch serial durante horario laboral; sube reportes a DOP 4 y batch a DOP 2 fuera de horario.",
+          "Isolate reporting and batch workloads from transactional users.": "Aísla reportes y batch de usuarios transaccionales.",
+          "Treat reporting and batch workloads as restartable.": "Trata reportes y batch como cargas reiniciables.",
+          "Use runtime load balancing only when using FAN-aware pools.": "Usa runtime load balancing solo con pools compatibles con FAN."
+        },
+        pt: {
+          "Oracle technical article": "Artigo técnico Oracle",
+          "Educational use and validation required": "Uso educacional e validação obrigatória",
+          "This content is for educational and planning purposes only. Apply every command and configuration first in a non-production test environment that mirrors your RAC, service, client driver, workload, and failover requirements. The recommended values shown here may not work in your specific environment, may require change-control approval, and can affect availability, connection routing, transaction behavior, memory use, and batch workload placement. Validate with application owners, DBAs, network teams, and Oracle Support guidance before using any setting in production.": "Este conteúdo é apenas para fins educacionais e de planejamento. Aplique cada comando e configuração primeiro em um ambiente de teste não produtivo que reflita seus requisitos de RAC, serviço, driver cliente, carga de trabalho e failover. Os valores recomendados aqui podem não funcionar no seu ambiente específico, podem exigir aprovação de controle de mudanças e podem afetar disponibilidade, roteamento de conexões, comportamento transacional, uso de memória e posicionamento de cargas batch. Valide com responsáveis por aplicações, DBAs, equipes de rede e a orientação do Oracle Support antes de usar qualquer configuração em produção.",
+          "Governing Workloads with Database Resource Manager": "Governança de cargas com Database Resource Manager",
+          "A service-based Resource Manager pattern for OLTP, reporting, batch, and administrative workloads that builds on the connection services guide.": "Um padrão de Resource Manager baseado em serviços para cargas OLTP, relatórios, batch e administrativas, construído sobre o guia de Connection Services.",
+          "Blog last updated June 12, 2026": "Blog atualizado pela última vez em 12 de junho de 2026",
+          "Navigate the guide set": "Navegar pelos guias",
+          "Table of contents": "Sumário",
+          "Overview": "Overview",
+          "Architecture": "Arquitetura",
+          "Security Model": "Modelo de segurança",
+          "Consumer Groups": "Consumer Groups",
+          "Resource Plan": "Plano de recursos",
+          "Validation": "Validação",
+          "Disable Plan": "Desabilitar plano",
+          "Service Mapping": "Mapeamento de serviços",
+          "Enable Plan": "Habilitar plano",
+          "Best Practices": "Melhores práticas",
+          "References": "Referências",
+          "Purpose": "Propósito",
+          "This article extends the Connection Services configuration from the previous blog and demonstrates how to use Oracle Database Resource Manager to govern database workloads connected through dedicated OLTP, reporting, and batch services. Oracle Database Resource Manager is the database-native control plane for sessions that compete for system and database resources: it classifies sessions into consumer groups, activates a resource plan, and uses plan directives to allocate CPU, constrain parallel execution, and make workload priority explicit inside the database.": "Este artigo estende a configuração de Connection Services do blog anterior e demonstra como usar o Oracle Database Resource Manager para governar cargas de banco conectadas por serviços dedicados de OLTP, relatórios e batch. O Oracle Database Resource Manager é o plano de controle nativo do banco para sessões que competem por recursos do sistema e do banco: ele classifica sessões em consumer groups, ativa um resource plan e usa diretivas para alocar CPU, limitar execução paralela e tornar explícita a prioridade da carga dentro do banco.",
+          "Connection Services and users provide the classification signals. The": "Connection Services e usuários fornecem os sinais de classificação. A conta",
+          "account remains the schema owner and is treated as an administrative identity. Application users such as": "permanece como proprietária do schema e é tratada como identidade administrativa. Usuários de aplicação como",
+          "connect through workload-specific RAC services. Resource Manager then maps the user and service attributes used at login to the matching consumer group, so the same PDB can serve multiple user communities without treating every active session equally.": "conectam-se por serviços RAC específicos por carga. O Resource Manager mapeia os atributos de usuário e serviço usados no login ao consumer group correspondente, permitindo que a mesma PDB atenda várias comunidades sem tratar todas as sessões ativas igualmente.",
+          "Preferred: CDB011, CDB012. Available: none.": "Preferred: CDB011, CDB012. Available: nenhum.",
+          "The example uses the Swingbench SOE schema while keeping the Resource Manager configuration generic and reusable.": "O exemplo usa o schema Swingbench SOE mantendo a configuração do Resource Manager genérica e reutilizável.",
+          "Integration pattern": "Padrão de integração",
+          "Connection Services decide how clients enter the PDB; database users and roles decide what those sessions can do; Resource Manager decides how much shared database capacity each workload class can consume when OLTP, reporting, batch, and administration run at the same time.": "Connection Services decide como os clientes entram na PDB; usuários e roles do banco decidem o que essas sessões podem fazer; Resource Manager decide quanta capacidade compartilhada cada classe de carga pode consumir quando OLTP, relatórios, batch e administração rodam ao mesmo tempo.",
+          "Reference: 2. Architecture Evolution": "Referência: 2. Evolução da arquitetura",
+          "Scope map": "Mapa de escopo",
+          "Connection Services identifies workload classes through dedicated RAC services. Resource Manager uses service-name mapping rules to place sessions into consumer groups, and the active plan applies directives to those groups.": "Connection Services identifica classes de carga por serviços RAC dedicados. Resource Manager usa regras de mapeamento por nome de serviço para colocar sessões em consumer groups, e o plano ativo aplica diretivas a esses grupos.",
+          "Service-to-consumer-group governance flow": "Fluxo de governança de serviço para consumer group",
+          "Users connect through workload-specific services; Resource Manager maps those sessions to consumer groups; business-hours and after-hours plans enforce the CPU and parallel execution policy.": "Usuários conectam por serviços específicos por carga; Resource Manager mapeia essas sessões para consumer groups; os planos de horário comercial e fora do horário aplicam a política de CPU e execução paralela.",
+          "Users": "Usuários",
+          "Transactional sessions": "Sessões transacionais",
+          "Read-only reporting sessions": "Sessões de relatórios somente leitura",
+          "Restartable batch sessions": "Sessões batch reiniciáveis",
+          "Schema owner and administrative sessions": "Proprietário do schema e sessões administrativas",
+          "Default PDB service reused for OLTP and SOE owner access": "Serviço PDB padrão reutilizado para OLTP e acesso do proprietário SOE",
+          "Reporting entry point": "Ponto de entrada de relatórios",
+          "Batch entry point": "Ponto de entrada batch",
+          "User mapping override": "Substituição por mapeamento de usuário",
+          "SOE maps to CG_ADMIN even on the default PDB service": "SOE mapeia para CG_ADMIN mesmo no serviço PDB padrão",
+          "75% level-1 CPU share, serial operations": "75% de CPU nível 1, operações seriais",
+          "DOP 2 business hours, DOP 4 after hours": "DOP 2 no horário comercial, DOP 4 fora do horário",
+          "Serial business hours, DOP 2 after hours": "Serial no horário comercial, DOP 2 fora do horário",
+          "50% level-1 CPU share, default DOP": "50% de CPU nível 1, DOP padrão",
+          "Resource Plans": "Planos de recursos",
+          "8 AM-6 PM Central: OLTP serial, reports DOP 2, batch serial": "8h-18h Central: OLTP serial, relatórios DOP 2, batch serial",
+          "After 6 PM Central: OLTP serial, reports DOP 4, batch DOP 2": "Após 18h Central: OLTP serial, relatórios DOP 4, batch DOP 2",
+          "Manual plan switch": "Troca manual de plano",
+          "Use ALTER SYSTEM during the demo; Scheduler windows can automate later": "Use ALTER SYSTEM durante a demo; Scheduler windows pode automatizar depois",
+          "Runtime enforcement path": "Caminho de aplicação em runtime",
+          "Only one PDB Resource Manager plan is active at a time. Mapping rules place sessions into consumer groups, then the currently active business-hours or after-hours plan applies the CPU shares, parallel limits, and reporting timeout to those groups.": "Apenas um plano de Resource Manager da PDB fica ativo por vez. Regras de mapeamento colocam sessões em consumer groups; então o plano ativo de horário comercial ou fora do horário aplica cotas de CPU, limites paralelos e timeout de relatórios a esses grupos.",
+          "Reusable access model": "Modelo de acesso reutilizável",
+          "Workload classes": "Classes de carga",
+          "Plan directives": "Diretivas do plano",
+          "User and service routing": "Roteamento por usuário e serviço",
+          "User and Service-Based Mapping": "Mapeamento baseado em usuário e serviço",
+          "Activation": "Ativação",
+          "Enable Resource Manager": "Habilitar Resource Manager",
+          "Runtime evidence": "Evidência em runtime",
+          "Operational guidance": "Orientação operacional",
+          "Summary": "Resumo",
+          "Connection Services plus Resource Manager": "Connection Services mais Resource Manager",
+          "Disable plan": "Desabilitar plano",
+          "Disable Resource Manager": "Desabilitar Resource Manager",
+          "Oracle references": "Referências Oracle",
+          "Oracle Official Documentation": "Documentação oficial Oracle",
+          "Series documentation": "Documentação da série",
+          "Series glossary": "Glossário da série",
+          "Use dedicated services for OLTP, reporting, and batch workloads.": "Use serviços dedicados para cargas OLTP, relatórios e batch.",
+          "Map services to consumer groups.": "Mapeie serviços para consumer groups.",
+          "Keep the Resource Manager plan generic and reusable.": "Mantenha o plano de Resource Manager genérico e reutilizável.",
+          "Use roles instead of direct grants.": "Use roles em vez de grants diretos.",
+          "Use reports DOP 2 and batch serial during business hours; raise reports to DOP 4 and batch to DOP 2 after hours.": "Use relatórios DOP 2 e batch serial no horário comercial; eleve relatórios para DOP 4 e batch para DOP 2 fora do horário.",
+          "Isolate reporting and batch workloads from transactional users.": "Isole relatórios e batch dos usuários transacionais.",
+          "Treat reporting and batch workloads as restartable.": "Trate relatórios e batch como cargas reiniciáveis.",
+          "Use runtime load balancing only when using FAN-aware pools.": "Use runtime load balancing apenas com pools compatíveis com FAN."
+        }
+      };
+
+      function collectTextNodes() {
+        const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, {
+          acceptNode(node) {
+            const text = node.nodeValue.trim();
+            if (!text || text.length < 2) return NodeFilter.FILTER_REJECT;
+            if (node.parentElement && node.parentElement.closest("script, style, code, pre")) return NodeFilter.FILTER_REJECT;
+            return NodeFilter.FILTER_ACCEPT;
+          }
+        });
+        let node;
+        while ((node = walker.nextNode())) {
+          textNodes.push({ node, original: node.nodeValue });
+        }
+      }
+
+      function localizeText(language) {
+        const map = translations[language] || {};
+        textNodes.forEach(({ node, original }) => {
+          const trimmed = original.trim().replace(/\s+/g, " ");
+          const translated = map[trimmed];
+          if (!translated) {
+            node.nodeValue = original;
+            return;
+          }
+          const leading = original.match(/^\s*/)[0];
+          const trailing = original.match(/\s*$/)[0];
+          node.nodeValue = `${leading}${translated}${trailing}`;
+        });
+      }
+
+      function setLanguage(language) {
+        document.documentElement.lang = language;
+        localStorage.setItem("exascale-resource-manager-language", language);
+        languageButtons.forEach((button) => {
+          button.setAttribute("aria-pressed", String(button.dataset.languageButton === language));
+        });
+        if (window.ExascaleGuideSet) {
+          window.ExascaleGuideSet.applyStaticPage("resourceManager", "nested");
+        }
+        localizeText(language);
+        setThemeButton();
+        backTop.textContent = labels[language].back;
+        document.querySelector("a[href^='#article']").textContent = labels[language].skip;
+      }
+
+      function setThemeButton() {
+        const dark = document.documentElement.classList.contains("dark");
+        const language = document.documentElement.lang || "en";
+        themeButton.textContent = dark ? labels[language].light : labels[language].dark;
+        themeButton.setAttribute("aria-pressed", dark ? "true" : "false");
+      }
+
+      themeButton.addEventListener("click", function () {
+        const dark = !document.documentElement.classList.contains("dark");
+        document.documentElement.classList.toggle("dark", dark);
+        localStorage.setItem("exascale-theme", dark ? "dark" : "light");
+        setThemeButton();
+      });
+
+      document.querySelectorAll(".copy-btn").forEach(function (button) {
+        button.addEventListener("click", async function () {
+          const card = button.closest(".code-card");
+          const code = card ? card.querySelector("pre code") : null;
+          if (!code) return;
+          const text = code.textContent;
+          let copied = false;
+          if (navigator.clipboard && navigator.clipboard.writeText && window.isSecureContext) {
+            try {
+              await navigator.clipboard.writeText(text);
+              copied = true;
+            } catch (error) {
+              copied = false;
+            }
+          }
+          if (!copied) {
+            const textarea = document.createElement("textarea");
+            textarea.value = text;
+            textarea.setAttribute("readonly", "");
+            textarea.style.position = "fixed";
+            textarea.style.top = "0";
+            textarea.style.left = "0";
+            textarea.style.opacity = "0";
+            document.body.appendChild(textarea);
+            textarea.focus();
+            textarea.select();
+            copied = document.execCommand("copy");
+            document.body.removeChild(textarea);
+          }
+          if (copied) {
+            const original = button.textContent;
+            button.textContent = labels[document.documentElement.lang || "en"].copied;
+            window.setTimeout(function () {
+              button.textContent = original;
+            }, 1500);
+          }
+        });
+      });
+
+      backTop.addEventListener("click", function () {
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      });
+
+      collectTextNodes();
+      languageButtons.forEach((button) => {
+        button.addEventListener("click", function () {
+          setLanguage(button.dataset.languageButton);
+          window.scrollTo({ top: 0, behavior: "smooth" });
+        });
+      });
+      const queryLanguage = new URLSearchParams(window.location.search).get("lang");
+      const initialLanguage = window.ExascaleGuideSet
+        ? window.ExascaleGuideSet.normalizeLanguage(queryLanguage || localStorage.getItem("exascale-resource-manager-language") || "en")
+        : (localStorage.getItem("exascale-resource-manager-language") || "en");
+      setLanguage(initialLanguage);
+    }());
+  </script>
+</body>
+</html>

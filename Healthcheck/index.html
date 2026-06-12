@@ -3,8 +3,9 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="Oracle Exadata Exascale 26ai RAC operational health check guide covering sections 1 through 8, with links to connection services and cluster scaling." />
-  <title>Exadata Exascale 26ai RAC Health Check</title>
+  <meta name="description" content="Oracle Exadata Exascale RAC operational health check guide covering sections 1 through 8, with links to connection services and cluster scaling." />
+  <title>Exadata Exascale RAC Health Check</title>
+  <link rel="icon" href="data:," />
   <script>
     (function () {
       const saved = localStorage.getItem("exascale-theme");
@@ -71,6 +72,104 @@
       background:
         linear-gradient(135deg, rgba(199, 70, 52, 0.18), transparent 38%),
         linear-gradient(180deg, #171412 0%, #211d1b 100%);
+    }
+    .code-card {
+      overflow: hidden;
+      border-radius: 8px;
+      border: 1px solid rgba(120, 113, 108, 0.35);
+      background: #171412;
+      box-shadow: 0 8px 24px rgba(31, 27, 26, 0.12);
+    }
+    .code-bash {
+      background: #111917;
+      border-color: rgba(16, 185, 129, 0.35);
+    }
+    .code-sql {
+      background: #101922;
+      border-color: rgba(14, 165, 233, 0.35);
+    }
+    .code-java {
+      background: #17130d;
+      border-color: rgba(245, 158, 11, 0.35);
+    }
+    .code-text {
+      background: #171412;
+      border-color: rgba(120, 113, 108, 0.35);
+    }
+    .code-diagram {
+      background: #191511;
+      border-color: rgba(251, 146, 60, 0.35);
+    }
+    .code-toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      padding: 0.5rem 1rem;
+    }
+    .code-type {
+      color: #e7e5e4;
+      font-size: 0.75rem;
+      font-weight: 600;
+      line-height: 1rem;
+      text-transform: uppercase;
+    }
+    .copy-btn {
+      border-radius: 6px;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      background: rgba(255, 255, 255, 0.1);
+      color: #ffffff;
+      font-size: 0.75rem;
+      font-weight: 600;
+      line-height: 1rem;
+      padding: 0.25rem 0.75rem;
+      transition: background 160ms ease, border-color 160ms ease;
+    }
+    .copy-btn:hover {
+      background: rgba(255, 255, 255, 0.18);
+    }
+    .copy-btn:focus-visible {
+      outline: 2px solid rgba(255, 255, 255, 0.65);
+      outline-offset: 2px;
+    }
+    .code-description,
+    .code-note {
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      color: #e7e5e4;
+      font-size: 0.875rem;
+      font-weight: 400;
+      line-height: 1.5rem;
+      padding: 0.75rem 1rem;
+    }
+    .code-note {
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+      border-bottom: 0;
+    }
+    .objective-label {
+      font-weight: 600;
+    }
+    .code-card pre {
+      color: #f5f5f4;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      font-size: 13px;
+      font-weight: 400;
+      line-height: 24px;
+      margin: 0;
+      overflow-x: auto;
+      padding: 1rem;
+      white-space: pre;
+      -webkit-font-smoothing: antialiased;
+    }
+    .code-card pre code {
+      color: inherit;
+      font: inherit;
+      font-weight: 400;
+    }
+    .code-highlight {
+      background: rgba(52, 211, 153, 0.15);
+      color: #a7f3d0;
+      font-weight: 400;
     }
     .code-scroll::-webkit-scrollbar {
       height: 10px;
@@ -140,8 +239,7 @@ srvctl status service -d $ORACLE_UNQNAME
 
 srvctl config service -d $ORACLE_UNQNAME -s cdb01_pdb01.paas.oracle.com
 srvctl status service -d $ORACLE_UNQNAME -s cdb01_pdb01.paas.oracle.com`,
-      sqlViews: `-- SQL health checks include these dynamic views
-gv$instance
+      sqlViews: `gv$instance
 v$database
 gv$services
 gv$active_services
@@ -270,14 +368,14 @@ srvctl status service \\
       oltpRlbVerify: `srvctl config service \\
 -d $ORACLE_UNQNAME \\
 -s CDB01_PDB01.paas.oracle.com`,
-      rlbServiceSettingsSql: `-- Run from a DBA or monitoring account with access to GV$SERVICES.
--- This verifies the service attributes visible inside the database.
-
-set linesize 180
-column name format a38
-column connection_service_name format a45
-column clb_goal format a10
-column goal format a14
+      rlbServiceSettingsSql: `SET LINESIZE 220
+SET PAGESIZE 100
+SET TRIMSPOOL ON
+SET TAB OFF
+COLUMN name FORMAT A38
+COLUMN connection_service_name FORMAT A45
+COLUMN clb_goal FORMAT A10
+COLUMN goal FORMAT A14
 
 select
   name,
@@ -288,23 +386,23 @@ select
 from gv$services
 where name like '%.paas.oracle.com'
 order by name, inst_id;`,
-      oltpInstanceCheck: `-- Connect with SQL*Plus as a regular application user, not SYS, SYSTEM, or a DBA account.
--- sqlplus app_user@CDB01_PDB01_OLTP
-
-set linesize 160
-column connected_instance format a30
-column connected_service format a45
+      oltpInstanceCheck: `SET LINESIZE 220
+SET PAGESIZE 100
+SET TRIMSPOOL ON
+SET TAB OFF
+COLUMN connected_instance FORMAT A30
+COLUMN connected_service FORMAT A45
 
 select
   sys_context('USERENV', 'INSTANCE_NAME') as connected_instance,
   sys_context('USERENV', 'SERVICE_NAME') as connected_service
 from dual;`,
-      rlbInstanceCheck: `-- Connect with SQL*Plus as a regular application user, not SYS, SYSTEM, or a DBA account.
--- sqlplus app_user@CDB01_PDB01
-
-set linesize 160
-column connected_instance format a30
-column connected_service format a45
+      rlbInstanceCheck: `SET LINESIZE 220
+SET PAGESIZE 100
+SET TRIMSPOOL ON
+SET TAB OFF
+COLUMN connected_instance FORMAT A30
+COLUMN connected_service FORMAT A45
 
 select
   sys_context('USERENV', 'INSTANCE_NAME') as connected_instance,
@@ -327,16 +425,15 @@ srvctl status service \\
 -stopsvcoption IMMEDIATE \\
 -drain_timeout 0 \\
 -force`,
-      relocateSessionMonitorSql: `-- Run from a DBA or monitoring account with access to GV$ views.
--- Execute once before the forced PDB stop to capture the baseline distribution.
--- Execute again after the forced PDB stop to compare the surviving sessions and active service placement.
-
-set linesize 220
-column instance_name format a20
-column service_name format a45
-column active_service_name format a45
-column status format a10
-column sessions format 999999
+      relocateSessionMonitorSql: `SET LINESIZE 220
+SET PAGESIZE 100
+SET TRIMSPOOL ON
+SET TAB OFF
+COLUMN instance_name FORMAT A20
+COLUMN service_name FORMAT A45
+COLUMN active_service_name FORMAT A45
+COLUMN status FORMAT A10
+COLUMN sessions FORMAT 999999
 
 select s.inst_id, i.instance_name, s.service_name, s.status, count(*) as sessions
 from gv$session s
@@ -351,13 +448,14 @@ from gv$active_services a
 join gv$instance i on i.inst_id = a.inst_id
 where a.name = 'CDB01_PDB01.paas.oracle.com'
 order by a.inst_id;`,
-      relocateSessionCompareSql: `-- Run after the forced PDB stop and compare with the baseline output.
-
-set linesize 180
-column instance_name format a20
-column service_name format a45
-column active_service_name format a45
-column sessions format 999999
+      relocateSessionCompareSql: `SET LINESIZE 220
+SET PAGESIZE 100
+SET TRIMSPOOL ON
+SET TAB OFF
+COLUMN instance_name FORMAT A20
+COLUMN service_name FORMAT A45
+COLUMN active_service_name FORMAT A45
+COLUMN sessions FORMAT 999999
 
 select s.inst_id, i.instance_name, s.service_name, count(*) sessions
 from gv$session s
@@ -412,12 +510,12 @@ srvctl status service \\
 -db $ORACLE_UNQNAME \\
 -service CDB01_PDB01.paas.oracle.com \\
 -verbose`,
-      reportsInstanceCheck: `-- Connect with SQL*Plus as a regular application user, not SYS, SYSTEM, or a DBA account.
--- sqlplus app_user@CDB01_PDB01_REPORTS
-
-set linesize 160
-column connected_instance format a30
-column connected_service format a45
+      reportsInstanceCheck: `SET LINESIZE 220
+SET PAGESIZE 100
+SET TRIMSPOOL ON
+SET TAB OFF
+COLUMN connected_instance FORMAT A30
+COLUMN connected_service FORMAT A45
 
 select
   sys_context('USERENV', 'INSTANCE_NAME') as connected_instance,
@@ -445,9 +543,7 @@ from dual;`,
 
 # Java JDBC Thin descriptor URL with the same parameters:
 # jdbc:oracle:thin:@(DESCRIPTION=(LOAD_BALANCE=ON)(FAILOVER=ON)(ADDRESS=(PROTOCOL=TCP)(HOST=exasc01-scan-jjtmn.private.usw.oraclevcn.com)(PORT=1521))(CONNECT_DATA=(SERVER=DEDICATED)(SERVICE_NAME=CDB01_PDB01.paas.oracle.com)(FAILOVER_MODE=(TYPE=session)(METHOD=basic)(RETRIES=30)(DELAY=5))))`,
-      reportsService: `# Reporting-preferred RAC instance: CDB012
-# Alternate instance for service failover: CDB011
-srvctl add service \\
+      reportsService: `srvctl add service \\
 -d $ORACLE_UNQNAME \\
 -s CDB01_PDB01_REPORTS.paas.oracle.com \\
 -pdb PDB01 \\
@@ -495,9 +591,7 @@ srvctl status service \\
 
 # Java JDBC Thin descriptor URL with the same parameters:
 # jdbc:oracle:thin:@(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=exasc01-scan-jjtmn.private.usw.oraclevcn.com)(PORT=1521))(CONNECT_DATA=(SERVER=DEDICATED)(SERVICE_NAME=CDB01_PDB01_REPORTS.paas.oracle.com)(UR=A)))`,
-      batchService: `# Batch-preferred RAC instance: CDB011
-# Alternate instance for service failover: CDB012
-srvctl add service \\
+      batchService: `srvctl add service \\
 -d $ORACLE_UNQNAME \\
 -s CDB01_PDB01_BATCH.paas.oracle.com \\
 -pdb PDB01 \\
@@ -545,18 +639,24 @@ srvctl status service \\
 
 # Java JDBC Thin descriptor URL with the same parameters:
 # jdbc:oracle:thin:@(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=exasc01-scan-jjtmn.private.usw.oraclevcn.com)(PORT=1521))(CONNECT_DATA=(SERVER=DEDICATED)(SERVICE_NAME=CDB01_PDB01_BATCH.paas.oracle.com)(UR=A)))`,
-      sessionsPerInstance: `set linesize 120
-column inst_id format 999
-column sessions format 999999
+      sessionsPerInstance: `SET LINESIZE 220
+SET PAGESIZE 100
+SET TRIMSPOOL ON
+SET TAB OFF
+COLUMN inst_id FORMAT 999
+COLUMN sessions FORMAT 999999
 
 SELECT inst_id, COUNT(*) sessions
 FROM gv$session
 GROUP BY inst_id;`,
-      sessionsPerPdbInstance: `set linesize 200
-column inst_id format 999
-column pdb_name format a30
-column network_name format a45
-column sessions format 999999
+      sessionsPerPdbInstance: `SET LINESIZE 220
+SET PAGESIZE 100
+SET TRIMSPOOL ON
+SET TAB OFF
+COLUMN inst_id FORMAT 999
+COLUMN pdb_name FORMAT A30
+COLUMN network_name FORMAT A45
+COLUMN sessions FORMAT 999999
 
 SELECT s.inst_id,
        p.name pdb_name,
@@ -572,11 +672,14 @@ JOIN gv$services svc
 WHERE s.type='USER'
 GROUP BY s.inst_id,p.name,svc.network_name
 ORDER BY p.name,svc.network_name,s.inst_id;`,
-      memoryPerPdbInstance: `set linesize 180
-column inst_id format 999
-column pdb_name format a30
-column pga_mb format 999999990.99
-column sessions format 999999
+      memoryPerPdbInstance: `SET LINESIZE 220
+SET PAGESIZE 100
+SET TRIMSPOOL ON
+SET TAB OFF
+COLUMN inst_id FORMAT 999
+COLUMN pdb_name FORMAT A30
+COLUMN pga_mb FORMAT 999999990.99
+COLUMN sessions FORMAT 999999
 
 SELECT
     s.inst_id,
@@ -592,10 +695,13 @@ JOIN v$containers c
 WHERE s.type='USER'
 GROUP BY s.inst_id,c.name
 ORDER BY c.name,s.inst_id;`,
-      clusterMemoryDistribution: `set linesize 160
-column pdb_name format a30
-column total_pga_mb format 999999990.99
-column sessions format 999999
+      clusterMemoryDistribution: `SET LINESIZE 220
+SET PAGESIZE 100
+SET TRIMSPOOL ON
+SET TAB OFF
+COLUMN pdb_name FORMAT A30
+COLUMN total_pga_mb FORMAT 999999990.99
+COLUMN sessions FORMAT 999999
 
 SELECT
     c.name pdb_name,
@@ -610,12 +716,15 @@ JOIN v$containers c
 WHERE s.type='USER'
 GROUP BY c.name
 ORDER BY total_pga_mb DESC;`,
-      racWorkloadDashboard: `set linesize 200
-column inst_id format 999
-column pdb_name format a30
-column sessions format 999999
-column total_pga_mb format 999999990.99
-column avg_pga_mb_per_session format 999999990.99
+      racWorkloadDashboard: `SET LINESIZE 220
+SET PAGESIZE 100
+SET TRIMSPOOL ON
+SET TAB OFF
+COLUMN inst_id FORMAT 999
+COLUMN pdb_name FORMAT A30
+COLUMN sessions FORMAT 999999
+COLUMN total_pga_mb FORMAT 999999990.99
+COLUMN avg_pga_mb_per_session FORMAT 999999990.99
 
 SELECT
     s.inst_id,
@@ -740,10 +849,10 @@ ORDER BY c.name,s.inst_id;`
       en: {
         name: "English",
         label: "EN",
-        title: "Exadata Exascale 26ai RAC Health Check Guide",
+        title: "RAC Health Check Guide",
         subtitle: "A consistent procedure to validate the health of an Oracle Exadata Exascale RAC deployment in OCI.",
         eyebrow: "Oracle technical article",
-        updated: "Reference links checked June 10, 2026",
+        updated: "Blog last updated June 10, 2026",
         source: "Converted from Exadata_Exascale_26ai_RAC_Health_Check_Guide.md",
         disclaimerTitle: "Educational use and validation required",
         disclaimer: "This content is for educational and planning purposes only. Apply every command and configuration first in a non-production test environment that mirrors your RAC, service, client driver, workload, and failover requirements. The recommended values shown here may not work in your specific environment, may require change-control approval, and can affect availability, connection routing, transaction behavior, memory use, and batch workload placement. Validate with application owners, DBAs, network teams, and Oracle Support guidance before using any setting in production.",
@@ -753,6 +862,7 @@ ORDER BY c.name,s.inst_id;`
           themeDark: "Dark",
           copy: "Copy",
           copied: "Copied",
+          objective: "Objective",
           toc: "Table of contents",
           backTop: "Back to top",
           refs: "Oracle references",
@@ -871,7 +981,7 @@ ORDER BY c.name,s.inst_id;`
             title: "7. SQL Health Checks",
             kicker: "Dynamic views",
             body: "Dynamic performance views expose current database and instance state. In RAC, GV$ views return instance-scoped rows so the same query can compare status, services, and sessions across nodes.",
-            code: { type: "sql", label: "SQL view inventory", value: commands.sqlViews }
+            code: { type: "text", label: "SQL view inventory", value: commands.sqlViews }
           },
           {
             id: "connectivity",
@@ -1205,10 +1315,10 @@ ORDER BY c.name,s.inst_id;`
       es: {
         name: "Español",
         label: "ES",
-        title: "Guía de Health Check para Exadata Exascale 26ai RAC",
+        title: "Guía de Health Check RAC",
         subtitle: "Un procedimiento consistente para validar la salud de una implementación Oracle Exadata Exascale RAC en OCI.",
         eyebrow: "Artículo técnico Oracle",
-        updated: "Referencias revisadas el 10 de junio de 2026",
+        updated: "Blog actualizado por última vez el 10 de junio de 2026",
         source: "Convertido desde Exadata_Exascale_26ai_RAC_Health_Check_Guide.md",
         disclaimerTitle: "Uso educativo y validación obligatoria",
         disclaimer: "Este contenido es solo para fines educativos y de planeación. Aplica cada comando y configuración primero en un ambiente de prueba no productivo que refleje tus requisitos de RAC, servicios, drivers cliente, carga de trabajo y failover. Los valores recomendados aquí podrían no funcionar en tu entorno específico, pueden requerir aprobación de change-control y pueden afectar disponibilidad, enrutamiento de conexiones, comportamiento transaccional, uso de memoria y ubicación de cargas batch. Valida con dueños de aplicación, DBAs, equipos de red y la guía de Oracle Support antes de usar cualquier ajuste en producción.",
@@ -1218,6 +1328,7 @@ ORDER BY c.name,s.inst_id;`
           themeDark: "Oscuro",
           copy: "Copiar",
           copied: "Copiado",
+          objective: "Objetivo",
           toc: "Tabla de contenido",
           backTop: "Volver arriba",
           refs: "Referencias Oracle",
@@ -1280,7 +1391,7 @@ ORDER BY c.name,s.inst_id;`
           { id: "database-health", title: "4. Health Checks de Base de Datos", kicker: "Contexto del propietario de base de datos", body: "SRVCTL es la utilidad de administración esperada para entidades RAC administradas por Oracle como bases de datos, instancias, listeners y servicios. La revisión de estado confirma si cada instancia RAC está ejecutándose bajo control de Clusterware.", code: { type: "bash", label: "Estado de base de datos", value: commands.database } },
           { id: "database-config", title: "5. Configuración de Base de Datos", kicker: "Configuración registrada", body: "La configuración de base de datos es la metadata de Clusterware que describe cómo se administra la base RAC, incluyendo nombres de instancia, Oracle homes, política de arranque e información de colocación usada por SRVCTL.", code: { type: "bash", label: "Configuración de base de datos", value: commands.dbConfig } },
           { id: "service-validation", title: "6. Validación de Servicios", kicker: "Configuración y ejecución de servicios", body: "Los servicios RAC son puntos lógicos de entrada para cargas de trabajo. Separan los nombres de conexión de aplicación de instancias individuales y contienen atributos de colocación, failover y load balancing usados por clientes y pools.", code: { type: "bash", label: "Validación de servicios", value: commands.service } },
-          { id: "sql-health", title: "7. Health Checks SQL", kicker: "Vistas dinámicas", body: "Las vistas dinámicas de rendimiento exponen estado actual de la base y de las instancias. En RAC, las vistas GV$ devuelven filas por instancia para comparar estado, servicios y sesiones entre nodos.", code: { type: "sql", label: "Inventario de vistas SQL", value: commands.sqlViews } },
+          { id: "sql-health", title: "7. Health Checks SQL", kicker: "Vistas dinámicas", body: "Las vistas dinámicas de rendimiento exponen estado actual de la base y de las instancias. En RAC, las vistas GV$ devuelven filas por instancia para comparar estado, servicios y sesiones entre nodos.", code: { type: "text", label: "Inventario de vistas SQL", value: commands.sqlViews } },
           { id: "connectivity", title: "8. Validación de Conectividad", kicker: "TNS y SQL*Plus", body: "La validación de conectividad cubre resolución de nombres y creación de sesión. Un alias TNS puede resolver correctamente aunque la conexión final al servicio falle, por lo que ambas capas deben revisarse.", code: { type: "bash", label: "Validación de conectividad", value: commands.connectivity } },
           { id: "tns-aliases", title: "9. Revisión de Alias TNS", kicker: "Archivos de administración de red", body: "Local naming usa alias de tnsnames.ora para mapear nombres amigables a connect descriptors. Esos descriptores definen direcciones, nombres de servicio, opciones de failover y comportamiento de load balancing visto por clientes.", code: { type: "bash", label: "Revisión de alias TNS", value: commands.tns }, extraCodes: [{ type: "text", label: "Valores por defecto de tnsnames.ora", value: commands.tnsDefaults }] },
 { id: "default-service", title: "10. Revisión de Configuración del Servicio de Conexión por Defecto", kicker: "Línea base del servicio de conexión", body: "El servicio PDB por defecto es la línea base de entrada de aplicación para este ambiente. Sus atributos SRVCTL muestran colocación, tipo de failover, objetivo de connection load balancing y objetivo de runtime load balancing antes de aplicar recomendaciones.", code: { type: "bash", label: "Configuración del servicio por defecto", value: commands.defaultService }, table: { headers: ["Característica", "Valor", "Valores documentados por Oracle"], rows: [["Failover type", "NONE", "NONE, SESSION, SELECT, TRANSACTION, AUTO"], ["Runtime Load Balancing Goal", "NONE", "NONE, SERVICE_TIME, THROUGHPUT"], ["Connection Load Balancing Goal", "LONG", "SHORT, LONG"]] }, notes: ["Esta salida muestra que el servicio PDB por defecto CDB01_PDB01.paas.oracle.com está habilitado para el rol PRIMARY y mapeado a PDB01.", "Cardinality 2 con instancias preferred CDB011,CDB012 significa que el servicio se ubica en ambas instancias RAC durante operación normal; no hay instancias available listadas para ubicación alterna.", "Failover type NONE, failover method NONE, TAF policy NONE, Commit Outcome FALSE y Failover restore NONE significan que este servicio por defecto no está configurado para TAF del lado servidor, Transaction Guard ni comportamiento de replay estilo Application Continuity.", "Connection Load Balancing Goal LONG favorece balanceo por conteo de sesiones para conexiones de mayor duración, mientras que Runtime Load Balancing Goal NONE significa que el servicio no publica objetivos de runtime load balancing advisory como SERVICE_TIME o THROUGHPUT."], postNoteCodes: [{ type: "text", label: "Salida del servicio por defecto", description: "Objetivo: revisar la salida SRVCTL capturada en las notas y enfocarse en los atributos de failover y balanceo de carga que definen el comportamiento del servicio por defecto.", value: commands.defaultServiceOutput, highlightPatterns: ["Failover type:", "Runtime Load Balancing Goal:", "Connection Load Balancing Goal:"] }], references: [{ label: "Referencia de comandos SRVCTL service", url: refs.srvctl }] },
@@ -1312,10 +1423,10 @@ ORDER BY c.name,s.inst_id;`
       pt: {
         name: "Português",
         label: "PT",
-        title: "Guia de Health Check para Exadata Exascale 26ai RAC",
+        title: "Guia de Health Check RAC",
         subtitle: "Um procedimento consistente para validar a saúde de uma implantação Oracle Exadata Exascale RAC no OCI.",
         eyebrow: "Artigo técnico Oracle",
-        updated: "Referências verificadas em 10 de junho de 2026",
+        updated: "Blog atualizado pela última vez em 10 de junho de 2026",
         source: "Convertido de Exadata_Exascale_26ai_RAC_Health_Check_Guide.md",
         disclaimerTitle: "Uso educacional e validação obrigatória",
         disclaimer: "Este conteúdo é apenas para fins educacionais e de planejamento. Aplique cada comando e configuração primeiro em um ambiente de teste não produtivo que reflita seus requisitos de RAC, serviços, drivers cliente, carga de trabalho e failover. Os valores recomendados aqui podem não funcionar no seu ambiente específico, podem exigir aprovação de change-control e podem afetar disponibilidade, roteamento de conexões, comportamento transacional, uso de memória e posicionamento de cargas batch. Valide com responsáveis pela aplicação, DBAs, equipes de rede e orientação do Oracle Support antes de usar qualquer ajuste em produção.",
@@ -1325,6 +1436,7 @@ ORDER BY c.name,s.inst_id;`
           themeDark: "Escuro",
           copy: "Copiar",
           copied: "Copiado",
+          objective: "Objetivo",
           toc: "Sumário",
           backTop: "Voltar ao topo",
           refs: "Referências Oracle",
@@ -1387,7 +1499,7 @@ ORDER BY c.name,s.inst_id;`
           { id: "database-health", title: "4. Health Checks de Banco de Dados", kicker: "Contexto do proprietário do banco", body: "SRVCTL é a utilidade de administração esperada para entidades RAC gerenciadas pela Oracle, como bancos, instâncias, listeners e serviços. A revisão de status confirma se cada instância RAC está executando sob controle do Clusterware.", code: { type: "bash", label: "Status do banco", value: commands.database } },
           { id: "database-config", title: "5. Configuração de Banco de Dados", kicker: "Configuração registrada", body: "A configuração do banco é a metadata do Clusterware que descreve como a base RAC é gerenciada, incluindo nomes de instância, Oracle homes, política de inicialização e informações de posicionamento usadas pelo SRVCTL.", code: { type: "bash", label: "Configuração do banco", value: commands.dbConfig } },
           { id: "service-validation", title: "6. Validação de Serviços", kicker: "Configuração e execução de serviços", body: "Serviços RAC são pontos lógicos de entrada para cargas de trabalho. Eles separam nomes de conexão de aplicação de instâncias individuais e carregam atributos de posicionamento, failover e load balancing usados por clientes e pools.", code: { type: "bash", label: "Validação de serviços", value: commands.service } },
-          { id: "sql-health", title: "7. Health Checks SQL", kicker: "Views dinâmicas", body: "Views dinâmicas de desempenho expõem o estado atual do banco e das instâncias. Em RAC, views GV$ retornam linhas por instância para comparar status, serviços e sessões entre nós.", code: { type: "sql", label: "Inventário de views SQL", value: commands.sqlViews } },
+          { id: "sql-health", title: "7. Health Checks SQL", kicker: "Views dinâmicas", body: "Views dinâmicas de desempenho expõem o estado atual do banco e das instâncias. Em RAC, views GV$ retornam linhas por instância para comparar status, serviços e sessões entre nós.", code: { type: "text", label: "Inventário de views SQL", value: commands.sqlViews } },
           { id: "connectivity", title: "8. Validação de Conectividade", kicker: "TNS e SQL*Plus", body: "A validação de conectividade cobre resolução de nomes e criação de sessão. Um alias TNS pode resolver corretamente enquanto a conexão final ao serviço ainda falha, portanto as duas camadas devem ser verificadas.", code: { type: "bash", label: "Validação de conectividade", value: commands.connectivity } },
           { id: "tns-aliases", title: "9. Revisão de Aliases TNS", kicker: "Arquivos de administração de rede", body: "Local naming usa aliases de tnsnames.ora para mapear nomes amigáveis para connect descriptors. Esses descritores definem endereços, nomes de serviço, opções de failover e comportamento de load balancing vistos por clientes.", code: { type: "bash", label: "Revisão de aliases TNS", value: commands.tns }, extraCodes: [{ type: "text", label: "Valores padrão de tnsnames.ora", value: commands.tnsDefaults }] },
 { id: "default-service", title: "10. Revisão da Configuração do Serviço de Conexão Padrão", kicker: "Linha base do serviço de conexão", body: "O serviço PDB padrão é a linha base de entrada de aplicação para este ambiente. Seus atributos SRVCTL mostram posicionamento, tipo de failover, objetivo de connection load balancing e objetivo de runtime load balancing antes de aplicar recomendações.", code: { type: "bash", label: "Configuração do serviço padrão", value: commands.defaultService }, table: { headers: ["Característica", "Valor", "Valores documentados pela Oracle"], rows: [["Failover type", "NONE", "NONE, SESSION, SELECT, TRANSACTION, AUTO"], ["Runtime Load Balancing Goal", "NONE", "NONE, SERVICE_TIME, THROUGHPUT"], ["Connection Load Balancing Goal", "LONG", "SHORT, LONG"]] }, notes: ["Esta saída mostra que o serviço PDB padrão CDB01_PDB01.paas.oracle.com está habilitado para o papel PRIMARY e mapeado para PDB01.", "Cardinality 2 com instâncias preferred CDB011,CDB012 significa que o serviço fica posicionado nas duas instâncias RAC durante operação normal; não há instâncias available listadas para posicionamento alternativo.", "Failover type NONE, failover method NONE, TAF policy NONE, Commit Outcome FALSE e Failover restore NONE significam que este serviço padrão não está configurado para TAF do lado servidor, Transaction Guard nem comportamento de replay estilo Application Continuity.", "Connection Load Balancing Goal LONG favorece balanceamento por contagem de sessões para conexões de maior duração, enquanto Runtime Load Balancing Goal NONE significa que o serviço não publica objetivos de runtime load balancing advisory como SERVICE_TIME ou THROUGHPUT."], postNoteCodes: [{ type: "text", label: "Saída do serviço padrão", description: "Objetivo: revisar a saída SRVCTL capturada nas notas e focar nos atributos de failover e balanceamento de carga que definem o comportamento do serviço padrão.", value: commands.defaultServiceOutput, highlightPatterns: ["Failover type:", "Runtime Load Balancing Goal:", "Connection Load Balancing Goal:"] }], references: [{ label: "Referência de comandos SRVCTL service", url: refs.srvctl }] },
@@ -1528,9 +1640,9 @@ ORDER BY c.name,s.inst_id;`
         ],
         copy: {
           en: {
-            title: "Exadata Exascale 26ai RAC Overview",
+            title: "RAC Overview",
             subtitle: "Architecture context, continuity concepts, and entry points for the Exascale RAC health check, connection service, and cluster scaling guides.",
-            navSubtitle: "26ai RAC Overview",
+            navSubtitle: "RAC Overview",
             highlights: [
               "Start here for the overview, architecture map, and continuity concepts.",
               "Open Healthcheck for RAC operational checks, sections 1 through 8.",
@@ -1539,9 +1651,9 @@ ORDER BY c.name,s.inst_id;`
             ]
           },
           es: {
-            title: "Overview de Exadata Exascale 26ai RAC",
+            title: "Overview RAC",
             subtitle: "Contexto de arquitectura, conceptos de continuidad y entradas para las guías de health check RAC, servicios de conexión y escalado de clúster.",
-            navSubtitle: "Overview RAC 26ai",
+            navSubtitle: "Overview RAC",
             highlights: [
               "Empieza aquí para el overview, el mapa de arquitectura y los conceptos de continuidad.",
               "Abre Healthcheck para las revisiones operativas RAC, secciones 1 a 8.",
@@ -1550,9 +1662,9 @@ ORDER BY c.name,s.inst_id;`
             ]
           },
           pt: {
-            title: "Overview do Exadata Exascale 26ai RAC",
+            title: "Overview RAC",
             subtitle: "Contexto de arquitetura, conceitos de continuidade e entradas para os guias de health check RAC, serviços de conexão e escala de cluster.",
-            navSubtitle: "Overview RAC 26ai",
+            navSubtitle: "Overview RAC",
             highlights: [
               "Comece aqui para o overview, o mapa de arquitetura e os conceitos de continuidade.",
               "Abra Healthcheck para as verificações operacionais RAC, seções 1 a 8.",
@@ -1569,39 +1681,43 @@ ORDER BY c.name,s.inst_id;`
         relativeLinks: [
           { href: "../index.html", label: "Exascale Overview", description: "Architecture context and continuity/service concepts." },
           { href: "../ConnectionServices/index.html", label: "Connection Services", description: "Sections 9 through 17 for TNS aliases, services, load balancing, and failover simulation." },
+          { href: "../ResourceManager/index.html", label: "Resource Manager", description: "Service-based consumer groups, CPU shares, DOP limits, activation, and validation." },
           { href: "../Cluster/index.html", label: "Cluster Scaling", description: "Single-node to two-node RAC scaling, SCAN, HA components, validation, AC, and TAC." }
         ],
         copy: {
           en: {
-            title: "Exadata Exascale 26ai RAC Health Check",
+            title: "RAC Health Check",
             subtitle: "Operational checks for Grid Infrastructure, storage expectations, listeners, database state, services, SQL views, and connectivity.",
-            navSubtitle: "26ai RAC Health Check",
+            navSubtitle: "RAC Health Check",
             highlights: [
               "Use this page for the operational RAC health-check workflow, sections 1 through 8.",
               "Use Exascale Overview for overview, architecture, and continuity concepts.",
               "Use ConnectionServices for TNS aliases, services, load balancing, and failover simulation.",
+              "Use Resource Manager for service-based consumer groups and workload governance.",
               "Use Cluster Scaling for the single-node to two-node RAC scale-out guide."
             ]
           },
           es: {
-            title: "Health Check de Exadata Exascale 26ai RAC",
+            title: "Health Check RAC",
             subtitle: "Revisiones operativas de Grid Infrastructure, expectativas de almacenamiento, listeners, estado de base de datos, servicios, vistas SQL y conectividad.",
-            navSubtitle: "Health Check RAC 26ai",
+            navSubtitle: "Health Check RAC",
             highlights: [
               "Usa esta página para el flujo operativo de health check RAC, secciones 1 a 8.",
               "Usa Exascale Overview para overview, arquitectura y conceptos de continuidad.",
               "Usa ConnectionServices para alias TNS, servicios, load balancing y simulación de failover.",
+              "Usa Resource Manager para consumer groups por servicio y gobierno de carga.",
               "Usa Cluster Scaling para la guía de escalado RAC de un nodo a dos nodos."
             ]
           },
           pt: {
-            title: "Health Check do Exadata Exascale 26ai RAC",
+            title: "Health Check RAC",
             subtitle: "Verificações operacionais de Grid Infrastructure, expectativas de armazenamento, listeners, estado do banco, serviços, views SQL e conectividade.",
-            navSubtitle: "Health Check RAC 26ai",
+            navSubtitle: "Health Check RAC",
             highlights: [
               "Use esta página para o fluxo operacional de health check RAC, seções 1 a 8.",
               "Use Exascale Overview para overview, arquitetura e conceitos de continuidade.",
               "Use ConnectionServices para aliases TNS, serviços, load balancing e simulação de failover.",
+              "Use Resource Manager para consumer groups por serviço e governança de carga.",
               "Use Cluster Scaling para o guia de escala RAC de um nó para dois nós."
             ]
           }
@@ -1618,9 +1734,9 @@ ORDER BY c.name,s.inst_id;`
         ],
         copy: {
           en: {
-            title: "Exadata Exascale 26ai RAC Connection Services",
+            title: "RAC Connection Services",
             subtitle: "TNS aliases, default service review, OLTP failover, reporting and batch services, runtime load balancing, and failover simulation.",
-            navSubtitle: "26ai RAC Services",
+            navSubtitle: "RAC Services",
             highlights: [
               "Use this page for connection service sections 9 through 17.",
               "Use Exascale Overview when you need architecture context before applying service changes.",
@@ -1629,9 +1745,9 @@ ORDER BY c.name,s.inst_id;`
             ]
           },
           es: {
-            title: "Servicios de Conexión Exadata Exascale 26ai RAC",
+            title: "Servicios de Conexión RAC",
             subtitle: "Alias TNS, revisión del servicio por defecto, failover OLTP, servicios de reportes y batch, runtime load balancing y simulación de failover.",
-            navSubtitle: "Servicios RAC 26ai",
+            navSubtitle: "Servicios RAC",
             highlights: [
               "Usa esta página para las secciones 9 a 17 de servicios de conexión.",
               "Usa Exascale Overview cuando necesites contexto de arquitectura antes de aplicar cambios de servicio.",
@@ -1640,9 +1756,9 @@ ORDER BY c.name,s.inst_id;`
             ]
           },
           pt: {
-            title: "Serviços de Conexão Exadata Exascale 26ai RAC",
+            title: "Serviços de Conexão RAC",
             subtitle: "Aliases TNS, revisão do serviço padrão, failover OLTP, serviços de relatórios e batch, runtime load balancing e simulação de failover.",
-            navSubtitle: "Serviços RAC 26ai",
+            navSubtitle: "Serviços RAC",
             highlights: [
               "Use esta página para as seções 9 a 17 de serviços de conexão.",
               "Use Exascale Overview quando precisar de contexto de arquitetura antes de aplicar mudanças de serviço.",
@@ -1664,16 +1780,41 @@ ORDER BY c.name,s.inst_id;`
 
     function CodePanel({ block, controls }) {
       const [copied, setCopied] = useState(false);
-      const description = block.description || (controls.snippetObjectives && controls.snippetObjectives[block.label]);
+      const description = block.description || (controls.snippetObjectives && controls.snippetObjectives[block.label]) || block.label || controls.command;
       const highlightPatterns = block.highlightPatterns || [];
       const codeLines = highlightPatterns.length ? String(block.value).split("\n") : null;
-      const palette = {
-        bash: "border-emerald-500/35 bg-[#111917]",
-        java: "border-amber-500/35 bg-[#17130d]",
-        sql: "border-sky-500/35 bg-[#101922]",
-        text: "border-stone-500/35 bg-[#171412]",
-        diagram: "border-orange-400/35 bg-[#191511]"
+      const codeTypes = {
+        bash: { className: "code-bash", label: "Bash" },
+        java: { className: "code-java", label: "Java" },
+        sql: { className: "code-sql", label: "SQL" },
+        plsql: { className: "code-sql", label: "PL/SQL" },
+        text: { className: "code-text", label: "Text" },
+        output: { className: "code-text", label: "Output" },
+        diagram: { className: "code-diagram", label: "Text" },
+        json: { className: "code-text", label: "JSON" },
+        yaml: { className: "code-text", label: "YAML" },
+        xml: { className: "code-text", label: "XML" }
       };
+      const typeInfo = codeTypes[block.type] || codeTypes.text;
+      const typeLabel = block.type === "text" && block.label === controls.expected ? "Output" : typeInfo.label;
+      const objectiveLabel = controls.objective || "Objective";
+
+      function objectiveParts(text) {
+        const value = String(text || "").trim();
+        const match = value.match(/^(Objective|Objetivo):\s*/i);
+        if (match) {
+          return {
+            label: `${match[1]}:`,
+            text: value.slice(match[0].length)
+          };
+        }
+        return {
+          label: `${objectiveLabel}:`,
+          text: value
+        };
+      }
+
+      const objective = objectiveParts(description);
 
       function legacyCopy(text) {
         const textarea = document.createElement("textarea");
@@ -1721,30 +1862,29 @@ ORDER BY c.name,s.inst_id;`
       }
 
       return (
-        <figure className={cx("overflow-hidden rounded-lg border shadow-sm", palette[block.type] || palette.text)}>
-          <div className="flex items-center justify-between gap-4 border-b border-white/10 px-4 py-2">
-            <figcaption className="text-xs font-semibold uppercase tracking-wide text-stone-200">
-              {block.label || controls.command}
+        <figure className={cx("code-card", typeInfo.className)}>
+          <div className="code-toolbar">
+            <figcaption className="code-type">
+              {typeLabel}
             </figcaption>
             <button
               type="button"
               onClick={copyCode}
-              className="rounded-md border border-white/15 bg-white/10 px-3 py-1 text-xs font-semibold text-white transition hover:bg-white/18 focus:outline-none focus:ring-2 focus:ring-white/60"
+              className="copy-btn"
               aria-label={`${controls.copy}: ${block.label || controls.command}`}
             >
               {copied ? controls.copied : controls.copy}
             </button>
           </div>
-          {description && (
-            <div className="border-b border-white/10 px-4 py-3 text-sm leading-6 text-stone-200">
-              {description}
-            </div>
-          )}
-          <pre className="code-scroll overflow-x-auto p-4 text-[13px] leading-6 text-stone-100"><code>{codeLines ? codeLines.map((line, index) => (
-            <span key={index} className={cx("block px-1", shouldHighlight(line) && "rounded-sm bg-emerald-400/15 text-emerald-200")}>{line || " "}</span>
+          <div className="code-description code-objective">
+            <span className="objective-label">{objective.label}</span>{" "}
+            <span>{objective.text}</span>
+          </div>
+          <pre className="code-scroll"><code>{codeLines ? codeLines.map((line, index) => (
+            <span key={index} className={cx("block px-1", shouldHighlight(line) && "code-highlight rounded-sm")}>{line || " "}</span>
           )) : block.value}</code></pre>
           {block.afterDescription && (
-            <div className="border-t border-white/10 px-4 py-3 text-sm leading-6 text-stone-200">
+            <div className="code-note">
               {block.afterDescription}
             </div>
           )}
@@ -1891,10 +2031,22 @@ ORDER BY c.name,s.inst_id;`
       const text = props.text;
       const compact = Boolean(props.compact);
 
+      if (compact) {
+        return (
+          <details className="rounded-lg border border-amber-300 bg-amber-50 text-left text-amber-950 dark:border-amber-500/40 dark:bg-amber-950/25 dark:text-amber-100">
+            <summary className="cursor-pointer list-none px-4 py-3 text-sm font-bold uppercase tracking-[0.14em] marker:hidden focus:outline-none focus:ring-2 focus:ring-amber-500/50">
+              {title}
+              <span className="ml-2 whitespace-nowrap text-xs font-semibold normal-case tracking-normal text-amber-800 underline underline-offset-2 dark:text-amber-200">click here</span>
+            </summary>
+            <p className="border-t border-amber-200 px-4 pb-4 pt-3 text-sm leading-6 dark:border-amber-500/30">{text}</p>
+          </details>
+        );
+      }
+
       return (
         <aside className={cx(
           "rounded-lg border border-amber-300 bg-amber-50 text-amber-950 dark:border-amber-500/40 dark:bg-amber-950/25 dark:text-amber-100",
-          compact ? "p-4 text-left" : "p-5"
+          "p-5"
         )}>
           <p className="text-sm font-bold uppercase tracking-[0.14em]">{title}</p>
           <p className="mt-2 text-sm leading-6">{text}</p>
@@ -2043,11 +2195,14 @@ ORDER BY c.name,s.inst_id;`
     }
 
     function App() {
-      const [lang, setLang] = useState("en");
+      const initialLanguage = window.ExascaleGuideSet ? window.ExascaleGuideSet.languageFromLocation() : "en";
+      const [lang, setLang] = useState(initialLanguage);
       const [dark, setDark] = useState(() => document.documentElement.classList.contains("dark"));
       const t = article[lang];
       const pageConfig = pageConfigs[pageVariant];
       const pageCopy = pageConfig.copy[lang] || pageConfig.copy.en;
+      const seriesBrand = pageConfig.seriesBrand || { title: "Oracle Exadata Exascale 26ai", subtitle: "Series" };
+      const relativeLinks = (pageConfig.relativeLinksByLanguage && pageConfig.relativeLinksByLanguage[lang]) || pageConfig.relativeLinks;
       const glossaryNav = {
         en: {
           eyebrow: "Shared reference section",
@@ -2094,8 +2249,8 @@ ORDER BY c.name,s.inst_id;`
                 <div className="flex items-center gap-3">
                   <div className="h-9 w-9 rounded-md bg-oracle-red shadow-sm" aria-hidden="true"></div>
                   <div>
-                    <p className="text-sm font-semibold text-stone-900 dark:text-white">Oracle Exadata Exascale</p>
-                    <p className="text-xs text-stone-600 dark:text-stone-400">{pageCopy.navSubtitle}</p>
+                    <p className="text-sm font-semibold text-stone-900 dark:text-white">{seriesBrand.title}</p>
+                    <p className="text-xs text-stone-600 dark:text-stone-400">{seriesBrand.subtitle}</p>
                   </div>
                 </div>
                 <div className="flex flex-wrap items-center gap-2">
@@ -2136,10 +2291,10 @@ ORDER BY c.name,s.inst_id;`
                     <span className="max-w-full rounded-md border border-stone-300 bg-white px-3 py-1.5 break-words dark:border-stone-700 dark:bg-stone-900">{t.updated}</span>
                   </div>
                   <div className="mt-5 max-w-3xl">
-                    <Disclaimer title={t.disclaimerTitle} text={t.disclaimer} />
+                    <Disclaimer title={t.disclaimerTitle} text={t.disclaimer} compact />
                   </div>
                   <div className="mt-5 grid gap-3 sm:grid-cols-2">
-                    {pageConfig.relativeLinks.map((link) => (
+                    {relativeLinks.map((link) => (
                       <a key={link.href} href={link.href} className="rounded-lg border border-stone-200 bg-white p-4 text-sm shadow-sm transition hover:border-oracle-red hover:shadow-subtle focus:outline-none focus:ring-2 focus:ring-oracle-red/40 dark:border-stone-700 dark:bg-[#211d1b]">
                         <span className="font-bold text-oracle-red dark:text-orange-300">{link.label}</span>
                         <span className="mt-1 block leading-6 text-stone-700 dark:text-stone-300">{typeof link.description === "string" ? link.description : link.description[lang] || link.description.en}</span>
