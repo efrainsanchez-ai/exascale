@@ -83,10 +83,100 @@
       background: rgba(255,255,255,0.28);
       border-radius: 999px;
     }
+    .static-fallback {
+      min-height: 100vh;
+      background:
+        linear-gradient(135deg, rgba(199, 70, 52, 0.11), transparent 36%),
+        linear-gradient(180deg, #fff 0%, #faf8f7 100%);
+      color: #1f1b1a;
+    }
+    .static-fallback-inner {
+      width: min(1120px, calc(100% - 2rem));
+      margin: 0 auto;
+      padding: 2rem 0 4rem;
+    }
+    .static-fallback-brand {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      color: #57534e;
+      font-size: 0.9rem;
+      font-weight: 700;
+    }
+    .static-fallback-mark {
+      display: inline-grid;
+      place-items: center;
+      width: 2.25rem;
+      height: 2.25rem;
+      border-radius: 6px;
+      background: #c74634;
+      color: white;
+      font-size: 0.72rem;
+      font-weight: 900;
+    }
+    .static-fallback h1 {
+      max-width: 760px;
+      margin: 4rem 0 1rem;
+      color: #1f1b1a;
+      font-size: clamp(2.4rem, 6vw, 5rem);
+      line-height: 0.96;
+      letter-spacing: 0;
+    }
+    .static-fallback-lead {
+      max-width: 760px;
+      margin: 0;
+      color: #57534e;
+      font-size: 1.1rem;
+      line-height: 1.7;
+    }
+    .static-fallback-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 1rem;
+      margin-top: 2rem;
+    }
+    .static-fallback-card {
+      display: block;
+      min-height: 9rem;
+      border: 1px solid #e7e5e4;
+      border-radius: 8px;
+      background: #fff;
+      padding: 1rem;
+      box-shadow: 0 10px 28px rgba(31, 27, 26, 0.07);
+    }
+    .static-fallback-card strong {
+      display: block;
+      color: #c74634;
+      font-size: 1rem;
+    }
+    .static-fallback-card span {
+      display: block;
+      margin-top: 0.45rem;
+      color: #57534e;
+      font-size: 0.92rem;
+      line-height: 1.5;
+    }
   </style>
 </head>
 <body class="bg-white text-oracle-ink antialiased dark:bg-[#171412] dark:text-stone-100">
-  <div id="root"></div>
+  <div id="root">
+    <main class="static-fallback" aria-label="Oracle Exadata Exascale series fallback">
+      <div class="static-fallback-inner">
+        <div class="static-fallback-brand">
+          <span class="static-fallback-mark" aria-hidden="true">RAC</span>
+          <span>Oracle Exadata Exascale 26ai Series</span>
+        </div>
+        <h1>RAC Overview</h1>
+        <p class="static-fallback-lead">Architecture context, continuity concepts, and entry points for the Exascale RAC health check, connection service, Resource Manager, and cluster scaling guides.</p>
+        <nav class="static-fallback-grid" aria-label="Exascale blog series">
+          <a class="static-fallback-card" href="Healthcheck/index.html"><strong>RAC Health Check</strong><span>Clusterware, listener, database, service, SQL, and connectivity validation.</span></a>
+          <a class="static-fallback-card" href="ConnectionServices/index.html"><strong>Connection Services</strong><span>TNS aliases, service configuration, load balancing, and failover simulation.</span></a>
+          <a class="static-fallback-card" href="ResourceManager/index.html"><strong>Resource Manager</strong><span>Service-based consumer groups, CPU shares, DOP limits, activation, and validation.</span></a>
+          <a class="static-fallback-card" href="Cluster/index.html"><strong>Cluster Scaling</strong><span>Single-node to multi-node RAC scaling, SCAN, high availability components, validation, AC, and TAC.</span></a>
+        </nav>
+      </div>
+    </main>
+  </div>
 
   <script type="text/babel">
     const { useEffect, useMemo, useState } = React;
