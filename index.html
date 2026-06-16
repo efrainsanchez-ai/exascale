@@ -38,6 +38,13 @@
   <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
   <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <script>
+    if (window.Babel && Babel.availablePresets && Babel.availablePresets.react) {
+      Babel.registerPreset("react-classic", function () {
+        return { presets: [[Babel.availablePresets.react, { runtime: "classic" }]] };
+      });
+    }
+  </script>
   <script src="shared-guide-set.js"></script>
   <style>
     :root {
@@ -83,6 +90,9 @@
     .code-scroll::-webkit-scrollbar-thumb {
       background: rgba(255,255,255,0.28);
       border-radius: 999px;
+    }
+    .table-wrap {
+      overflow-x: auto;
     }
     .static-fallback {
       min-height: 100vh;
@@ -157,6 +167,18 @@
       font-size: 0.92rem;
       line-height: 1.5;
     }
+    @media (max-width: 640px) {
+      .static-fallback-inner {
+        width: min(100% - 1rem, 1120px);
+        padding-top: 1.25rem;
+      }
+      .static-fallback h1 {
+        margin-top: 2.75rem;
+      }
+      .static-fallback-grid {
+        grid-template-columns: 1fr;
+      }
+    }
   </style>
 </head>
 <body class="bg-white text-oracle-ink antialiased dark:bg-[#171412] dark:text-stone-100">
@@ -179,8 +201,8 @@
     </main>
   </div>
 
-  <script type="text/babel">
-    const { useEffect, useMemo, useState } = React;
+  <script type="text/babel" data-presets="env,react-classic">
+    const { useEffect, useMemo, useRef, useState } = React;
 
     const refs = {
       exadbxs: "https://docs.oracle.com/en/engineered-systems/exadata-database-exascale/exdxs/overview-exadb-xs-service.html",
@@ -852,6 +874,7 @@ ORDER BY c.name,s.inst_id;`
           refs: "Oracle references",
           expected: "Expected",
           command: "Command",
+          objective: "Objective:",
           notes: "Notes",
           highlights: "Navigate the guide set",
           sourceLabel: "Source",
@@ -1328,6 +1351,7 @@ ORDER BY c.name,s.inst_id;`
           refs: "Referencias Oracle",
           expected: "Esperado",
           command: "Comando",
+          objective: "Objetivo:",
           notes: "Notas",
           highlights: "Navegar las guías",
           sourceLabel: "Fuente",
@@ -1442,6 +1466,7 @@ ORDER BY c.name,s.inst_id;`
           refs: "Referências Oracle",
           expected: "Esperado",
           command: "Comando",
+          objective: "Objetivo:",
           notes: "Notas",
           highlights: "Navegar pelos guias",
           sourceLabel: "Fonte",
@@ -1784,9 +1809,20 @@ ORDER BY c.name,s.inst_id;`
 
     function CodePanel({ block, controls }) {
       const [copied, setCopied] = useState(false);
+      const cardRef = useRef(null);
       const description = block.description || (controls.snippetObjectives && controls.snippetObjectives[block.label]);
       const highlightPatterns = block.highlightPatterns || [];
       const codeLines = highlightPatterns.length ? String(block.value).split("\n") : null;
+      const typeLabel = {
+        bash: "Bash",
+        diagram: "Diagram",
+        java: "Java",
+        json: "JSON",
+        output: "Output",
+        plsql: "PL/SQL",
+        sql: "SQL",
+        text: "Text"
+      }[String(block.type || "text").toLowerCase()] || "Text";
       const palette = {
         bash: "border-emerald-500/35 bg-[#111917]",
         java: "border-amber-500/35 bg-[#17130d]",
@@ -1794,6 +1830,10 @@ ORDER BY c.name,s.inst_id;`
         text: "border-stone-500/35 bg-[#171412]",
         diagram: "border-orange-400/35 bg-[#191511]"
       };
+      const objectiveText = (() => {
+        const value = description || block.label || controls.command;
+        return String(value).replace(/^(Objective|Objetivo):\s*/i, "");
+      })();
 
       function legacyCopy(text) {
         const textarea = document.createElement("textarea");
@@ -1818,17 +1858,18 @@ ORDER BY c.name,s.inst_id;`
       }
 
       async function copyCode() {
+        const codeText = cardRef.current ? cardRef.current.querySelector("pre code").textContent : "";
         let ok = false;
         if (navigator.clipboard && navigator.clipboard.writeText && window.isSecureContext) {
           try {
-            await navigator.clipboard.writeText(block.value);
+            await navigator.clipboard.writeText(codeText);
             ok = true;
           } catch (error) {
             ok = false;
           }
         }
         if (!ok) {
-          ok = legacyCopy(block.value);
+          ok = legacyCopy(codeText);
         }
         setCopied(ok);
         if (ok) {
@@ -1841,27 +1882,25 @@ ORDER BY c.name,s.inst_id;`
       }
 
       return (
-        <figure className={cx("overflow-hidden rounded-lg border shadow-sm", palette[block.type] || palette.text)}>
-          <div className="flex items-center justify-between gap-4 border-b border-white/10 px-4 py-2">
-            <figcaption className="text-xs font-semibold uppercase tracking-wide text-stone-200">
-              {block.label || controls.command}
+        <figure ref={cardRef} className={cx("code-card overflow-hidden rounded-lg border shadow-sm", palette[block.type] || palette.text)}>
+          <div className="code-toolbar flex items-center justify-between gap-4 border-b border-white/10 px-4 py-2">
+            <figcaption className="code-type text-xs font-semibold uppercase tracking-wide text-stone-200">
+              {typeLabel}
             </figcaption>
             <button
               type="button"
               onClick={copyCode}
-              className="rounded-md border border-white/15 bg-white/10 px-3 py-1 text-xs font-semibold text-white transition hover:bg-white/18 focus:outline-none focus:ring-2 focus:ring-white/60"
+              className="copy-btn rounded-md border border-white/15 bg-white/10 px-3 py-1 text-xs font-semibold text-white transition hover:bg-white/18 focus:outline-none focus:ring-2 focus:ring-white/60"
               aria-label={`${controls.copy}: ${block.label || controls.command}`}
             >
               {copied ? controls.copied : controls.copy}
             </button>
           </div>
-          {description && (
-            <div className="border-b border-white/10 px-4 py-3 text-sm leading-6 text-stone-200">
-              {description}
-            </div>
-          )}
+          <div className="code-description code-objective border-b border-white/10 px-4 py-3 text-sm leading-6 text-stone-200">
+            <span className="objective-label font-semibold">{controls.objective}</span> {objectiveText}
+          </div>
           <pre className="code-scroll overflow-x-auto p-4 text-[13px] leading-6 text-stone-100"><code>{codeLines ? codeLines.map((line, index) => (
-            <span key={index} className={cx("block px-1", shouldHighlight(line) && "rounded-sm bg-emerald-400/15 text-emerald-200")}>{line || " "}</span>
+            <span key={index} className={cx("block px-1", shouldHighlight(line) && "rounded-sm bg-emerald-400/15 text-emerald-200")}>{line || " "}{index < codeLines.length - 1 ? "\n" : ""}</span>
           )) : block.value}</code></pre>
           {block.afterDescription && (
             <div className="border-t border-white/10 px-4 py-3 text-sm leading-6 text-stone-200">
@@ -2024,7 +2063,7 @@ ORDER BY c.name,s.inst_id;`
 
     function DataTable({ table }) {
       return (
-        <div className="overflow-x-auto rounded-lg border border-stone-200 bg-white dark:border-stone-700 dark:bg-[#211d1b]">
+        <div className="table-wrap overflow-x-auto rounded-lg border border-stone-200 bg-white dark:border-stone-700 dark:bg-[#211d1b]">
           <table className="min-w-[720px] border-collapse text-left text-sm">
             <thead className="bg-stone-100 text-stone-700 dark:bg-stone-800 dark:text-stone-200">
               <tr>
