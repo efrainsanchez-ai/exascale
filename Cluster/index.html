@@ -1644,7 +1644,7 @@
           <h1 id="en-title">Scaling Oracle Database</h1>
           <p class="subtitle">From a single-node clustered database deployment to a two-node deployment, with service access, high availability components, service configuration, and workload validation organized for fast technical review.</p>
           <div class="hero-meta" aria-label="Article metadata">
-            <span class="meta-pill">Blog last updated June 3, 2026</span>
+            <span class="meta-pill">Last updated June 16, 2026</span>
           </div>
           <details class="disclaimer" aria-label="Educational use and validation required">
             <summary><h2>Educational use and validation required <span class="disclaimer-action">click here</span></h2></summary>
@@ -1814,8 +1814,8 @@
           <p>Runtime load balancing works best for stateless request models where connections are borrowed from the pool, used for a short request, and returned to the pool. Enable Fast Connection Failover and use UCP, WebLogic, OCI, or ODP.NET pools that consume FAN and RAC load balancing advisory events.</p>
           <div class="code-card code-bash">
             <div class="code-toolbar"><span class="code-type">Bash</span><button class="copy-btn" type="button">Copy</button></div>
-            <div class="code-description">Objective: modify the existing OLTP service to publish SHORT connection load balancing and SERVICE_TIME runtime load balancing advisories for integrated pools.</div>
-            <pre><code>srvctl modify service \
+            <div class="code-description code-objective">Objective: modify the existing OLTP service to publish SHORT connection load balancing and SERVICE_TIME runtime load balancing advisories for integrated pools.</div>
+            <pre class="code-scroll"><code>srvctl modify service \
 -d $ORACLE_UNQNAME \
 -s CDB01_PDB01.paas.oracle.com \
 -clbgoal SHORT \
@@ -1823,22 +1823,22 @@
           </div>
           <div class="code-card code-bash">
             <div class="code-toolbar"><span class="code-type">Bash</span><button class="copy-btn" type="button">Copy</button></div>
-            <div class="code-description">Objective: stop, start, and check the service so the updated CLB and RLB attributes are reloaded across the cluster.</div>
-            <pre><code>srvctl stop service -d $ORACLE_UNQNAME -s CDB01_PDB01.paas.oracle.com
+            <div class="code-description code-objective">Objective: stop, start, and check the service so the updated CLB and RLB attributes are reloaded across the cluster.</div>
+            <pre class="code-scroll"><code>srvctl stop service -d $ORACLE_UNQNAME -s CDB01_PDB01.paas.oracle.com
 srvctl start service -d $ORACLE_UNQNAME -s CDB01_PDB01.paas.oracle.com
 srvctl status service -d $ORACLE_UNQNAME -s CDB01_PDB01.paas.oracle.com
 srvctl config service -d $ORACLE_UNQNAME -s CDB01_PDB01.paas.oracle.com</code></pre>
           </div>
           <div class="code-card code-text">
             <div class="code-toolbar"><span class="code-type">Text</span><button class="copy-btn" type="button">Copy</button></div>
-            <div class="code-description">Objective: confirm SRVCTL reports the expected connection and runtime load-balancing goals after the service update.</div>
-            <pre><code>Connection Load Balancing Goal: <span class="code-highlight">SHORT</span>
+            <div class="code-description code-objective">Objective: confirm SRVCTL reports the expected connection and runtime load-balancing goals after the service update.</div>
+            <pre class="code-scroll"><code>Connection Load Balancing Goal: <span class="code-highlight">SHORT</span>
 Runtime Load Balancing Goal: <span class="code-highlight">SERVICE_TIME</span></code></pre>
           </div>
           <div class="code-card code-sql">
             <div class="code-toolbar"><span class="code-type">SQL</span><button class="copy-btn" type="button">Copy</button></div>
-            <div class="code-description">Objective: validate the service load-balancing attributes from inside the RAC database by instance.</div>
-            <pre><code>SET LINESIZE 220
+            <div class="code-description code-objective">Objective: validate the service load-balancing attributes from inside the RAC database by instance.</div>
+            <pre class="code-scroll"><code>SET LINESIZE 220
 SET PAGESIZE 100
 SET TRIMSPOOL ON
 SET TAB OFF
@@ -1869,8 +1869,8 @@ ORDER BY inst_id;
           </div>
           <div class="code-card code-bash">
             <div class="code-toolbar"><span class="code-type">Bash</span><button class="copy-btn" type="button">Copy</button></div>
-            <div class="code-description">Objective: confirm Clusterware, nodes, database, services, SCAN, SCAN listeners, and local listeners are healthy after scaling.</div>
-            <pre><code>crsctl check cluster -all
+            <div class="code-description code-objective">Objective: confirm Clusterware, nodes, database, services, SCAN, SCAN listeners, and local listeners are healthy after scaling.</div>
+            <pre class="code-scroll"><code>crsctl check cluster -all
 crsctl stat res -t
 olsnodes -n
 
@@ -1882,8 +1882,8 @@ srvctl status listener</code></pre>
           </div>
           <div class="code-card code-sql">
             <div class="code-toolbar"><span class="code-type">SQL</span><button class="copy-btn" type="button">Copy</button></div>
-            <div class="code-description">Objective: verify user sessions are visible across RAC instances after scaling and workload routing.</div>
-            <pre><code>SET LINESIZE 220
+            <div class="code-description code-objective">Objective: verify user sessions are visible across RAC instances after scaling and workload routing.</div>
+            <pre class="code-scroll"><code>SET LINESIZE 220
 SET PAGESIZE 100
 SET TRIMSPOOL ON
 SET TAB OFF
@@ -1896,8 +1896,8 @@ ORDER BY inst_id;</code></pre>
           </div>
           <div class="code-card code-sql">
             <div class="code-toolbar"><span class="code-type">SQL</span><button class="copy-btn" type="button">Copy</button></div>
-            <div class="code-description">Objective: review session count and allocated PGA by PDB and RAC instance.</div>
-            <pre><code>SET LINESIZE 220
+            <div class="code-description code-objective">Objective: review session count and allocated PGA by PDB and RAC instance.</div>
+            <pre class="code-scroll"><code>SET LINESIZE 220
 SET PAGESIZE 100
 SET TRIMSPOOL ON
 SET TAB OFF
@@ -1923,8 +1923,8 @@ ORDER BY c.name,s.inst_id;</code></pre>
           </div>
           <div class="code-card code-sql">
             <div class="code-toolbar"><span class="code-type">SQL</span><button class="copy-btn" type="button">Copy</button></div>
-            <div class="code-description">Objective: combine sessions, total PGA, and average PGA per user session for scale and failover review.</div>
-            <pre><code>SET LINESIZE 220
+            <div class="code-description code-objective">Objective: combine sessions, total PGA, and average PGA per user session for scale and failover review.</div>
+            <pre class="code-scroll"><code>SET LINESIZE 220
 SET PAGESIZE 100
 SET TRIMSPOOL ON
 SET TAB OFF
@@ -1952,8 +1952,8 @@ ORDER BY c.name,s.inst_id;</code></pre>
           </div>
           <div class="code-card code-bash">
             <div class="code-toolbar"><span class="code-type">Bash</span><button class="copy-btn" type="button">Copy</button></div>
-            <div class="code-description">Objective: simulate a planned service move and observe client, pool, FAN, RLB, AC, or TAC behavior.</div>
-            <pre><code>srvctl relocate service \
+            <div class="code-description code-objective">Objective: simulate a planned service move and observe client, pool, FAN, RLB, AC, or TAC behavior.</div>
+            <pre class="code-scroll"><code>srvctl relocate service \
 -db CDB01 \
 -service CDB01_PDB01.paas.oracle.com \
 -oldinst CDB011 \
@@ -1971,8 +1971,8 @@ ORDER BY c.name,s.inst_id;</code></pre>
               <p>Example: Server Control Utility (SRVCTL) manages Oracle RAC database services. In this guide, <code>CDB01</code> is the Container Database (CDB), and <code>CDB01_PDB01.paas.oracle.com</code> is the Pluggable Database (PDB) service.</p>
               <div class="code-card code-bash">
                 <div class="code-toolbar"><span class="code-type">Bash</span><button class="copy-btn" type="button">Copy</button></div>
-                <div class="code-description">Objective: apply Application Continuity service attributes to the RAC service used by the application.</div>
-                <pre><code>srvctl modify service \
+                <div class="code-description code-objective">Objective: apply Application Continuity service attributes to the RAC service used by the application.</div>
+                <pre class="code-scroll"><code>srvctl modify service \
 -db CDB01 \
 -service CDB01_PDB01.paas.oracle.com \
 -failovertype TRANSACTION \
@@ -1994,8 +1994,8 @@ ORDER BY c.name,s.inst_id;</code></pre>
               <p>Recommended configuration: SRVCTL applies the TAC service attributes to the <code>CDB01</code> database and <code>CDB01_PDB01.paas.oracle.com</code> service used in this example.</p>
               <div class="code-card code-bash">
                 <div class="code-toolbar"><span class="code-type">Bash</span><button class="copy-btn" type="button">Copy</button></div>
-                <div class="code-description">Objective: apply Transparent Application Continuity service attributes to the RAC service used by the application.</div>
-                <pre><code>srvctl modify service \
+                <div class="code-description code-objective">Objective: apply Transparent Application Continuity service attributes to the RAC service used by the application.</div>
+                <pre class="code-scroll"><code>srvctl modify service \
 -db CDB01 \
 -service CDB01_PDB01.paas.oracle.com \
 -failovertype AUTO \
@@ -2050,7 +2050,7 @@ ORDER BY c.name,s.inst_id;</code></pre>
           <h1 id="es-title">Escalado de Oracle Database</h1>
           <p class="subtitle">De un despliegue de base de datos en clúster de un solo nodo a un despliegue de dos nodos, con acceso por servicios, componentes de alta disponibilidad, configuración de servicios y validación de carga de trabajo organizados para una revisión técnica rápida.</p>
           <div class="hero-meta" aria-label="Metadatos del artículo">
-            <span class="meta-pill">Blog actualizado por última vez el 3 de junio de 2026</span>
+            <span class="meta-pill">Última actualización 16 de junio de 2026</span>
           </div>
           <details class="disclaimer" aria-label="Uso educativo y validación requerida">
             <summary><h2>Uso educativo y validación requerida <span class="disclaimer-action">click here</span></h2></summary>
@@ -2155,8 +2155,8 @@ ORDER BY c.name,s.inst_id;</code></pre>
           <p>Runtime load balancing funciona mejor para modelos stateless donde las conexiones se toman del pool, se usan durante una solicitud corta y se devuelven al pool. Habilite Fast Connection Failover y use UCP, WebLogic, OCI u ODP.NET con eventos FAN y RAC load balancing advisory.</p>
           <div class="code-card code-bash">
             <div class="code-toolbar"><span class="code-type">Bash</span><button class="copy-btn" type="button">Copiar</button></div>
-            <div class="code-description">Objetivo: modificar el servicio OLTP existente para publicar connection load balancing SHORT y runtime load balancing SERVICE_TIME para pools integrados.</div>
-            <pre><code>srvctl modify service \
+            <div class="code-description code-objective">Objetivo: modificar el servicio OLTP existente para publicar connection load balancing SHORT y runtime load balancing SERVICE_TIME para pools integrados.</div>
+            <pre class="code-scroll"><code>srvctl modify service \
 -d $ORACLE_UNQNAME \
 -s CDB01_PDB01.paas.oracle.com \
 -clbgoal SHORT \
@@ -2164,22 +2164,22 @@ ORDER BY c.name,s.inst_id;</code></pre>
           </div>
           <div class="code-card code-bash">
             <div class="code-toolbar"><span class="code-type">Bash</span><button class="copy-btn" type="button">Copiar</button></div>
-            <div class="code-description">Objetivo: detener, iniciar y revisar el servicio para recargar los atributos CLB y RLB actualizados en el clúster.</div>
-            <pre><code>srvctl stop service -d $ORACLE_UNQNAME -s CDB01_PDB01.paas.oracle.com
+            <div class="code-description code-objective">Objetivo: detener, iniciar y revisar el servicio para recargar los atributos CLB y RLB actualizados en el clúster.</div>
+            <pre class="code-scroll"><code>srvctl stop service -d $ORACLE_UNQNAME -s CDB01_PDB01.paas.oracle.com
 srvctl start service -d $ORACLE_UNQNAME -s CDB01_PDB01.paas.oracle.com
 srvctl status service -d $ORACLE_UNQNAME -s CDB01_PDB01.paas.oracle.com
 srvctl config service -d $ORACLE_UNQNAME -s CDB01_PDB01.paas.oracle.com</code></pre>
           </div>
           <div class="code-card code-text">
             <div class="code-toolbar"><span class="code-type">Text</span><button class="copy-btn" type="button">Copiar</button></div>
-            <div class="code-description">Objetivo: confirmar que SRVCTL reporta los objetivos esperados de connection y runtime load balancing.</div>
-            <pre><code>Connection Load Balancing Goal: <span class="code-highlight">SHORT</span>
+            <div class="code-description code-objective">Objetivo: confirmar que SRVCTL reporta los objetivos esperados de connection y runtime load balancing.</div>
+            <pre class="code-scroll"><code>Connection Load Balancing Goal: <span class="code-highlight">SHORT</span>
 Runtime Load Balancing Goal: <span class="code-highlight">SERVICE_TIME</span></code></pre>
           </div>
           <div class="code-card code-sql">
             <div class="code-toolbar"><span class="code-type">SQL</span><button class="copy-btn" type="button">Copiar</button></div>
-            <div class="code-description">Objetivo: validar desde la base RAC los atributos de load balancing del servicio por instancia.</div>
-            <pre><code>SET LINESIZE 220
+            <div class="code-description code-objective">Objetivo: validar desde la base RAC los atributos de load balancing del servicio por instancia.</div>
+            <pre class="code-scroll"><code>SET LINESIZE 220
 SET PAGESIZE 100
 SET TRIMSPOOL ON
 SET TAB OFF
@@ -2210,8 +2210,8 @@ ORDER BY inst_id;
           </div>
           <div class="code-card code-bash">
             <div class="code-toolbar"><span class="code-type">Bash</span><button class="copy-btn" type="button">Copiar</button></div>
-            <div class="code-description">Objetivo: confirmar que Clusterware, nodos, base de datos, servicios, SCAN, listeners SCAN y listeners locales están saludables después del escalado.</div>
-            <pre><code>crsctl check cluster -all
+            <div class="code-description code-objective">Objetivo: confirmar que Clusterware, nodos, base de datos, servicios, SCAN, listeners SCAN y listeners locales están saludables después del escalado.</div>
+            <pre class="code-scroll"><code>crsctl check cluster -all
 crsctl stat res -t
 olsnodes -n
 
@@ -2223,8 +2223,8 @@ srvctl status listener</code></pre>
           </div>
           <div class="code-card code-sql">
             <div class="code-toolbar"><span class="code-type">SQL</span><button class="copy-btn" type="button">Copiar</button></div>
-            <div class="code-description">Objetivo: verificar sesiones de usuario entre instancias RAC después del escalado y del ruteo de workload.</div>
-            <pre><code>SET LINESIZE 220
+            <div class="code-description code-objective">Objetivo: verificar sesiones de usuario entre instancias RAC después del escalado y del ruteo de workload.</div>
+            <pre class="code-scroll"><code>SET LINESIZE 220
 SET PAGESIZE 100
 SET TRIMSPOOL ON
 SET TAB OFF
@@ -2237,8 +2237,8 @@ ORDER BY inst_id;</code></pre>
           </div>
           <div class="code-card code-sql">
             <div class="code-toolbar"><span class="code-type">SQL</span><button class="copy-btn" type="button">Copiar</button></div>
-            <div class="code-description">Objetivo: revisar conteo de sesiones y PGA asignada por PDB e instancia RAC.</div>
-            <pre><code>SET LINESIZE 220
+            <div class="code-description code-objective">Objetivo: revisar conteo de sesiones y PGA asignada por PDB e instancia RAC.</div>
+            <pre class="code-scroll"><code>SET LINESIZE 220
 SET PAGESIZE 100
 SET TRIMSPOOL ON
 SET TAB OFF
@@ -2264,8 +2264,8 @@ ORDER BY c.name,s.inst_id;</code></pre>
           </div>
           <div class="code-card code-sql">
             <div class="code-toolbar"><span class="code-type">SQL</span><button class="copy-btn" type="button">Copiar</button></div>
-            <div class="code-description">Objetivo: combinar sesiones, PGA total y PGA promedio por sesión de usuario para revisar escalado y failover.</div>
-            <pre><code>SET LINESIZE 220
+            <div class="code-description code-objective">Objetivo: combinar sesiones, PGA total y PGA promedio por sesión de usuario para revisar escalado y failover.</div>
+            <pre class="code-scroll"><code>SET LINESIZE 220
 SET PAGESIZE 100
 SET TRIMSPOOL ON
 SET TAB OFF
@@ -2293,8 +2293,8 @@ ORDER BY c.name,s.inst_id;</code></pre>
           </div>
           <div class="code-card code-bash">
             <div class="code-toolbar"><span class="code-type">Bash</span><button class="copy-btn" type="button">Copiar</button></div>
-            <div class="code-description">Objetivo: simular un movimiento planeado del servicio y observar comportamiento del cliente, pool, FAN, RLB, AC o TAC.</div>
-            <pre><code>srvctl relocate service \
+            <div class="code-description code-objective">Objetivo: simular un movimiento planeado del servicio y observar comportamiento del cliente, pool, FAN, RLB, AC o TAC.</div>
+            <pre class="code-scroll"><code>srvctl relocate service \
 -db CDB01 \
 -service CDB01_PDB01.paas.oracle.com \
 -oldinst CDB011 \
@@ -2312,8 +2312,8 @@ ORDER BY c.name,s.inst_id;</code></pre>
               <p>Ejemplo: Server Control Utility (SRVCTL) administra servicios de base de datos Oracle RAC. En esta guía, <code>CDB01</code> es la Container Database (CDB), y <code>CDB01_PDB01.paas.oracle.com</code> es el servicio de Pluggable Database (PDB).</p>
               <div class="code-card code-bash">
                 <div class="code-toolbar"><span class="code-type">Bash</span><button class="copy-btn" type="button">Copiar</button></div>
-                <div class="code-description">Objetivo: aplicar atributos de Application Continuity al servicio RAC usado por la aplicación.</div>
-                <pre><code>srvctl modify service \
+                <div class="code-description code-objective">Objetivo: aplicar atributos de Application Continuity al servicio RAC usado por la aplicación.</div>
+                <pre class="code-scroll"><code>srvctl modify service \
 -db CDB01 \
 -service CDB01_PDB01.paas.oracle.com \
 -failovertype TRANSACTION \
@@ -2335,8 +2335,8 @@ ORDER BY c.name,s.inst_id;</code></pre>
               <p>Configuración recomendada: SRVCTL aplica los atributos de servicio TAC a la base de datos <code>CDB01</code> y al servicio <code>CDB01_PDB01.paas.oracle.com</code> usados en este ejemplo.</p>
               <div class="code-card code-bash">
                 <div class="code-toolbar"><span class="code-type">Bash</span><button class="copy-btn" type="button">Copiar</button></div>
-                <div class="code-description">Objetivo: aplicar atributos de Transparent Application Continuity al servicio RAC usado por la aplicación.</div>
-                <pre><code>srvctl modify service \
+                <div class="code-description code-objective">Objetivo: aplicar atributos de Transparent Application Continuity al servicio RAC usado por la aplicación.</div>
+                <pre class="code-scroll"><code>srvctl modify service \
 -db CDB01 \
 -service CDB01_PDB01.paas.oracle.com \
 -failovertype AUTO \
@@ -2391,7 +2391,7 @@ ORDER BY c.name,s.inst_id;</code></pre>
           <h1 id="pt-title">Escalando Oracle Database</h1>
           <p class="subtitle">De uma implantação de banco de dados em cluster de nó único para uma implantação de dois nós, com acesso por serviços, componentes de alta disponibilidade, configuração de serviços e validação de carga de trabalho organizados para revisão técnica rápida.</p>
           <div class="hero-meta" aria-label="Metadados do artigo">
-            <span class="meta-pill">Blog atualizado pela última vez em 3 de junho de 2026</span>
+            <span class="meta-pill">Última atualização 16 de junho de 2026</span>
           </div>
           <details class="disclaimer" aria-label="Uso educacional e validação obrigatória">
             <summary><h2>Uso educacional e validação obrigatória <span class="disclaimer-action">click here</span></h2></summary>
@@ -2496,8 +2496,8 @@ ORDER BY c.name,s.inst_id;</code></pre>
           <p>Runtime load balancing funciona melhor para modelos stateless onde conexões são obtidas do pool, usadas por uma solicitação curta e devolvidas ao pool. Habilite Fast Connection Failover e use UCP, WebLogic, OCI ou ODP.NET com eventos FAN e RAC load balancing advisory.</p>
           <div class="code-card code-bash">
             <div class="code-toolbar"><span class="code-type">Bash</span><button class="copy-btn" type="button">Copiar</button></div>
-            <div class="code-description">Objetivo: modificar o serviço OLTP existente para publicar connection load balancing SHORT e runtime load balancing SERVICE_TIME para pools integrados.</div>
-            <pre><code>srvctl modify service \
+            <div class="code-description code-objective">Objetivo: modificar o serviço OLTP existente para publicar connection load balancing SHORT e runtime load balancing SERVICE_TIME para pools integrados.</div>
+            <pre class="code-scroll"><code>srvctl modify service \
 -d $ORACLE_UNQNAME \
 -s CDB01_PDB01.paas.oracle.com \
 -clbgoal SHORT \
@@ -2505,22 +2505,22 @@ ORDER BY c.name,s.inst_id;</code></pre>
           </div>
           <div class="code-card code-bash">
             <div class="code-toolbar"><span class="code-type">Bash</span><button class="copy-btn" type="button">Copiar</button></div>
-            <div class="code-description">Objetivo: parar, iniciar e revisar o serviço para recarregar os atributos CLB e RLB atualizados no cluster.</div>
-            <pre><code>srvctl stop service -d $ORACLE_UNQNAME -s CDB01_PDB01.paas.oracle.com
+            <div class="code-description code-objective">Objetivo: parar, iniciar e revisar o serviço para recarregar os atributos CLB e RLB atualizados no cluster.</div>
+            <pre class="code-scroll"><code>srvctl stop service -d $ORACLE_UNQNAME -s CDB01_PDB01.paas.oracle.com
 srvctl start service -d $ORACLE_UNQNAME -s CDB01_PDB01.paas.oracle.com
 srvctl status service -d $ORACLE_UNQNAME -s CDB01_PDB01.paas.oracle.com
 srvctl config service -d $ORACLE_UNQNAME -s CDB01_PDB01.paas.oracle.com</code></pre>
           </div>
           <div class="code-card code-text">
             <div class="code-toolbar"><span class="code-type">Text</span><button class="copy-btn" type="button">Copiar</button></div>
-            <div class="code-description">Objetivo: confirmar que o SRVCTL reporta os objetivos esperados de connection e runtime load balancing.</div>
-            <pre><code>Connection Load Balancing Goal: <span class="code-highlight">SHORT</span>
+            <div class="code-description code-objective">Objetivo: confirmar que o SRVCTL reporta os objetivos esperados de connection e runtime load balancing.</div>
+            <pre class="code-scroll"><code>Connection Load Balancing Goal: <span class="code-highlight">SHORT</span>
 Runtime Load Balancing Goal: <span class="code-highlight">SERVICE_TIME</span></code></pre>
           </div>
           <div class="code-card code-sql">
             <div class="code-toolbar"><span class="code-type">SQL</span><button class="copy-btn" type="button">Copiar</button></div>
-            <div class="code-description">Objetivo: validar dentro do banco RAC os atributos de load balancing do serviço por instância.</div>
-            <pre><code>SET LINESIZE 220
+            <div class="code-description code-objective">Objetivo: validar dentro do banco RAC os atributos de load balancing do serviço por instância.</div>
+            <pre class="code-scroll"><code>SET LINESIZE 220
 SET PAGESIZE 100
 SET TRIMSPOOL ON
 SET TAB OFF
@@ -2551,8 +2551,8 @@ ORDER BY inst_id;
           </div>
           <div class="code-card code-bash">
             <div class="code-toolbar"><span class="code-type">Bash</span><button class="copy-btn" type="button">Copiar</button></div>
-            <div class="code-description">Objetivo: confirmar que Clusterware, nós, banco de dados, serviços, SCAN, listeners SCAN e listeners locais estão saudáveis após o escalonamento.</div>
-            <pre><code>crsctl check cluster -all
+            <div class="code-description code-objective">Objetivo: confirmar que Clusterware, nós, banco de dados, serviços, SCAN, listeners SCAN e listeners locais estão saudáveis após o escalonamento.</div>
+            <pre class="code-scroll"><code>crsctl check cluster -all
 crsctl stat res -t
 olsnodes -n
 
@@ -2564,8 +2564,8 @@ srvctl status listener</code></pre>
           </div>
           <div class="code-card code-sql">
             <div class="code-toolbar"><span class="code-type">SQL</span><button class="copy-btn" type="button">Copiar</button></div>
-            <div class="code-description">Objetivo: verificar sessões de usuário entre instâncias RAC após escalonamento e roteamento de workload.</div>
-            <pre><code>SET LINESIZE 220
+            <div class="code-description code-objective">Objetivo: verificar sessões de usuário entre instâncias RAC após escalonamento e roteamento de workload.</div>
+            <pre class="code-scroll"><code>SET LINESIZE 220
 SET PAGESIZE 100
 SET TRIMSPOOL ON
 SET TAB OFF
@@ -2578,8 +2578,8 @@ ORDER BY inst_id;</code></pre>
           </div>
           <div class="code-card code-sql">
             <div class="code-toolbar"><span class="code-type">SQL</span><button class="copy-btn" type="button">Copiar</button></div>
-            <div class="code-description">Objetivo: revisar contagem de sessões e PGA alocada por PDB e instância RAC.</div>
-            <pre><code>SET LINESIZE 220
+            <div class="code-description code-objective">Objetivo: revisar contagem de sessões e PGA alocada por PDB e instância RAC.</div>
+            <pre class="code-scroll"><code>SET LINESIZE 220
 SET PAGESIZE 100
 SET TRIMSPOOL ON
 SET TAB OFF
@@ -2605,8 +2605,8 @@ ORDER BY c.name,s.inst_id;</code></pre>
           </div>
           <div class="code-card code-sql">
             <div class="code-toolbar"><span class="code-type">SQL</span><button class="copy-btn" type="button">Copiar</button></div>
-            <div class="code-description">Objetivo: combinar sessões, PGA total e PGA média por sessão de usuário para revisar escalonamento e failover.</div>
-            <pre><code>SET LINESIZE 220
+            <div class="code-description code-objective">Objetivo: combinar sessões, PGA total e PGA média por sessão de usuário para revisar escalonamento e failover.</div>
+            <pre class="code-scroll"><code>SET LINESIZE 220
 SET PAGESIZE 100
 SET TRIMSPOOL ON
 SET TAB OFF
@@ -2634,8 +2634,8 @@ ORDER BY c.name,s.inst_id;</code></pre>
           </div>
           <div class="code-card code-bash">
             <div class="code-toolbar"><span class="code-type">Bash</span><button class="copy-btn" type="button">Copiar</button></div>
-            <div class="code-description">Objetivo: simular uma movimentação planejada do serviço e observar comportamento de cliente, pool, FAN, RLB, AC ou TAC.</div>
-            <pre><code>srvctl relocate service \
+            <div class="code-description code-objective">Objetivo: simular uma movimentação planejada do serviço e observar comportamento de cliente, pool, FAN, RLB, AC ou TAC.</div>
+            <pre class="code-scroll"><code>srvctl relocate service \
 -db CDB01 \
 -service CDB01_PDB01.paas.oracle.com \
 -oldinst CDB011 \
@@ -2653,8 +2653,8 @@ ORDER BY c.name,s.inst_id;</code></pre>
               <p>Exemplo: Server Control Utility (SRVCTL) administra serviços de banco de dados Oracle RAC. Neste guia, <code>CDB01</code> é a Container Database (CDB), e <code>CDB01_PDB01.paas.oracle.com</code> é o serviço da Pluggable Database (PDB).</p>
               <div class="code-card code-bash">
                 <div class="code-toolbar"><span class="code-type">Bash</span><button class="copy-btn" type="button">Copiar</button></div>
-                <div class="code-description">Objetivo: aplicar atributos de Application Continuity ao serviço RAC usado pela aplicação.</div>
-                <pre><code>srvctl modify service \
+                <div class="code-description code-objective">Objetivo: aplicar atributos de Application Continuity ao serviço RAC usado pela aplicação.</div>
+                <pre class="code-scroll"><code>srvctl modify service \
 -db CDB01 \
 -service CDB01_PDB01.paas.oracle.com \
 -failovertype TRANSACTION \
@@ -2676,8 +2676,8 @@ ORDER BY c.name,s.inst_id;</code></pre>
               <p>Configuração recomendada: SRVCTL aplica os atributos de serviço TAC ao banco de dados <code>CDB01</code> e ao serviço <code>CDB01_PDB01.paas.oracle.com</code> usados neste exemplo.</p>
               <div class="code-card code-bash">
                 <div class="code-toolbar"><span class="code-type">Bash</span><button class="copy-btn" type="button">Copiar</button></div>
-                <div class="code-description">Objetivo: aplicar atributos de Transparent Application Continuity ao serviço RAC usado pela aplicação.</div>
-                <pre><code>srvctl modify service \
+                <div class="code-description code-objective">Objetivo: aplicar atributos de Transparent Application Continuity ao serviço RAC usado pela aplicação.</div>
+                <pre class="code-scroll"><code>srvctl modify service \
 -db CDB01 \
 -service CDB01_PDB01.paas.oracle.com \
 -failovertype AUTO \
@@ -2730,7 +2730,7 @@ ORDER BY c.name,s.inst_id;</code></pre>
         <summary><h2>Educational use and validation required <span class="disclaimer-action">click here</span></h2></summary>
         <p>This content is for educational and planning purposes only. Apply every command and configuration first in a non-production test environment that mirrors your RAC, service, client driver, workload, and failover requirements. The recommended values shown here may not work in your specific environment, may require change-control approval, and can affect availability, connection routing, transaction behavior, memory use, and batch workload placement. Validate with application owners, DBAs, network teams, and Oracle Support guidance before using any setting in production.</p>
       </details>
-      <p class="footer-meta">Blog last updated June 3, 2026</p>
+      <p class="footer-meta">Last updated June 16, 2026</p>
     </div>
   </footer>
 
@@ -2852,7 +2852,7 @@ ORDER BY c.name,s.inst_id;</code></pre>
         const code = button.closest(".code-card").querySelector("code");
         const original = button.textContent;
         try {
-          const copied = await copyText(code.innerText, code);
+          const copied = await copyText(button.closest(".code-card").querySelector("pre code").textContent, code);
           button.textContent = copied ? labels[activeLanguage].copied : labels[activeLanguage].selected;
         } catch (error) {
           button.textContent = labels[activeLanguage].copy;
