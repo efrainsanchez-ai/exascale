@@ -211,7 +211,7 @@
           <h1 class="mt-4 text-3xl font-bold leading-tight tracking-tight text-stone-950 dark:text-white sm:text-5xl lg:text-6xl">Governing Workloads with Database Resource Manager</h1>
           <p class="mt-4 max-w-3xl text-base leading-7 text-stone-700 dark:text-stone-300 sm:text-lg sm:leading-8">A service-based Resource Manager pattern for OLTP, reporting, batch, and administrative workloads that builds on the connection services guide.</p>
           <div class="mt-5 flex min-w-0 flex-wrap gap-3 text-sm text-stone-600 dark:text-stone-400">
-            <span class="max-w-full rounded-md border border-stone-300 bg-white px-3 py-1.5 break-words dark:border-stone-700 dark:bg-stone-900">Blog last updated June 12, 2026</span>
+            <span class="max-w-full rounded-md border border-stone-300 bg-white px-3 py-1.5 break-words dark:border-stone-700 dark:bg-stone-900">Last updated June 16, 2026</span>
           </div>
           <details class="disclaimer mt-5 max-w-3xl rounded-lg border border-amber-300 bg-amber-50 text-amber-950 dark:border-amber-500/40 dark:bg-amber-950/25 dark:text-amber-100">
             <summary class="cursor-pointer list-none px-4 py-3 text-sm font-bold uppercase tracking-[0.14em] focus:outline-none focus:ring-2 focus:ring-amber-500/50">Educational use and validation required <span class="ml-2 whitespace-nowrap text-xs font-semibold normal-case tracking-normal text-amber-800 underline underline-offset-2 dark:text-amber-200">click here</span></summary>
@@ -840,7 +840,7 @@ SHOW CON_NAME
 
 ALTER SYSTEM SET RESOURCE_MANAGER_PLAN='APP_RM_BUSINESS_HOURS';</code></pre></div>
         <p class="mt-5 max-w-3xl text-base leading-7 text-stone-700 dark:text-stone-300">For this blog, switch plans manually during validation. Use the business-hours plan from 8:00 AM to 6:00 PM Central Time. After 6:00 PM Central Time, switch to the after-hours plan to allow report DOP 4 and batch DOP 2. At 8:00 AM Central Time, switch back to the business-hours plan to protect OLTP.</p>
-        <div class="mt-5 grid gap-5 lg:grid-cols-2">
+        <div class="mt-5 grid gap-5">
           <div class="code-card"><div class="code-toolbar"><span class="code-type">SQL</span><button class="copy-btn" type="button">Copy</button></div><div class="code-description code-objective"><span class="objective-label">Objective:</span> Manually switch to the after-hours plan after 6:00 PM Central Time.</div><pre class="code-scroll"><code>ALTER SYSTEM SET RESOURCE_MANAGER_PLAN='APP_RM_AFTER_HOURS';</code></pre></div>
           <div class="code-card"><div class="code-toolbar"><span class="code-type">SQL</span><button class="copy-btn" type="button">Copy</button></div><div class="code-description code-objective"><span class="objective-label">Objective:</span> Manually switch back to the business-hours plan at 8:00 AM Central Time.</div><pre class="code-scroll"><code>ALTER SYSTEM SET RESOURCE_MANAGER_PLAN='APP_RM_BUSINESS_HOURS';</code></pre></div>
         </div>
@@ -869,12 +869,41 @@ SELECT user FROM dual;
       <section id="validation" class="border-t border-stone-200 py-10 dark:border-stone-800">
         <p class="text-xs font-semibold uppercase tracking-[0.16em] text-oracle-red dark:text-orange-300">Runtime evidence</p>
         <h2 class="mt-2 text-2xl font-bold tracking-tight text-stone-950 dark:text-white sm:text-3xl">Validation</h2>
-        <p class="mt-3 max-w-3xl text-base leading-7 text-stone-700 dark:text-stone-300">Validate the connected service name and Resource Manager consumer group for user sessions from <code class="rounded bg-stone-100 px-1.5 py-0.5 text-sm font-semibold text-oracle-deep dark:bg-stone-800 dark:text-orange-200">GV$SESSION</code>. Run this from <code class="rounded bg-stone-100 px-1.5 py-0.5 text-sm font-semibold text-oracle-deep dark:bg-stone-800 dark:text-orange-200">SYSTEM</code> or another approved DBA-level account while the demo <code class="rounded bg-stone-100 px-1.5 py-0.5 text-sm font-semibold text-oracle-deep dark:bg-stone-800 dark:text-orange-200">SOE</code> session remains connected. This avoids version-specific column differences in <code class="rounded bg-stone-100 px-1.5 py-0.5 text-sm font-semibold text-oracle-deep dark:bg-stone-800 dark:text-orange-200">GV$RSRC_SESSION_INFO</code>, and it reports the service for each session row rather than the service of the DBA session running the query.</p>
-        <div class="mt-5 code-card"><div class="code-toolbar"><span class="code-type">SQL</span><button class="copy-btn" type="button">Copy</button></div><div class="code-description code-objective"><span class="objective-label">Objective:</span> Connect as SYSTEM, format output, and show user sessions with their service name and active Resource Manager consumer group.</div><pre class="code-scroll"><code>CONNECT system@CDB01_PDB01
+        <h3 class="mt-6 text-xl font-bold tracking-tight text-stone-950 dark:text-white">Confirm Service and Consumer Group</h3>
+        <p class="mt-3 max-w-3xl text-base leading-7 text-stone-700 dark:text-stone-300">Run these checks from sessions connected through each service to confirm that the login mapping lands in the expected Resource Manager consumer group. Use one SQL*Plus session for the current connection check and a separate DBA-level session when you need to inspect all active user sessions in the PDB.</p>
+        <div class="mt-5 code-card"><div class="code-toolbar"><span class="code-type">Bash</span><button class="copy-btn" type="button">Copy</button></div><div class="code-description code-objective"><span class="objective-label">Objective:</span> Open SQL*Plus through the OLTP service as the transactional workload user.</div><pre class="code-scroll"><code>sqlplus SOE_OLTP/$PASSWD@CDB01_PDB01_OLTP</code></pre></div>
+        <div class="mt-5 code-card"><div class="code-toolbar"><span class="code-type">SQL</span><button class="copy-btn" type="button">Copy</button></div><div class="code-description code-objective"><span class="objective-label">Objective:</span> Verify the current OLTP session service and consumer group.</div><pre class="code-scroll"><code>SET LINESIZE 220
+SET PAGESIZE 100
+SET TRIMSPOOL ON
+SET TAB OFF
+
+COLUMN svc FORMAT A45
+COLUMN cg FORMAT A32
+
+SELECT
+  SYS_CONTEXT('USERENV','SERVICE_NAME')   AS svc,
+  SYS_CONTEXT('USERENV','CONSUMER_GROUP') AS cg
+FROM dual;</code></pre></div>
+        <div class="mt-5 code-card"><div class="code-toolbar"><span class="code-type">Bash</span><button class="copy-btn" type="button">Copy</button></div><div class="code-description code-objective"><span class="objective-label">Objective:</span> Open SQL*Plus through the reporting service as the reporting workload user.</div><pre class="code-scroll"><code>sqlplus SOE_REPORTS/$PASSWD@CDB01_PDB01_REPORTS</code></pre></div>
+        <div class="mt-5 code-card"><div class="code-toolbar"><span class="code-type">SQL</span><button class="copy-btn" type="button">Copy</button></div><div class="code-description code-objective"><span class="objective-label">Objective:</span> Verify the current reporting session service and consumer group.</div><pre class="code-scroll"><code>SET LINESIZE 220
+SET PAGESIZE 100
+SET TRIMSPOOL ON
+SET TAB OFF
+
+COLUMN svc FORMAT A45
+COLUMN cg FORMAT A32
+
+SELECT
+  SYS_CONTEXT('USERENV','SERVICE_NAME')   AS svc,
+  SYS_CONTEXT('USERENV','CONSUMER_GROUP') AS cg
+FROM dual;</code></pre></div>
+        <div class="mt-5 code-card"><div class="code-toolbar"><span class="code-type">SQL</span><button class="copy-btn" type="button">Copy</button></div><div class="code-description code-objective"><span class="objective-label">Objective:</span> Connect as a DBA-level user, format output, and show active workload sessions with their service name and Resource Manager consumer group.</div><pre class="code-scroll"><code>CONNECT system@CDB01_PDB01
 SHOW CON_NAME
 
 SET LINESIZE 220
 SET PAGESIZE 100
+SET TRIMSPOOL ON
+SET TAB OFF
 
 COLUMN inst_id FORMAT 999 HEADING 'INST'
 COLUMN sid FORMAT 999999
@@ -892,44 +921,318 @@ SELECT
     s.resource_consumer_group
 FROM gv$session s
 WHERE s.type = 'USER'
-  AND s.username IS NOT NULL
+  AND s.username IN ('SOE', 'SOE_OLTP', 'SOE_REPORTS', 'SOE_BATCH')
 ORDER BY s.inst_id, s.username, s.sid;</code></pre></div>
-        <p class="mt-5 max-w-3xl text-base leading-7 text-stone-700 dark:text-stone-300">Use SQL*Plus report formatting when you need readable instance subtotals without making the SQL harder to maintain. The query returns only the real grouped session rows; <code class="rounded bg-stone-100 px-1.5 py-0.5 text-sm font-semibold text-oracle-deep dark:bg-stone-800 dark:text-orange-200">BREAK</code> and <code class="rounded bg-stone-100 px-1.5 py-0.5 text-sm font-semibold text-oracle-deep dark:bg-stone-800 dark:text-orange-200">COMPUTE</code> add the separator line, the <code class="rounded bg-stone-100 px-1.5 py-0.5 text-sm font-semibold text-oracle-deep dark:bg-stone-800 dark:text-orange-200">INSTANCE TOTAL</code> rows, the blank line between instances, and the final report total.</p>
-        <div class="mt-5 code-card"><div class="code-toolbar"><span class="code-type">SQL</span><button class="copy-btn" type="button">Copy</button></div><div class="code-description code-objective"><span class="objective-label">Objective:</span> Summarize workload connection distribution by RAC instance, add per-instance totals, and show the cluster-wide total.</div><pre class="code-scroll"><code>SET LINESIZE 220
-SET PAGESIZE 100
 
-COLUMN inst FORMAT A8 HEADING 'INST'
+        <h3 class="mt-10 text-xl font-bold tracking-tight text-stone-950 dark:text-white">Show the Effect of DOP by Service</h3>
+        <p class="mt-3 max-w-3xl text-base leading-7 text-stone-700 dark:text-stone-300">Use the current Swingbench SOE schema objects for the DOP test. The setup creates a compact view over <code class="rounded bg-stone-100 px-1.5 py-0.5 text-sm font-semibold text-oracle-deep dark:bg-stone-800 dark:text-orange-200">ORDERS</code> and <code class="rounded bg-stone-100 px-1.5 py-0.5 text-sm font-semibold text-oracle-deep dark:bg-stone-800 dark:text-orange-200">ORDER_ITEMS</code>, grants it to the application roles and workload users, and gathers optimizer statistics. Then the same SQL requests DOP 16 through the OLTP and reporting services so the Resource Manager plan can cap the effective DOP by consumer group.</p>
+        <div class="mt-5 code-card"><div class="code-toolbar"><span class="code-type">Bash</span><button class="copy-btn" type="button">Copy</button></div><div class="code-description code-objective"><span class="objective-label">Objective:</span> Open SQL*Plus as the SOE schema owner in PDB01.</div><pre class="code-scroll"><code>sqlplus SOE/$PASSWD@CDB01_PDB01</code></pre></div>
+        <div class="mt-5 code-card"><div class="code-toolbar"><span class="code-type">SQL</span><button class="copy-btn" type="button">Copy</button></div><div class="code-description code-objective"><span class="objective-label">Objective:</span> Show the current DOP-related PDB settings before creating the DOP test view.</div><pre class="code-scroll"><code>SET LINESIZE 220
+SET PAGESIZE 100
+SET TRIMSPOOL ON
+SET TAB OFF
+
+SHOW PARAMETER parallel_degree_policy
+SHOW PARAMETER parallel_degree_limit
+SHOW PARAMETER parallel_threads_per_cpu
+SHOW PARAMETER cpu_count
+SHOW PARAMETER resource_manager_plan</code></pre></div>
+        <div class="mt-5 code-card code-text"><div class="code-toolbar"><span class="code-type">Output</span><button class="copy-btn" type="button">Copy</button></div><div class="code-description code-objective"><span class="objective-label">Objective:</span> Expected output for the current DOP-related PDB settings in this demo environment.</div><pre class="code-scroll"><code>NAME                                 TYPE        VALUE
+------------------------------------ ----------- ------------------------------
+parallel_degree_policy               string      MANUAL
+
+NAME                                 TYPE        VALUE
+------------------------------------ ----------- ------------------------------
+parallel_degree_limit                string      CPU
+
+NAME                                 TYPE        VALUE
+------------------------------------ ----------- ------------------------------
+parallel_threads_per_cpu             integer     1
+
+NAME                                 TYPE        VALUE
+------------------------------------ ----------- ------------------------------
+cpu_count                            string      4
+
+NAME                                 TYPE        VALUE
+------------------------------------ ----------- ------------------------------
+resource_manager_plan                string      APP_RM_BUSINESS_HOURS</code></pre></div>
+        <div class="mt-5 rounded-lg border-l-4 border-oracle-red bg-red-50 px-4 py-3 text-sm leading-6 text-stone-700 dark:border-orange-300 dark:bg-orange-950/20 dark:text-stone-300">
+          <p class="font-semibold text-stone-950 dark:text-stone-100">Expected output explanation</p>
+          <ul class="mt-2 space-y-1">
+            <li>parallel_degree_policy=MANUAL means Oracle will not automatically choose a DOP for ordinary SQL; the demo query explicitly requests DOP with the parallel hint.</li>
+            <li>parallel_degree_limit=CPU, parallel_threads_per_cpu=1, and cpu_count=4 show the local CPU-based parallel baseline visible to the PDB session.</li>
+            <li>resource_manager_plan=APP_RM_BUSINESS_HOURS confirms that the business-hours plan is active while this SOE owner session prepares the demo objects.</li>
+            <li>SOE is mapped to CG_ADMIN by the user-mapping rule, so the SOE owner session is governed by the CG_ADMIN directive.</li>
+            <li>CG_ADMIN tops out at the CG_ADMIN directive: 50% level-1 CPU share. Even if a SOE owner query requests DOP 16, Resource Manager still governs that session under the CG_ADMIN CPU share.</li>
+            <li>CG_ADMIN does not make the SOE owner session run at the requested DOP 16. With parallel_degree_limit=CPU, parallel_threads_per_cpu=1, and cpu_count=4, the optimizer is still bounded by the CPU-based parallel limit visible to this PDB session.</li>
+            <li>The OLTP and reporting DOP caps are tested later with SOE_OLTP and SOE_REPORTS, not with the SOE owner session.</li>
+          </ul>
+        </div>
+        <div class="mt-5 code-card"><div class="code-toolbar"><span class="code-type">SQL</span><button class="copy-btn" type="button">Copy</button></div><div class="code-description code-objective"><span class="objective-label">Objective:</span> Create the reusable DOP test view over the current SOE schema.</div><pre class="code-scroll"><code>SET LINESIZE 220
+SET PAGESIZE 100
+SET TRIMSPOOL ON
+SET TAB OFF
+SET SERVEROUTPUT ON
+
+CREATE OR REPLACE VIEW soe_dop_order_fact AS
+SELECT
+  o.order_id,
+  o.customer_id,
+  o.order_total,
+  oi.product_id,
+  oi.quantity,
+  oi.unit_price
+FROM orders o
+JOIN order_items oi
+  ON oi.order_id = o.order_id;
+
+GRANT SELECT ON soe_dop_order_fact TO app_reporting_role;
+GRANT SELECT ON soe_dop_order_fact TO app_readwrite_role;
+GRANT SELECT ON soe_dop_order_fact TO soe_oltp;
+GRANT SELECT ON soe_dop_order_fact TO soe_reports;
+
+BEGIN
+  DBMS_STATS.GATHER_TABLE_STATS(USER, 'ORDERS');
+  DBMS_STATS.GATHER_TABLE_STATS(USER, 'ORDER_ITEMS');
+END;
+/</code></pre></div>
+        <div class="mt-5 rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 text-sm leading-6 text-amber-950 dark:border-amber-500/40 dark:bg-amber-950/25 dark:text-amber-100">
+          <p class="font-semibold">DOP request sizing</p>
+          <ul class="mt-2 space-y-1">
+            <li>The demo cluster has two nodes with 8 ECPUs on each node, for 16 ECPUs across the cluster.</li>
+            <li>Creating <code class="rounded bg-white px-1.5 py-0.5 text-xs font-semibold text-oracle-deep dark:bg-stone-900 dark:text-orange-200">soe_dop_order_fact</code> is metadata work in the SOE owner session; it is governed by CG_ADMIN but does not prove the OLTP or reporting DOP limits by itself.</li>
+            <li><code class="rounded bg-white px-1.5 py-0.5 text-xs font-semibold text-oracle-deep dark:bg-stone-900 dark:text-orange-200">DBMS_STATS.GATHER_TABLE_STATS</code> also runs as SOE under CG_ADMIN, so any CPU assigned to statistics gathering is controlled by the CG_ADMIN directive and the CPU-based parallel baseline visible to the PDB session.</li>
+          </ul>
+        </div>
+        <div class="mt-5 rounded-lg border-l-4 border-oracle-red bg-red-50 px-4 py-3 text-sm leading-6 text-stone-700 dark:border-orange-300 dark:bg-orange-950/20 dark:text-stone-300">
+          <p class="font-semibold text-stone-950 dark:text-stone-100">DOP test intent</p>
+          <p class="mt-1">The following OLTP and reporting snippets use a lightweight sampled scan of <code class="rounded bg-white px-1.5 py-0.5 text-xs font-semibold text-oracle-deep dark:bg-stone-900 dark:text-orange-200">SOE.SOE_DOP_ORDER_FACT</code>. The statement-level <code class="rounded bg-white px-1.5 py-0.5 text-xs font-semibold text-oracle-deep dark:bg-stone-900 dark:text-orange-200">parallel(16)</code> hint still requests DOP 16 through SOE_OLTP and SOE_REPORTS, but the block sample keeps the validation focused on effective DOP instead of running the full fact-view workload.</p>
+        </div>
+        <div class="mt-5 rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 text-sm leading-6 text-amber-950 dark:border-amber-500/40 dark:bg-amber-950/25 dark:text-amber-100">
+          <p class="font-semibold">Hint usage</p>
+          <p class="mt-1">The gather_plan_statistics hint does not gather optimizer table statistics. It only captures runtime row-source statistics for this one SQL statement so DBMS_XPLAN.DISPLAY_CURSOR can show the actual plan with ALLSTATS LAST. The parallel(16) hint is the statement-level request for DOP 16 that Resource Manager can reduce according to the active consumer group.</p>
+        </div>
+        <div class="mt-5 rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 text-sm leading-6 text-amber-950 dark:border-amber-500/40 dark:bg-amber-950/25 dark:text-amber-100">
+          <p class="font-semibold">DBMS_XPLAN privilege note</p>
+          <p class="mt-1">For this demo, grant SELECT_CATALOG_ROLE to the workload users that run DBMS_XPLAN.DISPLAY_CURSOR. Oracle documents that DISPLAY_CURSOR needs SELECT or READ access to V$SQL_PLAN, V$SESSION, V$SQL_PLAN_STATISTICS_ALL, and V$SQL, and that these privileges are included in SELECT_CATALOG_ROLE. Keep this as a demo-only diagnostics grant unless your security model already provides an approved narrower role.</p>
+        </div>
+        <div class="mt-5 code-card"><div class="code-toolbar"><span class="code-type">SQL</span><button class="copy-btn" type="button">Copy</button></div><div class="code-description code-objective"><span class="objective-label">Objective:</span> Grant demo-only DBMS_XPLAN catalog view access to the OLTP and reporting users.</div><pre class="code-scroll"><code>CONNECT system@CDB01_PDB01
+
+GRANT SELECT_CATALOG_ROLE TO SOE_OLTP;
+GRANT SELECT_CATALOG_ROLE TO SOE_REPORTS;</code></pre></div>
+        <div class="mt-5 grid gap-5">
+          <div class="code-card"><div class="code-toolbar"><span class="code-type">Bash</span><button class="copy-btn" type="button">Copy</button></div><div class="code-description code-objective"><span class="objective-label">Objective:</span> Open SQL*Plus through the OLTP service before running the DOP test.</div><pre class="code-scroll"><code>sqlplus SOE_OLTP/$PASSWD@CDB01_PDB01_OLTP</code></pre></div>
+          <div class="code-card"><div class="code-toolbar"><span class="code-type">SQL</span><button class="copy-btn" type="button">Copy</button></div><div class="code-description code-objective"><span class="objective-label">Objective:</span> Validate the OLTP session service and Resource Manager consumer group.</div><pre class="code-scroll"><code>SET LINESIZE 220
+SET PAGESIZE 100
+SET TRIMSPOOL ON
+SET TAB OFF
+
 COLUMN username FORMAT A20
 COLUMN service_name FORMAT A45
 COLUMN resource_consumer_group FORMAT A30
-COLUMN sessions FORMAT 999999 HEADING 'SESSIONS'
-
-BREAK ON inst SKIP 1 ON REPORT
-COMPUTE SUM LABEL 'INSTANCE TOTAL' OF sessions ON inst
-COMPUTE SUM LABEL 'GRAND TOTAL' OF sessions ON REPORT
 
 SELECT
-    TO_CHAR(s.inst_id) inst,
-    s.username,
-    s.service_name,
-    NVL(s.resource_consumer_group, '-') resource_consumer_group,
-    COUNT(*) sessions
-FROM gv$session s
-WHERE s.type = 'USER'
-  AND s.username IS NOT NULL
-GROUP BY
-    s.inst_id,
-    s.username,
-    s.service_name,
-    NVL(s.resource_consumer_group, '-')
-ORDER BY
-    s.inst_id,
-    s.username,
-    s.service_name,
-    NVL(s.resource_consumer_group, '-');</code></pre></div>
-        <p class="mt-5 max-w-3xl text-base leading-7 text-stone-700 dark:text-stone-300">Run the cleanup snippet only after you finish monitoring the report. SQL*Plus keeps the last SQL statement in its buffer, so after the report runs once you can type <code class="rounded bg-stone-100 px-1.5 py-0.5 text-sm font-semibold text-oracle-deep dark:bg-stone-800 dark:text-orange-200">R</code> to rerun that same report with the current session counts. When you no longer need to refresh the output, clear the report formatting with the following commands.</p>
-        <div class="mt-5 code-card"><div class="code-toolbar"><span class="code-type">SQL</span><button class="copy-btn" type="button">Copy</button></div><div class="code-description code-objective"><span class="objective-label">Objective:</span> Clear SQL*Plus report formatting after you finish rerunning the validation report.</div><pre class="code-scroll"><code>CLEAR BREAKS
-CLEAR COMPUTES</code></pre></div>
+  s.username,
+  s.service_name,
+  s.resource_consumer_group
+FROM v$session s
+WHERE s.audsid = SYS_CONTEXT('USERENV','SESSIONID')
+  AND s.username = USER;</code></pre></div>
+          <div class="code-card"><div class="code-toolbar"><span class="code-type">SQL</span><button class="copy-btn" type="button">Copy</button></div><div class="code-description code-objective"><span class="objective-label">Objective:</span> Run a lightweight sampled DOP test against the view in the validated OLTP session and capture elapsed time.</div><pre class="code-scroll"><code>SET TIMING ON
+
+SELECT /*+ gather_plan_statistics parallel(16) */
+       COUNT(*) sampled_fact_rows,
+       SUM(f.quantity * f.unit_price) sampled_line_value
+FROM soe.soe_dop_order_fact SAMPLE BLOCK (1) f
+WHERE f.quantity &gt; 0;</code></pre></div>
+          <div class="code-card"><div class="code-toolbar"><span class="code-type">SQL</span><button class="copy-btn" type="button">Copy</button></div><div class="code-description code-objective"><span class="objective-label">Objective:</span> Verify whether the last statement was actually parallelized in this session.</div><pre class="code-scroll"><code>SELECT
+  statistic,
+  last_query,
+  session_total
+FROM v$pq_sesstat
+WHERE statistic IN (
+  'Queries Parallelized',
+  'Queries Serial',
+  'Servers Busy',
+  'Servers Requested',
+  'Servers Allocated'
+);</code></pre></div>
+          <div class="code-card"><div class="code-toolbar"><span class="code-type">Output</span><button class="copy-btn" type="button">Copy</button></div><div class="code-description code-objective"><span class="objective-label">Objective:</span> Expected verification output for an OLTP session forced to serial execution.</div><pre class="code-scroll"><code>STATISTIC                      LAST_QUERY SESSION_TOTAL
+------------------------------ ---------- -------------
+Queries Parallelized                    0             0</code></pre></div>
+          <div class="rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 text-sm leading-6 text-amber-950 dark:border-amber-500/40 dark:bg-amber-950/25 dark:text-amber-100">
+            <p class="font-semibold">Parallel verification explanation</p>
+            <p class="mt-1">Run this check immediately after the workload query, before displaying the cursor plan. <code class="rounded bg-white px-1.5 py-0.5 text-xs font-semibold text-oracle-deep dark:bg-stone-900 dark:text-orange-200">Queries Parallelized</code> with <code class="rounded bg-white px-1.5 py-0.5 text-xs font-semibold text-oracle-deep dark:bg-stone-900 dark:text-orange-200">LAST_QUERY=0</code> means the last workload statement was not recorded as a parallelized query in this session. For the OLTP service, this is the clearest evidence that the consumer-group limit forced serial execution even though the SQL text requested <code class="rounded bg-white px-1.5 py-0.5 text-xs font-semibold text-oracle-deep dark:bg-stone-900 dark:text-orange-200">parallel(16)</code>.</p>
+          </div>
+          <div class="code-card"><div class="code-toolbar"><span class="code-type">SQL</span><button class="copy-btn" type="button">Copy</button></div><div class="code-description code-objective"><span class="objective-label">Objective:</span> Display the actual cursor plan for the DOP test.</div><pre class="code-scroll"><code>SELECT *
+FROM TABLE(DBMS_XPLAN.DISPLAY_CURSOR(NULL, NULL, 'ALLSTATS LAST +PARALLEL'));</code></pre></div>
+          <div class="code-card"><div class="code-toolbar"><span class="code-type">Output</span><button class="copy-btn" type="button">Copy</button></div><div class="code-description code-objective"><span class="objective-label">Objective:</span> Expected output excerpt showing elapsed time, PX operations, and requested DOP.</div><pre class="code-scroll"><code>SAMPLED_FACT_ROWS SAMPLED_LINE_VALUE
+----------------- ------------------
+          3633217         1.6780E+10
+
+Elapsed: 00:00:49.60
+
+PLAN_TABLE_OUTPUT
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+SQL_ID  4nnk8kdkmkv14, child number 0
+-------------------------------------
+SELECT /*+ gather_plan_statistics parallel(16) */        COUNT(*)
+sampled_fact_rows,        SUM(f.quantity * f.unit_price)
+sampled_line_value FROM soe.soe_dop_order_fact SAMPLE BLOCK (1) f WHERE
+f.quantity &gt; 0
+
+Plan hash value: 1065523643
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+| Id  | Operation                                            | Name        | Starts | E-Rows |    TQ  |IN-OUT| PQ Distrib | A-Rows |   A-Time   | Buffers | Reads  | Writes |  OMem |  1Mem | Used-Mem | Used-Tmp|
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+|   0 | SELECT STATEMENT                                     |             |      1 |        |        |      |            |      1 |00:00:33.32 |     193K|    180K|  11466 |       |       |          |         |
+|   1 |  SORT AGGREGATE                                      |             |      1 |      1 |        |      |            |      1 |00:00:33.32 |     193K|    180K|  11466 |       |       |          |         |
+|   2 |   PX COORDINATOR                                     |             |      1 |        |        |      |            |      1 |00:00:33.32 |     193K|    180K|  11466 | 73728 | 73728 |          |         |
+|   3 |    PX SEND QC (RANDOM)                               | :TQ10002    |      1 |      1 |  Q1,02 | P-&gt;S | QC (RAND)  |      1 |00:00:33.32 |     193K|    180K|  11466 |       |       |          |         |
+|*  5 |      HASH JOIN                                       |             |      1 |   3923K|  Q1,02 | PCWP |            |   3406K|00:01:01.89 |     193K|    180K|  11466 |   197M|    18M|  165M (1)|      91M|
+|  10 |           PX BLOCK ITERATOR                          |             |      1 |   3923K|  Q1,00 | PCWC |            |   3406K|00:00:01.47 |   33490 |  33462 |      0 |       |       |          |         |
+|* 11 |            TABLE ACCESS STORAGE SAMPLE BY ROWID RANGE| ORDER_ITEMS |      1 |   3923K|  Q1,00 | PCWP |            |   3406K|00:00:01.05 |   33490 |  33462 |      0 |       |       |          |         |
+|  12 |       PX RECEIVE                                     |             |      1 |     72M|  Q1,02 | PCWP |            |   1094K|00:00:22.30 |     159K|    135K|      0 |       |       |          |         |
+|  15 |          PX BLOCK ITERATOR                           |             |      1 |     72M|  Q1,01 | PCWC |            |     72M|00:00:20.38 |     159K|    135K|      0 |       |       |          |         |
+|* 16 |           INDEX FAST FULL SCAN                       | ORDER_PK    |      1 |     72M|  Q1,01 | PCWP |            |     72M|00:00:12.26 |     159K|    135K|      0 |  1028K|  1028K|          |         |
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Note
+-----
+   - dynamic statistics used: dynamic sampling (level=AUTO (SYSTEM))
+   - Degree of Parallelism is 16 because of hint
+
+44 rows selected.
+
+Elapsed: 00:00:00.05</code></pre></div>
+          <div class="rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 text-sm leading-6 text-amber-950 dark:border-amber-500/40 dark:bg-amber-950/25 dark:text-amber-100">
+            <p class="font-semibold">Expected output explanation</p>
+            <ul class="mt-2 space-y-1">
+              <li>The sampled row count, sum, elapsed time, buffers, reads, and writes can vary between executions because the query uses <code class="rounded bg-white px-1.5 py-0.5 text-xs font-semibold text-oracle-deep dark:bg-stone-900 dark:text-orange-200">SAMPLE BLOCK (1)</code>. Use the DOP note and PX lines as the main Resource Manager evidence.</li>
+              <li>The sample output above is the uncapped parallel-plan shape: <code class="rounded bg-white px-1.5 py-0.5 text-xs font-semibold text-oracle-deep dark:bg-stone-900 dark:text-orange-200">Degree of Parallelism is 16 because of hint</code> means the optimizer accepted the requested DOP for that cursor.</li>
+              <li>For the OLTP serial test, the expected evidence is the opposite: no <code class="rounded bg-white px-1.5 py-0.5 text-xs font-semibold text-oracle-deep dark:bg-stone-900 dark:text-orange-200">PX COORDINATOR</code>, no <code class="rounded bg-white px-1.5 py-0.5 text-xs font-semibold text-oracle-deep dark:bg-stone-900 dark:text-orange-200">PX SEND</code>/<code class="rounded bg-white px-1.5 py-0.5 text-xs font-semibold text-oracle-deep dark:bg-stone-900 dark:text-orange-200">PX RECEIVE</code>, and no DOP 16 note. That means the consumer-group limit forced the statement to run serially even though the SQL requested <code class="rounded bg-white px-1.5 py-0.5 text-xs font-semibold text-oracle-deep dark:bg-stone-900 dark:text-orange-200">parallel(16)</code>.</li>
+              <li>If PX lines do appear, check the DOP in the plan note and the PX server sets in the <code class="rounded bg-white px-1.5 py-0.5 text-xs font-semibold text-oracle-deep dark:bg-stone-900 dark:text-orange-200">TQ</code> column. Entries such as <code class="rounded bg-white px-1.5 py-0.5 text-xs font-semibold text-oracle-deep dark:bg-stone-900 dark:text-orange-200">Q1,00</code>, <code class="rounded bg-white px-1.5 py-0.5 text-xs font-semibold text-oracle-deep dark:bg-stone-900 dark:text-orange-200">Q1,01</code>, and <code class="rounded bg-white px-1.5 py-0.5 text-xs font-semibold text-oracle-deep dark:bg-stone-900 dark:text-orange-200">Q1,02</code> identify separate parallel execution server sets used by the statement.</li>
+              <li>For reporting sessions, PX operations can be expected when Resource Manager allows a capped DOP. The important check is whether the displayed DOP matches the consumer-group cap, not the original DOP 16 request.</li>
+            </ul>
+          </div>
+          <div class="code-card"><div class="code-toolbar"><span class="code-type">Bash</span><button class="copy-btn" type="button">Copy</button></div><div class="code-description code-objective"><span class="objective-label">Objective:</span> Open SQL*Plus through the reporting service before running the DOP test.</div><pre class="code-scroll"><code>sqlplus SOE_REPORTS/$PASSWD@CDB01_PDB01_REPORTS</code></pre></div>
+          <div class="code-card"><div class="code-toolbar"><span class="code-type">SQL</span><button class="copy-btn" type="button">Copy</button></div><div class="code-description code-objective"><span class="objective-label">Objective:</span> Validate the reporting session service and Resource Manager consumer group.</div><pre class="code-scroll"><code>SET LINESIZE 220
+SET PAGESIZE 100
+SET TRIMSPOOL ON
+SET TAB OFF
+
+COLUMN username FORMAT A20
+COLUMN service_name FORMAT A45
+COLUMN resource_consumer_group FORMAT A30
+
+SELECT
+  s.username,
+  s.service_name,
+  s.resource_consumer_group
+FROM v$session s
+WHERE s.audsid = SYS_CONTEXT('USERENV','SESSIONID')
+  AND s.username = USER;</code></pre></div>
+          <div class="code-card"><div class="code-toolbar"><span class="code-type">SQL</span><button class="copy-btn" type="button">Copy</button></div><div class="code-description code-objective"><span class="objective-label">Objective:</span> Run the same lightweight sampled DOP test against the view in the validated reporting session and capture elapsed time.</div><pre class="code-scroll"><code>SET TIMING ON
+
+SELECT /*+ gather_plan_statistics parallel(16) */
+       COUNT(*) sampled_fact_rows,
+       SUM(f.quantity * f.unit_price) sampled_line_value
+FROM soe.soe_dop_order_fact SAMPLE BLOCK (1) f
+WHERE f.quantity &gt; 0;</code></pre></div>
+          <div class="code-card"><div class="code-toolbar"><span class="code-type">SQL</span><button class="copy-btn" type="button">Copy</button></div><div class="code-description code-objective"><span class="objective-label">Objective:</span> Verify whether the reporting workload was actually parallelized in this session.</div><pre class="code-scroll"><code>SELECT
+  statistic,
+  last_query,
+  session_total
+FROM v$pq_sesstat
+WHERE statistic IN (
+  'Queries Parallelized',
+  'Queries Serial',
+  'Servers Busy',
+  'Servers Requested',
+  'Servers Allocated'
+);</code></pre></div>
+          <div class="code-card"><div class="code-toolbar"><span class="code-type">Output</span><button class="copy-btn" type="button">Copy</button></div><div class="code-description code-objective"><span class="objective-label">Objective:</span> Expected reporting output showing faster elapsed time and parallelized execution.</div><pre class="code-scroll"><code>SAMPLED_FACT_ROWS SAMPLED_LINE_VALUE
+----------------- ------------------
+          3666408         1.6843E+10
+
+Elapsed: 00:00:18.99
+
+STATISTIC                      LAST_QUERY SESSION_TOTAL
+------------------------------ ---------- -------------
+Queries Parallelized                    1             1</code></pre></div>
+          <div class="rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 text-sm leading-6 text-amber-950 dark:border-amber-500/40 dark:bg-amber-950/25 dark:text-amber-100">
+            <p class="font-semibold">Reporting verification explanation</p>
+            <p class="mt-1">Compared with the OLTP result, the reporting session completed faster because Resource Manager allowed the workload to run with parallel execution. <code class="rounded bg-white px-1.5 py-0.5 text-xs font-semibold text-oracle-deep dark:bg-stone-900 dark:text-orange-200">Queries Parallelized</code> with <code class="rounded bg-white px-1.5 py-0.5 text-xs font-semibold text-oracle-deep dark:bg-stone-900 dark:text-orange-200">LAST_QUERY=1</code> confirms the last workload statement was parallelized in this session. The elapsed time dropped from the OLTP serial run to about 19 seconds because the reporting consumer group permits DOP while OLTP is forced to serial execution.</p>
+          </div>
+          <div class="code-card"><div class="code-toolbar"><span class="code-type">SQL</span><button class="copy-btn" type="button">Copy</button></div><div class="code-description code-objective"><span class="objective-label">Objective:</span> Display the actual cursor plan for the reporting DOP test.</div><pre class="code-scroll"><code>SELECT *
+FROM TABLE(DBMS_XPLAN.DISPLAY_CURSOR(NULL, NULL, 'ALLSTATS LAST +PARALLEL'));</code></pre></div>
+          <div class="code-card"><div class="code-toolbar"><span class="code-type">Output</span><button class="copy-btn" type="button">Copy</button></div><div class="code-description code-objective"><span class="objective-label">Objective:</span> Expected reporting plan excerpt showing PX operations and elapsed time.</div><pre class="code-scroll"><code>PLAN_TABLE_OUTPUT
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+SQL_ID  4nnk8kdkmkv14, child number 0
+-------------------------------------
+SELECT /*+ gather_plan_statistics parallel(16) */        COUNT(*)
+sampled_fact_rows,        SUM(f.quantity * f.unit_price)
+sampled_line_value FROM soe.soe_dop_order_fact SAMPLE BLOCK (1) f WHERE
+f.quantity &gt; 0
+
+Plan hash value: 1065523643
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+| Id  | Operation                                            | Name        | Starts | E-Rows |    TQ  |IN-OUT| PQ Distrib | A-Rows |   A-Time   | Buffers |  OMem |  1Mem | Used-Mem | Used-Tmp|
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+|   0 | SELECT STATEMENT                                     |             |      1 |        |        |      |            |      1 |00:00:19.39 |      58 |       |       |          |         |
+|   1 |  SORT AGGREGATE                                      |             |      1 |      1 |        |      |            |      1 |00:00:19.39 |      58 |       |       |          |         |
+|   2 |   PX COORDINATOR                                     |             |      1 |        |        |      |            |      2 |00:00:19.39 |      58 | 73728 | 73728 |          |         |
+|   3 |    PX SEND QC (RANDOM)                               | :TQ10002    |      0 |      1 |  Q1,02 | P-&gt;S | QC (RAND)  |      0 |00:00:00.01 |       0 |       |       |          |         |
+|*  5 |      HASH JOIN                                       |             |      0 |   3923K|  Q1,02 | PCWP |            |      0 |00:00:00.01 |       0 |   212M|    18M|  152M (0)|         |
+|   8 |         PX SEND HYBRID HASH                          | :TQ10000    |      0 |   3923K|  Q1,00 | P-&gt;P | HYBRID HASH|      0 |00:00:00.01 |       0 |       |       |          |         |
+|  10 |           PX BLOCK ITERATOR                          |             |      0 |   3923K|  Q1,00 | PCWC |            |      0 |00:00:00.01 |       0 |       |       |          |         |
+|* 11 |            TABLE ACCESS STORAGE SAMPLE BY ROWID RANGE| ORDER_ITEMS |      0 |   3923K|  Q1,00 | PCWP |            |      0 |00:00:00.01 |       0 |       |       |          |         |
+|  12 |       PX RECEIVE                                     |             |      0 |     72M|  Q1,02 | PCWP |            |      0 |00:00:00.01 |       0 |       |       |          |         |
+|  13 |        PX SEND HYBRID HASH                           | :TQ10001    |      0 |     72M|  Q1,01 | P-&gt;P | HYBRID HASH|      0 |00:00:00.01 |       0 |       |       |          |         |
+|  15 |          PX BLOCK ITERATOR                           |             |      0 |     72M|  Q1,01 | PCWC |            |      0 |00:00:00.01 |       0 |       |       |          |         |
+|* 16 |           INDEX FAST FULL SCAN                       | ORDER_PK    |      0 |     72M|  Q1,01 | PCWP |            |      0 |00:00:00.01 |       0 |  1028K|  1028K|          |         |
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Note
+-----
+   - dynamic statistics used: dynamic sampling (level=AUTO (SYSTEM))
+   - Degree of Parallelism is 16 because of hint
+
+44 rows selected.
+
+Elapsed: 00:00:00.06</code></pre></div>
+          <div class="rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 text-sm leading-6 text-amber-950 dark:border-amber-500/40 dark:bg-amber-950/25 dark:text-amber-100">
+            <p class="font-semibold">Reporting plan explanation</p>
+            <ul class="mt-2 space-y-1">
+              <li><code class="rounded bg-white px-1.5 py-0.5 text-xs font-semibold text-oracle-deep dark:bg-stone-900 dark:text-orange-200">v$pq_sesstat</code> is the clearest comparison point: reporting records <code class="rounded bg-white px-1.5 py-0.5 text-xs font-semibold text-oracle-deep dark:bg-stone-900 dark:text-orange-200">Queries Parallelized = 1</code>, while OLTP records <code class="rounded bg-white px-1.5 py-0.5 text-xs font-semibold text-oracle-deep dark:bg-stone-900 dark:text-orange-200">Queries Parallelized = 0</code>.</li>
+              <li>The plan lines with <code class="rounded bg-white px-1.5 py-0.5 text-xs font-semibold text-oracle-deep dark:bg-stone-900 dark:text-orange-200">PX COORDINATOR</code> and <code class="rounded bg-white px-1.5 py-0.5 text-xs font-semibold text-oracle-deep dark:bg-stone-900 dark:text-orange-200">TQ</code> entries such as <code class="rounded bg-white px-1.5 py-0.5 text-xs font-semibold text-oracle-deep dark:bg-stone-900 dark:text-orange-200">Q1,00</code> and <code class="rounded bg-white px-1.5 py-0.5 text-xs font-semibold text-oracle-deep dark:bg-stone-900 dark:text-orange-200">Q1,01</code> show the parallel server sets used by the reporting execution.</li>
+              <li>The result is visible in elapsed time: reporting finishes in about 19 seconds because its consumer group allows a capped DOP, while OLTP runs the same SQL serially.</li>
+            </ul>
+          </div>
+          <div class="rounded-lg border border-stone-200 bg-stone-50 px-4 py-3 text-sm leading-6 text-stone-700 dark:border-stone-700 dark:bg-stone-900/45 dark:text-stone-300">
+            <p class="font-semibold text-stone-950 dark:text-stone-100">OCI Performance Hub validation</p>
+            <p class="mt-1">After the SQL-level checks, use OCI Performance Hub to confirm the same behavior visually. The official OCI documentation describes <a href="https://docs.oracle.com/en-us/iaas/performance-hub/doc/sql-monitoring-tab.html" target="_blank" rel="noreferrer" class="font-semibold text-oracle-red underline-offset-4 hover:underline dark:text-orange-300">SQL Monitoring</a> and <a href="https://docs.oracle.com/en-us/iaas/performance-hub/doc/view-real-time-sql-activity.html" target="_blank" rel="noreferrer" class="font-semibold text-oracle-red underline-offset-4 hover:underline dark:text-orange-300">Real-time SQL Activity</a>, including the Plan Statistics and Parallel views used to inspect an individual SQL execution. In this reporting example, the Parallel tab is the visual confirmation that the workload ran with a DOP of two.</p>
+          </div>
+          <figure class="overflow-hidden rounded-lg border border-stone-200 bg-white shadow-sm dark:border-stone-700 dark:bg-stone-900/60">
+            <img src="assets/sql-monitor-parallel-dop2.png" alt="OCI Performance Hub SQL Monitoring Parallel tab showing DOP 2 distribution for the reporting workload" class="w-full" loading="lazy">
+            <figcaption class="border-t border-stone-200 px-4 py-3 text-sm leading-6 text-stone-700 dark:border-stone-700 dark:text-stone-300">
+              <span class="font-semibold text-stone-950 dark:text-stone-100">SQL Monitoring evidence:</span>
+              The Parallel tab shows the reporting SQL running on Instance 2, which matches the reporting service definition where CDB012 is the preferred instance. It also shows the Parallel Coordinator plus two parallel sets, confirming that Resource Manager capped the oversized <code class="rounded bg-stone-100 px-1.5 py-0.5 text-xs font-semibold text-oracle-deep dark:bg-stone-800 dark:text-orange-200">parallel(16)</code> request to DOP 2 for the reporting consumer group.
+            </figcaption>
+          </figure>
+        </div>
+        <div class="mt-5 rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 text-sm leading-6 text-amber-950 dark:border-amber-500/40 dark:bg-amber-950/25 dark:text-amber-100">
+          <p class="font-semibold">Demo cleanup</p>
+          <p class="mt-1">The next three snippets remove only the temporary demo artifacts created for this walkthrough: the DOP test view and the diagnostic DBMS_XPLAN catalog grants. These cleanup steps are not normally required in production because production schemas should use permanent application objects and approved operational diagnostic roles instead of temporary demo grants.</p>
+        </div>
+        <div class="mt-5 code-card"><div class="code-toolbar"><span class="code-type">Bash</span><button class="copy-btn" type="button">Copy</button></div><div class="code-description code-objective"><span class="objective-label">Objective:</span> Open SQL*Plus as the SOE schema owner before cleanup.</div><pre class="code-scroll"><code>sqlplus SOE/$PASSWD@CDB01_PDB01</code></pre></div>
+        <div class="mt-5 code-card"><div class="code-toolbar"><span class="code-type">SQL</span><button class="copy-btn" type="button">Copy</button></div><div class="code-description code-objective"><span class="objective-label">Objective:</span> Remove the DOP test view after the validation is complete.</div><pre class="code-scroll"><code>DROP VIEW soe_dop_order_fact;</code></pre></div>
+        <div class="mt-5 code-card"><div class="code-toolbar"><span class="code-type">SQL</span><button class="copy-btn" type="button">Copy</button></div><div class="code-description code-objective"><span class="objective-label">Objective:</span> Revoke the demo-only DBMS_XPLAN catalog view grants after validation.</div><pre class="code-scroll"><code>CONNECT system@CDB01_PDB01
+
+REVOKE SELECT_CATALOG_ROLE FROM SOE_OLTP;
+REVOKE SELECT_CATALOG_ROLE FROM SOE_REPORTS;</code></pre></div>
       </section>
 
       <section id="best-practices" class="border-t border-stone-200 py-10 dark:border-stone-800">
@@ -967,6 +1270,10 @@ CLEAR COMPUTES</code></pre></div>
           <a href="https://docs.oracle.com/en/database/oracle/oracle-database/26/admin/managing-resources-with-oracle-database-resource-manager.html" target="_blank" rel="noreferrer" class="rounded-md border border-oracle-red/30 bg-white px-3 py-2 text-sm font-semibold text-oracle-red underline-offset-4 hover:underline dark:border-orange-300/30 dark:bg-[#211d1b] dark:text-orange-300">Managing Resources with Oracle Database Resource Manager</a>
           <a href="https://docs.oracle.com/en/database/oracle/oracle-database/26/arpls/DBMS_RESOURCE_MANAGER.html" target="_blank" rel="noreferrer" class="rounded-md border border-oracle-red/30 bg-white px-3 py-2 text-sm font-semibold text-oracle-red underline-offset-4 hover:underline dark:border-orange-300/30 dark:bg-[#211d1b] dark:text-orange-300">DBMS_RESOURCE_MANAGER</a>
           <a href="https://docs.oracle.com/en/database/oracle/oracle-database/26/refrn/RESOURCE_MANAGER_PLAN.html" target="_blank" rel="noreferrer" class="rounded-md border border-oracle-red/30 bg-white px-3 py-2 text-sm font-semibold text-oracle-red underline-offset-4 hover:underline dark:border-orange-300/30 dark:bg-[#211d1b] dark:text-orange-300">RESOURCE_MANAGER_PLAN</a>
+          <a href="https://docs.oracle.com/en-us/iaas/performance-hub/doc/perf-hub.html" target="_blank" rel="noreferrer" class="rounded-md border border-oracle-red/30 bg-white px-3 py-2 text-sm font-semibold text-oracle-red underline-offset-4 hover:underline dark:border-orange-300/30 dark:bg-[#211d1b] dark:text-orange-300">OCI Performance Hub</a>
+          <a href="https://docs.oracle.com/en-us/iaas/performance-hub/doc/sql-monitoring-tab.html" target="_blank" rel="noreferrer" class="rounded-md border border-oracle-red/30 bg-white px-3 py-2 text-sm font-semibold text-oracle-red underline-offset-4 hover:underline dark:border-orange-300/30 dark:bg-[#211d1b] dark:text-orange-300">OCI SQL Monitoring</a>
+          <a href="https://docs.oracle.com/en-us/iaas/performance-hub/doc/view-real-time-sql-activity.html" target="_blank" rel="noreferrer" class="rounded-md border border-oracle-red/30 bg-white px-3 py-2 text-sm font-semibold text-oracle-red underline-offset-4 hover:underline dark:border-orange-300/30 dark:bg-[#211d1b] dark:text-orange-300">OCI Real-time SQL Activity</a>
+          <a href="https://docs.oracle.com/en-us/iaas/performance-hub/doc/view-sql-monitoring-report.html" target="_blank" rel="noreferrer" class="rounded-md border border-oracle-red/30 bg-white px-3 py-2 text-sm font-semibold text-oracle-red underline-offset-4 hover:underline dark:border-orange-300/30 dark:bg-[#211d1b] dark:text-orange-300">OCI SQL Monitoring Report</a>
         </div>
         <div class="mt-5 flex flex-wrap gap-3">
           <a href="../index.html#documentation" class="inline-flex rounded-md bg-oracle-red px-4 py-2 text-sm font-bold text-white shadow-sm transition hover:bg-oracle-deep focus:outline-none focus:ring-2 focus:ring-oracle-red/50">Series documentation</a>
@@ -982,7 +1289,7 @@ CLEAR COMPUTES</code></pre></div>
         <summary class="cursor-pointer list-none px-4 py-3 text-sm font-bold uppercase tracking-[0.14em] focus:outline-none focus:ring-2 focus:ring-amber-500/50">Educational use and validation required <span class="ml-2 whitespace-nowrap text-xs font-semibold normal-case tracking-normal text-amber-800 underline underline-offset-2 dark:text-amber-200">click here</span></summary>
         <p class="border-t border-amber-200 px-4 pb-4 pt-3 text-sm leading-6 dark:border-amber-500/30">This content is for educational and planning purposes only. Apply every command and configuration first in a non-production test environment that mirrors your RAC, service, client driver, workload, and failover requirements. The recommended values shown here may not work in your specific environment, may require change-control approval, and can affect availability, connection routing, transaction behavior, memory use, and batch workload placement. Validate with application owners, DBAs, network teams, and Oracle Support guidance before using any setting in production.</p>
       </details>
-      <p class="mt-5">Blog last updated June 12, 2026</p>
+      <p class="mt-5">Blog last updated June 16, 2026</p>
     </div>
   </footer>
 
@@ -1006,7 +1313,7 @@ CLEAR COMPUTES</code></pre></div>
           "This content is for educational and planning purposes only. Apply every command and configuration first in a non-production test environment that mirrors your RAC, service, client driver, workload, and failover requirements. The recommended values shown here may not work in your specific environment, may require change-control approval, and can affect availability, connection routing, transaction behavior, memory use, and batch workload placement. Validate with application owners, DBAs, network teams, and Oracle Support guidance before using any setting in production.": "Este contenido es solo para fines educativos y de planificación. Aplica cada comando y configuración primero en un entorno de prueba no productivo que refleje tus requisitos de RAC, servicio, controlador cliente, carga de trabajo y failover. Los valores recomendados aquí pueden no funcionar en tu entorno específico, pueden requerir aprobación de control de cambios y pueden afectar disponibilidad, enrutamiento de conexiones, comportamiento transaccional, uso de memoria y ubicación de cargas batch. Valida con dueños de aplicaciones, DBAs, equipos de red y la guía de Oracle Support antes de usar cualquier configuración en producción.",
           "Governing Workloads with Database Resource Manager": "Gobierno de cargas con Database Resource Manager",
           "A service-based Resource Manager pattern for OLTP, reporting, batch, and administrative workloads that builds on the connection services guide.": "Un patrón de Resource Manager basado en servicios para cargas OLTP, reportes, batch y administración, construido sobre la guía de Connection Services.",
-          "Blog last updated June 12, 2026": "Blog actualizado por última vez el 12 de junio de 2026",
+          "Blog last updated June 16, 2026": "Blog actualizado por última vez el 16 de junio de 2026",
           "Navigate the guide set": "Navegar las guías",
           "Table of contents": "Tabla de contenido",
           "Overview": "Overview",
@@ -1067,6 +1374,125 @@ CLEAR COMPUTES</code></pre></div>
           "Activation": "Activación",
           "Enable Resource Manager": "Habilitar Resource Manager",
           "Runtime evidence": "Evidencia en runtime",
+          "Objective:": "Objetivo:",
+          "Confirm Service and Consumer Group": "Confirmar servicio y consumer group",
+          "Run these checks from sessions connected through each service to confirm that the login mapping lands in the expected Resource Manager consumer group. Use one SQL*Plus session for the current connection check and a separate DBA-level session when you need to inspect all active user sessions in the PDB.": "Ejecuta estas verificaciones desde sesiones conectadas por cada servicio para confirmar que el mapeo de login cae en el consumer group esperado de Resource Manager. Usa una sesión SQL*Plus para verificar la conexión actual y una sesión separada con nivel DBA cuando necesites inspeccionar todas las sesiones de usuario activas en la PDB.",
+          "Connect through the OLTP service and verify the current session service and consumer group.": "Conectarse por el servicio OLTP y verificar el servicio y consumer group de la sesión actual.",
+          "Connect through the reporting service and verify the current session service and consumer group.": "Conectarse por el servicio de reportes y verificar el servicio y consumer group de la sesión actual.",
+          "Open SQL*Plus through the OLTP service as the transactional workload user.": "Abrir SQL*Plus por el servicio OLTP como usuario de carga transaccional.",
+          "Verify the current OLTP session service and consumer group.": "Verificar el servicio y consumer group de la sesión OLTP actual.",
+          "Open SQL*Plus through the reporting service as the reporting workload user.": "Abrir SQL*Plus por el servicio de reportes como usuario de carga de reportes.",
+          "Verify the current reporting session service and consumer group.": "Verificar el servicio y consumer group de la sesión de reportes actual.",
+          "Connect as a DBA-level user, format output, and show active workload sessions with their service name and Resource Manager consumer group.": "Conectarse como usuario con nivel DBA, formatear la salida y mostrar las sesiones activas de carga con su nombre de servicio y consumer group de Resource Manager.",
+          "Show the Effect of DOP by Service": "Mostrar el efecto de DOP por servicio",
+          "Use the current Swingbench SOE schema objects for the DOP test. The setup creates a compact view over": "Usa los objetos actuales del esquema Swingbench SOE para la prueba de DOP. La preparación crea una vista compacta sobre",
+          ", grants it to the application roles and workload users, and gathers optimizer statistics. Then the same SQL requests DOP 16 through the OLTP and reporting services so the Resource Manager plan can cap the effective DOP by consumer group.": ", la concede a los roles de aplicación y a los usuarios de carga, y recopila estadísticas del optimizador. Luego el mismo SQL solicita DOP 16 por los servicios OLTP y de reportes para que el plan de Resource Manager pueda limitar el DOP efectivo por consumer group.",
+          "Connect as the SOE schema owner and create the reusable DOP test view over the current SOE schema.": "Conectarse como propietario del esquema SOE y crear la vista reutilizable de prueba de DOP sobre el esquema SOE actual.",
+          "Open SQL*Plus as the SOE schema owner in PDB01.": "Abrir SQL*Plus como propietario del esquema SOE en PDB01.",
+          "Show the current DOP-related PDB settings before creating the DOP test view.": "Mostrar la configuración actual de la PDB relacionada con DOP antes de crear la vista de prueba de DOP.",
+          "Expected output for the current DOP-related PDB settings in this demo environment.": "Salida esperada de la configuración actual de la PDB relacionada con DOP en este entorno de demo.",
+          "Expected output explanation": "Explicación de la salida esperada",
+          "parallel_degree_policy=MANUAL means Oracle will not automatically choose a DOP for ordinary SQL; the demo query explicitly requests DOP with the parallel hint.": "parallel_degree_policy=MANUAL significa que Oracle no elegirá automáticamente un DOP para SQL ordinario; la consulta de demo solicita explícitamente DOP con el hint parallel.",
+          "parallel_degree_limit=CPU, parallel_threads_per_cpu=1, and cpu_count=4 show the local CPU-based parallel baseline visible to the PDB session.": "parallel_degree_limit=CPU, parallel_threads_per_cpu=1 y cpu_count=4 muestran la línea base local de paralelismo basada en CPU visible para la sesión de la PDB.",
+          "resource_manager_plan=APP_RM_BUSINESS_HOURS confirms that the business-hours plan is active while this SOE owner session prepares the demo objects.": "resource_manager_plan=APP_RM_BUSINESS_HOURS confirma que el plan de horario laboral está activo mientras esta sesión propietaria SOE prepara los objetos de demo.",
+          "SOE is mapped to CG_ADMIN by the user-mapping rule, so the SOE owner session is governed by the CG_ADMIN directive.": "SOE se mapea a CG_ADMIN mediante la regla de mapeo por usuario, por lo que la sesión propietaria SOE queda gobernada por la directiva CG_ADMIN.",
+          "CG_ADMIN tops out at the CG_ADMIN directive: 50% level-1 CPU share. Even if a SOE owner query requests DOP 16, Resource Manager still governs that session under the CG_ADMIN CPU share.": "CG_ADMIN tiene como tope la directiva CG_ADMIN: 50% de cuota de CPU de nivel 1. Aunque una consulta del propietario SOE solicite DOP 16, Resource Manager sigue gobernando esa sesión bajo la cuota de CPU de CG_ADMIN.",
+          "CG_ADMIN does not make the SOE owner session run at the requested DOP 16. With parallel_degree_limit=CPU, parallel_threads_per_cpu=1, and cpu_count=4, the optimizer is still bounded by the CPU-based parallel limit visible to this PDB session.": "CG_ADMIN no hace que la sesión propietaria SOE se ejecute con el DOP 16 solicitado. Con parallel_degree_limit=CPU, parallel_threads_per_cpu=1 y cpu_count=4, el optimizador sigue limitado por el límite de paralelismo basado en CPU visible para esta sesión de la PDB.",
+          "The OLTP and reporting DOP caps are tested later with SOE_OLTP and SOE_REPORTS, not with the SOE owner session.": "Los límites DOP de OLTP y reportes se prueban después con SOE_OLTP y SOE_REPORTS, no con la sesión propietaria SOE.",
+          "Create the reusable DOP test view over the current SOE schema.": "Crear la vista reutilizable de prueba de DOP sobre el esquema SOE actual.",
+          "Run the DOP test through the OLTP service; the business-hours plan should keep this workload serial.": "Ejecutar la prueba de DOP por el servicio OLTP; el plan de horario laboral debe mantener esta carga en serial.",
+          "Open SQL*Plus through the OLTP service before running the DOP test.": "Abrir SQL*Plus por el servicio OLTP antes de ejecutar la prueba de DOP.",
+          "Run the DOP test in the OLTP session; the business-hours plan should keep this workload serial.": "Ejecutar la prueba de DOP en la sesión OLTP; el plan de horario laboral debe mantener esta carga en serial.",
+          "Open SQL*Plus through the reporting service before running the DOP test.": "Abrir SQL*Plus por el servicio de reportes antes de ejecutar la prueba de DOP.",
+          "Run the same DOP test in the reporting session; the business-hours plan should cap reports at DOP 2, and the after-hours plan should allow DOP 4.": "Ejecutar la misma prueba de DOP en la sesión de reportes; el plan de horario laboral debe limitar reportes a DOP 2, y el plan fuera de horario debe permitir DOP 4.",
+          "Run the same DOP test through the reporting service; the business-hours plan should cap reports at DOP 2, and the after-hours plan should allow DOP 4.": "Ejecutar la misma prueba de DOP por el servicio de reportes; el plan de horario laboral debe limitar reportes a DOP 2, y el plan fuera de horario debe permitir DOP 4.",
+          "DOP request sizing": "Dimensionamiento de la solicitud DOP",
+          "The demo cluster has two nodes with 8 ECPUs on each node, for 16 ECPUs across the cluster.": "El cluster de demo tiene dos nodos con 8 ECPUs en cada nodo, para 16 ECPUs en todo el cluster.",
+          "Creating": "Crear",
+          "is metadata work in the SOE owner session; it is governed by CG_ADMIN but does not prove the OLTP or reporting DOP limits by itself.": "es trabajo de metadata en la sesión propietaria SOE; queda gobernado por CG_ADMIN, pero por sí solo no demuestra los límites DOP de OLTP o reportes.",
+          "also runs as SOE under CG_ADMIN, so any CPU assigned to statistics gathering is controlled by the CG_ADMIN directive and the CPU-based parallel baseline visible to the PDB session.": "también se ejecuta como SOE bajo CG_ADMIN, por lo que cualquier CPU asignada a la recopilación de estadísticas queda controlada por la directiva CG_ADMIN y la línea base de paralelismo basada en CPU visible para la sesión de la PDB.",
+          "DOP test intent": "Intención de la prueba de DOP",
+          "The following OLTP and reporting snippets use a lightweight sampled scan of": "Los siguientes snippets de OLTP y reportes usan un escaneo muestreado ligero de",
+          ". The statement-level": ". El hint a nivel de sentencia",
+          "hint still requests DOP 16 through SOE_OLTP and SOE_REPORTS, but the block sample keeps the validation focused on effective DOP instead of running the full fact-view workload.": "sigue solicitando DOP 16 a través de SOE_OLTP y SOE_REPORTS, pero el muestreo por bloques mantiene la validación enfocada en el DOP efectivo en lugar de ejecutar la carga completa de la vista de hechos.",
+          "The following OLTP and reporting snippets request": "Los siguientes snippets de OLTP y reportes solicitan",
+          "The following OLTP and reporting snippets use the statement-level": "Los siguientes snippets de OLTP y reportes usan el hint a nivel de sentencia",
+          "hint through SOE_OLTP and SOE_REPORTS. That requested DOP is intentionally higher than the limits enforced by Resource Manager, so the active consumer-group directive limits the assigned CPU and effective parallel execution instead of matching the requested DOP.": "a través de SOE_OLTP y SOE_REPORTS. Ese DOP solicitado es intencionalmente mayor que los límites aplicados por Resource Manager, por lo que la directiva activa del consumer group limita la CPU asignada y la ejecución paralela efectiva en lugar de igualar el DOP solicitado.",
+          "Hint usage": "Uso de hints",
+          "The gather_plan_statistics hint does not gather optimizer table statistics. It only captures runtime row-source statistics for this one SQL statement so DBMS_XPLAN.DISPLAY_CURSOR can show the actual plan with ALLSTATS LAST. The parallel(16) hint is the statement-level request for DOP 16 that Resource Manager can reduce according to the active consumer group.": "El hint gather_plan_statistics no recopila estadísticas de tablas del optimizador. Solo captura estadísticas de ejecución row-source para esta sentencia SQL, de modo que DBMS_XPLAN.DISPLAY_CURSOR pueda mostrar el plan real con ALLSTATS LAST. El hint parallel(16) es la solicitud a nivel de sentencia para DOP 16 que Resource Manager puede reducir según el consumer group activo.",
+          "through SOE_OLTP and SOE_REPORTS. That requested DOP is intentionally higher than the limits enforced by Resource Manager, so the active consumer-group directive limits the assigned CPU and effective parallel execution instead of matching the requested DOP.": "a través de SOE_OLTP y SOE_REPORTS. Ese DOP solicitado es intencionalmente mayor que los límites aplicados por Resource Manager, por lo que la directiva activa del consumer group limita la CPU asignada y la ejecución paralela efectiva en lugar de igualar el DOP solicitado.",
+          "DBMS_XPLAN privilege note": "Nota de privilegios para DBMS_XPLAN",
+          "For this demo, grant SELECT_CATALOG_ROLE to the workload users that run DBMS_XPLAN.DISPLAY_CURSOR. Oracle documents that DISPLAY_CURSOR needs SELECT or READ access to V$SQL_PLAN, V$SESSION, V$SQL_PLAN_STATISTICS_ALL, and V$SQL, and that these privileges are included in SELECT_CATALOG_ROLE. Keep this as a demo-only diagnostics grant unless your security model already provides an approved narrower role.": "Para esta demo, concede SELECT_CATALOG_ROLE a los usuarios de carga que ejecutan DBMS_XPLAN.DISPLAY_CURSOR. Oracle documenta que DISPLAY_CURSOR necesita acceso SELECT o READ a V$SQL_PLAN, V$SESSION, V$SQL_PLAN_STATISTICS_ALL y V$SQL, y que esos privilegios están incluidos en SELECT_CATALOG_ROLE. Mantén esto como un grant de diagnóstico solo para la demo, salvo que tu modelo de seguridad ya proporcione un rol más restringido y aprobado.",
+          "Grant demo-only DBMS_XPLAN catalog view access to the OLTP and reporting users.": "Conceder acceso de demo a las vistas de catálogo requeridas por DBMS_XPLAN para los usuarios OLTP y de reportes.",
+          "Run a lightweight sampled DOP test in the OLTP session; the business-hours plan should keep this workload serial.": "Ejecutar una prueba DOP ligera con muestreo en la sesión OLTP; el plan de horario laboral debe mantener esta carga en serial.",
+          "Validate the OLTP session mapping, then run a lightweight sampled DOP test; the business-hours plan should keep this workload serial.": "Validar el mapeo de la sesión OLTP y luego ejecutar una prueba DOP ligera con muestreo; el plan de horario laboral debe mantener esta carga en serial.",
+          "Validate the OLTP session service and Resource Manager consumer group.": "Validar el servicio de la sesión OLTP y el consumer group de Resource Manager.",
+          "Run a lightweight sampled DOP test in the validated OLTP session; the business-hours plan should keep this workload serial.": "Ejecutar una prueba DOP ligera con muestreo en la sesión OLTP validada; el plan de horario laboral debe mantener esta carga en serial.",
+          "Run a lightweight sampled DOP test against the view in the validated OLTP session; the business-hours plan should keep this workload serial.": "Ejecutar una prueba DOP ligera con muestreo contra la vista en la sesión OLTP validada; el plan de horario laboral debe mantener esta carga en serial.",
+          "Run a lightweight sampled DOP test against the view in the validated OLTP session and capture elapsed time.": "Ejecutar una prueba DOP ligera con muestreo contra la vista en la sesión OLTP validada y capturar el tiempo transcurrido.",
+          "Verify whether the last statement was actually parallelized in this session.": "Verificar si la última sentencia se paralelizó realmente en esta sesión.",
+          "Expected verification output for an OLTP session forced to serial execution.": "Salida de verificación esperada para una sesión OLTP forzada a ejecución serial.",
+          "Parallel verification explanation": "Explicación de la verificación de paralelismo",
+          "Run this check immediately after the workload query, before displaying the cursor plan.": "Ejecuta esta verificación inmediatamente después de la consulta de carga, antes de mostrar el plan del cursor.",
+          "with": "con",
+          "means the last workload statement was not recorded as a parallelized query in this session. For the OLTP service, this is the clearest evidence that the consumer-group limit forced serial execution even though the SQL text requested": "significa que la última sentencia de carga no fue registrada como una consulta paralelizada en esta sesión. Para el servicio OLTP, esta es la evidencia más clara de que el límite del consumer group forzó la ejecución serial aunque el texto SQL solicitó",
+          "Display the actual cursor plan for the DOP test.": "Mostrar el plan real del cursor para la prueba de DOP.",
+          "Expected output excerpt showing elapsed time, PX operations, and requested DOP.": "Extracto de salida esperada que muestra el tiempo transcurrido, las operaciones PX y el DOP solicitado.",
+          "Expected output explanation": "Explicación de la salida esperada",
+          "The plan shows": "El plan muestra",
+          "because the SQL requested parallel execution with": "porque el SQL solicitó ejecución paralela con",
+          "The sampled row count, sum, elapsed time, buffers, reads, and writes can vary between executions because the query uses": "El conteo de filas muestreadas, la suma, el tiempo transcurrido, los buffers, las lecturas y las escrituras pueden variar entre ejecuciones porque la consulta usa",
+          ". Use the DOP note and PX lines as the main Resource Manager evidence.": ". Usa la nota de DOP y las líneas PX como la evidencia principal de Resource Manager.",
+          "Check the DOP in the plan note:": "Verifica el DOP en la nota del plan:",
+          "confirms the optimizer accepted the requested DOP for this cursor.": "confirma que el optimizador aceptó el DOP solicitado para este cursor.",
+          "The sample output above is the uncapped parallel-plan shape:": "La salida de ejemplo anterior muestra la forma de un plan paralelo sin límite:",
+          "means the optimizer accepted the requested DOP for that cursor.": "significa que el optimizador aceptó el DOP solicitado para ese cursor.",
+          "For the OLTP serial test, the expected evidence is the opposite: no": "Para la prueba OLTP serial, la evidencia esperada es lo contrario: sin",
+          "and no DOP 16 note. That means the consumer-group limit forced the statement to run serially even though the SQL requested": "y sin nota de DOP 16. Eso significa que el límite del consumer group obligó a la sentencia a ejecutarse en serial aunque el SQL solicitó",
+          "If PX lines do appear, check the DOP in the plan note and the PX server sets in the": "Si aparecen líneas PX, verifica el DOP en la nota del plan y los conjuntos de servidores PX en la columna",
+          "For reporting sessions, PX operations can be expected when Resource Manager allows a capped DOP. The important check is whether the displayed DOP matches the consumer-group cap, not the original DOP 16 request.": "Para sesiones de reportes, las operaciones PX pueden esperarse cuando Resource Manager permite un DOP limitado. La verificación importante es si el DOP mostrado coincide con el límite del consumer group, no con la solicitud original de DOP 16.",
+          "Check the PX process sets in the": "Verifica los conjuntos de procesos PX en la columna",
+          "column. Entries such as": ". Entradas como",
+          "identify separate parallel execution server sets used by the statement.": "identifican conjuntos separados de servidores de ejecución paralela usados por la sentencia.",
+          "Check the PX operations:": "Verifica las operaciones PX:",
+          "is the query coordinator, while": "es el coordinador de la consulta, mientras que",
+          "Run the same lightweight sampled DOP test in the reporting session; the business-hours plan should cap reports at DOP 2, and the after-hours plan should allow DOP 4.": "Ejecutar la misma prueba DOP ligera con muestreo en la sesión de reportes; el plan de horario laboral debe limitar reportes a DOP 2, y el plan fuera de horario debe permitir DOP 4.",
+          "Validate the reporting session mapping, then run the same lightweight sampled DOP test; the business-hours plan should cap reports at DOP 2, and the after-hours plan should allow DOP 4.": "Validar el mapeo de la sesión de reportes y luego ejecutar la misma prueba DOP ligera con muestreo; el plan de horario laboral debe limitar reportes a DOP 2, y el plan fuera de horario debe permitir DOP 4.",
+          "Validate the reporting session service and Resource Manager consumer group.": "Validar el servicio de la sesión de reportes y el consumer group de Resource Manager.",
+          "Run the same lightweight sampled DOP test in the validated reporting session; the business-hours plan should cap reports at DOP 2, and the after-hours plan should allow DOP 4.": "Ejecutar la misma prueba DOP ligera con muestreo en la sesión de reportes validada; el plan de horario laboral debe limitar reportes a DOP 2, y el plan fuera de horario debe permitir DOP 4.",
+          "Run the same lightweight sampled DOP test against the view in the validated reporting session; the business-hours plan should cap reports at DOP 2, and the after-hours plan should allow DOP 4.": "Ejecutar la misma prueba DOP ligera con muestreo contra la vista en la sesión de reportes validada; el plan de horario laboral debe limitar reportes a DOP 2, y el plan fuera de horario debe permitir DOP 4.",
+          "Run the same lightweight sampled DOP test against the view in the validated reporting session and capture elapsed time.": "Ejecutar la misma prueba DOP ligera con muestreo contra la vista en la sesión de reportes validada y capturar el tiempo transcurrido.",
+          "Verify whether the reporting workload was actually parallelized in this session.": "Verificar si la carga de reportes se paralelizó realmente en esta sesión.",
+          "Expected reporting output showing faster elapsed time and parallelized execution.": "Salida esperada de reportes que muestra menor tiempo transcurrido y ejecución paralelizada.",
+          "Reporting verification explanation": "Explicación de la verificación de reportes",
+          "Compared with the OLTP result, the reporting session completed faster because Resource Manager allowed the workload to run with parallel execution.": "Comparada con el resultado OLTP, la sesión de reportes terminó más rápido porque Resource Manager permitió que la carga se ejecutara con paralelismo.",
+          "confirms the last workload statement was parallelized in this session. The elapsed time dropped from the OLTP serial run to about 19 seconds because the reporting consumer group permits DOP while OLTP is forced to serial execution.": "confirma que la última sentencia de carga se paralelizó en esta sesión. El tiempo transcurrido bajó frente a la ejecución OLTP serial a aproximadamente 19 segundos porque el consumer group de reportes permite DOP mientras OLTP queda forzado a ejecución serial.",
+          "Display the actual cursor plan for the reporting DOP test.": "Mostrar el plan real del cursor para la prueba de DOP de reportes.",
+          "Expected reporting plan excerpt showing PX operations and elapsed time.": "Extracto esperado del plan de reportes que muestra operaciones PX y tiempo transcurrido.",
+          "Reporting plan explanation": "Explicación del plan de reportes",
+          "is the clearest comparison point: reporting records": "es el punto de comparación más claro: reportes registra",
+          ", while OLTP records": ", mientras OLTP registra",
+          "The plan lines with": "Las líneas del plan con",
+          "entries such as": "como",
+          "show the parallel server sets used by the reporting execution.": "muestran los conjuntos de servidores paralelos usados por la ejecución de reportes.",
+          "The result is visible in elapsed time: reporting finishes in about 19 seconds because its consumer group allows a capped DOP, while OLTP runs the same SQL serially.": "El resultado se ve en el tiempo transcurrido: reportes termina en aproximadamente 19 segundos porque su consumer group permite un DOP limitado, mientras OLTP ejecuta el mismo SQL en serial.",
+          "OCI Performance Hub validation": "Validación con OCI Performance Hub",
+          "After the SQL-level checks, use OCI Performance Hub to confirm the same behavior visually. The official OCI documentation describes": "Después de las verificaciones a nivel SQL, usa OCI Performance Hub para confirmar visualmente el mismo comportamiento. La documentación oficial de OCI describe",
+          "SQL Monitoring": "SQL Monitoring",
+          "and": "y",
+          "Real-time SQL Activity": "Real-time SQL Activity",
+          ", including the Plan Statistics and Parallel views used to inspect an individual SQL execution. In this reporting example, the Parallel tab is the visual confirmation that the workload ran with a DOP of two.": ", incluidas las vistas Plan Statistics y Parallel usadas para inspeccionar una ejecución SQL individual. En este ejemplo de reportes, la pestaña Parallel es la confirmación visual de que la carga se ejecutó con DOP dos.",
+          "SQL Monitoring evidence:": "Evidencia de SQL Monitoring:",
+          "The Parallel tab shows the reporting SQL running on Instance 2, which matches the reporting service definition where CDB012 is the preferred instance. It also shows the Parallel Coordinator plus two parallel sets, confirming that Resource Manager capped the oversized": "La pestaña Parallel muestra el SQL de reportes ejecutándose en Instance 2, lo que coincide con la definición del servicio de reportes donde CDB012 es la instancia preferida. También muestra el Parallel Coordinator más dos conjuntos paralelos, confirmando que Resource Manager limitó la solicitud sobredimensionada",
+          "request to DOP 2 for the reporting consumer group.": "a DOP 2 para el consumer group de reportes.",
+          "The later test SQL requests": "El SQL de prueba posterior solicita",
+          "through SOE_OLTP and SOE_REPORTS so the requested DOP is intentionally higher than the OLTP and reporting limits enforced by Resource Manager.": "a través de SOE_OLTP y SOE_REPORTS para que el DOP solicitado sea intencionalmente mayor que los límites de OLTP y reportes aplicados por Resource Manager.",
+          "Because the request is oversized, the assigned CPU and effective parallel execution are limited by the active consumer-group directive instead of matching the requested DOP.": "Como la solicitud está sobredimensionada, la CPU asignada y la ejecución paralela efectiva quedan limitadas por la directiva activa del consumer group en lugar de igualar el DOP solicitado.",
+          "Demo cleanup": "Limpieza de la demo",
+          "The next three snippets remove only the temporary demo artifacts created for this walkthrough: the DOP test view and the diagnostic DBMS_XPLAN catalog grants. These cleanup steps are not normally required in production because production schemas should use permanent application objects and approved operational diagnostic roles instead of temporary demo grants.": "Los siguientes tres snippets eliminan únicamente los artefactos temporales de demo creados para esta guía: la vista de prueba de DOP y los grants de diagnóstico de catálogo para DBMS_XPLAN. Estos pasos de limpieza normalmente no son necesarios en producción porque los esquemas productivos deben usar objetos permanentes de aplicación y roles operativos de diagnóstico aprobados en lugar de grants temporales de demo.",
+          "Remove the DOP test view after the validation is complete.": "Eliminar la vista de prueba de DOP después de completar la validación.",
+          "Open SQL*Plus as the SOE schema owner before cleanup.": "Abrir SQL*Plus como propietario del esquema SOE antes de la limpieza.",
+          "Revoke the demo-only DBMS_XPLAN catalog view grants after validation.": "Revocar los grants de demo sobre vistas de catálogo para DBMS_XPLAN después de la validación.",
           "Operational guidance": "Guía operativa",
           "Summary": "Resumen",
           "Connection Services plus Resource Manager": "Connection Services más Resource Manager",
@@ -1074,6 +1500,10 @@ CLEAR COMPUTES</code></pre></div>
           "Disable Resource Manager": "Deshabilitar Resource Manager",
           "Oracle references": "Referencias de Oracle",
           "Oracle Official Documentation": "Documentación oficial de Oracle",
+          "OCI Performance Hub": "OCI Performance Hub",
+          "OCI SQL Monitoring": "OCI SQL Monitoring",
+          "OCI Real-time SQL Activity": "OCI Real-time SQL Activity",
+          "OCI SQL Monitoring Report": "Reporte de SQL Monitoring en OCI",
           "Series documentation": "Documentación de la serie",
           "Series glossary": "Glosario de la serie",
           "Use dedicated services for OLTP, reporting, and batch workloads.": "Usa servicios dedicados para cargas OLTP, reportes y batch.",
@@ -1091,7 +1521,7 @@ CLEAR COMPUTES</code></pre></div>
           "This content is for educational and planning purposes only. Apply every command and configuration first in a non-production test environment that mirrors your RAC, service, client driver, workload, and failover requirements. The recommended values shown here may not work in your specific environment, may require change-control approval, and can affect availability, connection routing, transaction behavior, memory use, and batch workload placement. Validate with application owners, DBAs, network teams, and Oracle Support guidance before using any setting in production.": "Este conteúdo é apenas para fins educacionais e de planejamento. Aplique cada comando e configuração primeiro em um ambiente de teste não produtivo que reflita seus requisitos de RAC, serviço, driver cliente, carga de trabalho e failover. Os valores recomendados aqui podem não funcionar no seu ambiente específico, podem exigir aprovação de controle de mudanças e podem afetar disponibilidade, roteamento de conexões, comportamento transacional, uso de memória e posicionamento de cargas batch. Valide com responsáveis por aplicações, DBAs, equipes de rede e a orientação do Oracle Support antes de usar qualquer configuração em produção.",
           "Governing Workloads with Database Resource Manager": "Governança de cargas com Database Resource Manager",
           "A service-based Resource Manager pattern for OLTP, reporting, batch, and administrative workloads that builds on the connection services guide.": "Um padrão de Resource Manager baseado em serviços para cargas OLTP, relatórios, batch e administrativas, construído sobre o guia de Connection Services.",
-          "Blog last updated June 12, 2026": "Blog atualizado pela última vez em 12 de junho de 2026",
+          "Blog last updated June 16, 2026": "Blog atualizado pela última vez em 16 de junho de 2026",
           "Navigate the guide set": "Navegar pelos guias",
           "Table of contents": "Sumário",
           "Overview": "Overview",
@@ -1148,6 +1578,125 @@ CLEAR COMPUTES</code></pre></div>
           "Activation": "Ativação",
           "Enable Resource Manager": "Habilitar Resource Manager",
           "Runtime evidence": "Evidência em runtime",
+          "Objective:": "Objetivo:",
+          "Confirm Service and Consumer Group": "Confirmar serviço e consumer group",
+          "Run these checks from sessions connected through each service to confirm that the login mapping lands in the expected Resource Manager consumer group. Use one SQL*Plus session for the current connection check and a separate DBA-level session when you need to inspect all active user sessions in the PDB.": "Execute estas verificações a partir de sessões conectadas por cada serviço para confirmar que o mapeamento de login chega ao consumer group esperado do Resource Manager. Use uma sessão SQL*Plus para verificar a conexão atual e uma sessão separada com nível DBA quando precisar inspecionar todas as sessões de usuário ativas na PDB.",
+          "Connect through the OLTP service and verify the current session service and consumer group.": "Conectar pelo serviço OLTP e verificar o serviço e o consumer group da sessão atual.",
+          "Connect through the reporting service and verify the current session service and consumer group.": "Conectar pelo serviço de relatórios e verificar o serviço e o consumer group da sessão atual.",
+          "Open SQL*Plus through the OLTP service as the transactional workload user.": "Abrir SQL*Plus pelo serviço OLTP como usuário da carga transacional.",
+          "Verify the current OLTP session service and consumer group.": "Verificar o serviço e o consumer group da sessão OLTP atual.",
+          "Open SQL*Plus through the reporting service as the reporting workload user.": "Abrir SQL*Plus pelo serviço de relatórios como usuário da carga de relatórios.",
+          "Verify the current reporting session service and consumer group.": "Verificar o serviço e o consumer group da sessão de relatórios atual.",
+          "Connect as a DBA-level user, format output, and show active workload sessions with their service name and Resource Manager consumer group.": "Conectar como usuário com nível DBA, formatar a saída e mostrar as sessões ativas de carga com seu nome de serviço e consumer group do Resource Manager.",
+          "Show the Effect of DOP by Service": "Mostrar o efeito de DOP por serviço",
+          "Use the current Swingbench SOE schema objects for the DOP test. The setup creates a compact view over": "Use os objetos atuais do schema Swingbench SOE para o teste de DOP. A preparação cria uma view compacta sobre",
+          ", grants it to the application roles and workload users, and gathers optimizer statistics. Then the same SQL requests DOP 16 through the OLTP and reporting services so the Resource Manager plan can cap the effective DOP by consumer group.": ", concede acesso às roles de aplicação e aos usuários de carga, e coleta estatísticas do otimizador. Depois, o mesmo SQL solicita DOP 16 pelos serviços OLTP e de relatórios para que o plano do Resource Manager possa limitar o DOP efetivo por consumer group.",
+          "Connect as the SOE schema owner and create the reusable DOP test view over the current SOE schema.": "Conectar como proprietário do schema SOE e criar a view reutilizável de teste de DOP sobre o schema SOE atual.",
+          "Open SQL*Plus as the SOE schema owner in PDB01.": "Abrir SQL*Plus como proprietário do schema SOE na PDB01.",
+          "Show the current DOP-related PDB settings before creating the DOP test view.": "Mostrar as configurações atuais da PDB relacionadas a DOP antes de criar a view de teste de DOP.",
+          "Expected output for the current DOP-related PDB settings in this demo environment.": "Saída esperada para as configurações atuais da PDB relacionadas a DOP neste ambiente de demo.",
+          "Expected output explanation": "Explicação da saída esperada",
+          "parallel_degree_policy=MANUAL means Oracle will not automatically choose a DOP for ordinary SQL; the demo query explicitly requests DOP with the parallel hint.": "parallel_degree_policy=MANUAL significa que o Oracle não escolherá automaticamente um DOP para SQL comum; a consulta de demo solicita DOP explicitamente com o hint parallel.",
+          "parallel_degree_limit=CPU, parallel_threads_per_cpu=1, and cpu_count=4 show the local CPU-based parallel baseline visible to the PDB session.": "parallel_degree_limit=CPU, parallel_threads_per_cpu=1 e cpu_count=4 mostram a linha de base local de paralelismo baseada em CPU visível para a sessão da PDB.",
+          "resource_manager_plan=APP_RM_BUSINESS_HOURS confirms that the business-hours plan is active while this SOE owner session prepares the demo objects.": "resource_manager_plan=APP_RM_BUSINESS_HOURS confirma que o plano de horário comercial está ativo enquanto esta sessão proprietária SOE prepara os objetos de demo.",
+          "SOE is mapped to CG_ADMIN by the user-mapping rule, so the SOE owner session is governed by the CG_ADMIN directive.": "SOE é mapeado para CG_ADMIN pela regra de mapeamento por usuário, portanto a sessão proprietária SOE é governada pela diretiva CG_ADMIN.",
+          "CG_ADMIN tops out at the CG_ADMIN directive: 50% level-1 CPU share. Even if a SOE owner query requests DOP 16, Resource Manager still governs that session under the CG_ADMIN CPU share.": "CG_ADMIN tem como teto a diretiva CG_ADMIN: 50% de cota de CPU de nível 1. Mesmo que uma consulta do proprietário SOE solicite DOP 16, o Resource Manager ainda governa essa sessão sob a cota de CPU de CG_ADMIN.",
+          "CG_ADMIN does not make the SOE owner session run at the requested DOP 16. With parallel_degree_limit=CPU, parallel_threads_per_cpu=1, and cpu_count=4, the optimizer is still bounded by the CPU-based parallel limit visible to this PDB session.": "CG_ADMIN não faz a sessão proprietária SOE executar com o DOP 16 solicitado. Com parallel_degree_limit=CPU, parallel_threads_per_cpu=1 e cpu_count=4, o otimizador ainda fica limitado pelo limite de paralelismo baseado em CPU visível para esta sessão da PDB.",
+          "The OLTP and reporting DOP caps are tested later with SOE_OLTP and SOE_REPORTS, not with the SOE owner session.": "Os limites de DOP de OLTP e relatórios são testados depois com SOE_OLTP e SOE_REPORTS, não com a sessão proprietária SOE.",
+          "Create the reusable DOP test view over the current SOE schema.": "Criar a view reutilizável de teste de DOP sobre o schema SOE atual.",
+          "Run the DOP test through the OLTP service; the business-hours plan should keep this workload serial.": "Executar o teste de DOP pelo serviço OLTP; o plano de horário comercial deve manter esta carga serial.",
+          "Open SQL*Plus through the OLTP service before running the DOP test.": "Abrir SQL*Plus pelo serviço OLTP antes de executar o teste de DOP.",
+          "Run the DOP test in the OLTP session; the business-hours plan should keep this workload serial.": "Executar o teste de DOP na sessão OLTP; o plano de horário comercial deve manter esta carga serial.",
+          "Open SQL*Plus through the reporting service before running the DOP test.": "Abrir SQL*Plus pelo serviço de relatórios antes de executar o teste de DOP.",
+          "Run the same DOP test in the reporting session; the business-hours plan should cap reports at DOP 2, and the after-hours plan should allow DOP 4.": "Executar o mesmo teste de DOP na sessão de relatórios; o plano de horário comercial deve limitar relatórios a DOP 2, e o plano fora do horário deve permitir DOP 4.",
+          "Run the same DOP test through the reporting service; the business-hours plan should cap reports at DOP 2, and the after-hours plan should allow DOP 4.": "Executar o mesmo teste de DOP pelo serviço de relatórios; o plano de horário comercial deve limitar relatórios a DOP 2, e o plano fora do horário deve permitir DOP 4.",
+          "DOP request sizing": "Dimensionamento da solicitação DOP",
+          "The demo cluster has two nodes with 8 ECPUs on each node, for 16 ECPUs across the cluster.": "O cluster de demo tem dois nós com 8 ECPUs em cada nó, totalizando 16 ECPUs no cluster.",
+          "Creating": "Criar",
+          "is metadata work in the SOE owner session; it is governed by CG_ADMIN but does not prove the OLTP or reporting DOP limits by itself.": "é trabalho de metadata na sessão proprietária SOE; é governado por CG_ADMIN, mas por si só não comprova os limites de DOP de OLTP ou relatórios.",
+          "also runs as SOE under CG_ADMIN, so any CPU assigned to statistics gathering is controlled by the CG_ADMIN directive and the CPU-based parallel baseline visible to the PDB session.": "também executa como SOE sob CG_ADMIN, portanto qualquer CPU atribuída à coleta de estatísticas é controlada pela diretiva CG_ADMIN e pela linha de base de paralelismo baseada em CPU visível para a sessão da PDB.",
+          "DOP test intent": "Intenção do teste de DOP",
+          "The following OLTP and reporting snippets use a lightweight sampled scan of": "Os snippets seguintes de OLTP e relatórios usam uma varredura amostrada leve de",
+          ". The statement-level": ". O hint em nível de instrução",
+          "hint still requests DOP 16 through SOE_OLTP and SOE_REPORTS, but the block sample keeps the validation focused on effective DOP instead of running the full fact-view workload.": "ainda solicita DOP 16 por SOE_OLTP e SOE_REPORTS, mas a amostragem por blocos mantém a validação focada no DOP efetivo em vez de executar a carga completa da view de fatos.",
+          "The following OLTP and reporting snippets request": "Os snippets seguintes de OLTP e relatórios solicitam",
+          "The following OLTP and reporting snippets use the statement-level": "Os snippets seguintes de OLTP e relatórios usam o hint em nível de instrução",
+          "hint through SOE_OLTP and SOE_REPORTS. That requested DOP is intentionally higher than the limits enforced by Resource Manager, so the active consumer-group directive limits the assigned CPU and effective parallel execution instead of matching the requested DOP.": "por SOE_OLTP e SOE_REPORTS. Esse DOP solicitado é intencionalmente maior que os limites aplicados pelo Resource Manager, portanto a diretiva ativa do consumer group limita a CPU atribuída e a execução paralela efetiva em vez de corresponder ao DOP solicitado.",
+          "Hint usage": "Uso de hints",
+          "The gather_plan_statistics hint does not gather optimizer table statistics. It only captures runtime row-source statistics for this one SQL statement so DBMS_XPLAN.DISPLAY_CURSOR can show the actual plan with ALLSTATS LAST. The parallel(16) hint is the statement-level request for DOP 16 that Resource Manager can reduce according to the active consumer group.": "O hint gather_plan_statistics não coleta estatísticas de tabela do otimizador. Ele apenas captura estatísticas de execução row-source para esta instrução SQL, para que DBMS_XPLAN.DISPLAY_CURSOR possa mostrar o plano real com ALLSTATS LAST. O hint parallel(16) é a solicitação em nível de instrução para DOP 16 que o Resource Manager pode reduzir de acordo com o consumer group ativo.",
+          "through SOE_OLTP and SOE_REPORTS. That requested DOP is intentionally higher than the limits enforced by Resource Manager, so the active consumer-group directive limits the assigned CPU and effective parallel execution instead of matching the requested DOP.": "por SOE_OLTP e SOE_REPORTS. Esse DOP solicitado é intencionalmente maior que os limites aplicados pelo Resource Manager, portanto a diretiva ativa do consumer group limita a CPU atribuída e a execução paralela efetiva em vez de corresponder ao DOP solicitado.",
+          "DBMS_XPLAN privilege note": "Nota de privilégios para DBMS_XPLAN",
+          "For this demo, grant SELECT_CATALOG_ROLE to the workload users that run DBMS_XPLAN.DISPLAY_CURSOR. Oracle documents that DISPLAY_CURSOR needs SELECT or READ access to V$SQL_PLAN, V$SESSION, V$SQL_PLAN_STATISTICS_ALL, and V$SQL, and that these privileges are included in SELECT_CATALOG_ROLE. Keep this as a demo-only diagnostics grant unless your security model already provides an approved narrower role.": "Para esta demo, conceda SELECT_CATALOG_ROLE aos usuários de carga que executam DBMS_XPLAN.DISPLAY_CURSOR. A Oracle documenta que DISPLAY_CURSOR precisa de acesso SELECT ou READ a V$SQL_PLAN, V$SESSION, V$SQL_PLAN_STATISTICS_ALL e V$SQL, e que esses privilégios estão incluídos em SELECT_CATALOG_ROLE. Mantenha isso como um grant de diagnóstico apenas para a demo, a menos que seu modelo de segurança já forneça uma role aprovada mais restrita.",
+          "Grant demo-only DBMS_XPLAN catalog view access to the OLTP and reporting users.": "Conceder acesso de demo às views de catálogo exigidas pelo DBMS_XPLAN para os usuários OLTP e de relatórios.",
+          "Run a lightweight sampled DOP test in the OLTP session; the business-hours plan should keep this workload serial.": "Executar um teste DOP leve com amostragem na sessão OLTP; o plano de horário comercial deve manter esta carga serial.",
+          "Validate the OLTP session mapping, then run a lightweight sampled DOP test; the business-hours plan should keep this workload serial.": "Validar o mapeamento da sessão OLTP e depois executar um teste DOP leve com amostragem; o plano de horário comercial deve manter esta carga serial.",
+          "Validate the OLTP session service and Resource Manager consumer group.": "Validar o serviço da sessão OLTP e o consumer group do Resource Manager.",
+          "Run a lightweight sampled DOP test in the validated OLTP session; the business-hours plan should keep this workload serial.": "Executar um teste DOP leve com amostragem na sessão OLTP validada; o plano de horário comercial deve manter esta carga serial.",
+          "Run a lightweight sampled DOP test against the view in the validated OLTP session; the business-hours plan should keep this workload serial.": "Executar um teste DOP leve com amostragem contra a view na sessão OLTP validada; o plano de horário comercial deve manter esta carga serial.",
+          "Run a lightweight sampled DOP test against the view in the validated OLTP session and capture elapsed time.": "Executar um teste DOP leve com amostragem contra a view na sessão OLTP validada e capturar o tempo decorrido.",
+          "Verify whether the last statement was actually parallelized in this session.": "Verificar se a última instrução foi realmente paralelizada nesta sessão.",
+          "Expected verification output for an OLTP session forced to serial execution.": "Saída de verificação esperada para uma sessão OLTP forçada à execução serial.",
+          "Parallel verification explanation": "Explicação da verificação de paralelismo",
+          "Run this check immediately after the workload query, before displaying the cursor plan.": "Execute esta verificação imediatamente após a consulta de carga, antes de mostrar o plano do cursor.",
+          "with": "com",
+          "means the last workload statement was not recorded as a parallelized query in this session. For the OLTP service, this is the clearest evidence that the consumer-group limit forced serial execution even though the SQL text requested": "significa que a última instrução de carga não foi registrada como uma consulta paralelizada nesta sessão. Para o serviço OLTP, esta é a evidência mais clara de que o limite do consumer group forçou a execução serial, mesmo que o texto SQL tenha solicitado",
+          "Display the actual cursor plan for the DOP test.": "Mostrar o plano real do cursor para o teste de DOP.",
+          "Expected output excerpt showing elapsed time, PX operations, and requested DOP.": "Trecho da saída esperada mostrando o tempo decorrido, as operações PX e o DOP solicitado.",
+          "Expected output explanation": "Explicação da saída esperada",
+          "The plan shows": "O plano mostra",
+          "because the SQL requested parallel execution with": "porque o SQL solicitou execução paralela com",
+          "The sampled row count, sum, elapsed time, buffers, reads, and writes can vary between executions because the query uses": "A contagem de linhas amostradas, a soma, o tempo decorrido, os buffers, as leituras e as gravações podem variar entre execuções porque a consulta usa",
+          ". Use the DOP note and PX lines as the main Resource Manager evidence.": ". Use a nota de DOP e as linhas PX como a principal evidência do Resource Manager.",
+          "Check the DOP in the plan note:": "Verifique o DOP na nota do plano:",
+          "confirms the optimizer accepted the requested DOP for this cursor.": "confirma que o otimizador aceitou o DOP solicitado para este cursor.",
+          "The sample output above is the uncapped parallel-plan shape:": "A saída de exemplo acima mostra a forma de um plano paralelo sem limite:",
+          "means the optimizer accepted the requested DOP for that cursor.": "significa que o otimizador aceitou o DOP solicitado para esse cursor.",
+          "For the OLTP serial test, the expected evidence is the opposite: no": "Para o teste OLTP serial, a evidência esperada é o oposto: sem",
+          "and no DOP 16 note. That means the consumer-group limit forced the statement to run serially even though the SQL requested": "e sem nota de DOP 16. Isso significa que o limite do consumer group forçou a instrução a executar em série, mesmo que o SQL tenha solicitado",
+          "If PX lines do appear, check the DOP in the plan note and the PX server sets in the": "Se linhas PX aparecerem, verifique o DOP na nota do plano e os conjuntos de servidores PX na coluna",
+          "For reporting sessions, PX operations can be expected when Resource Manager allows a capped DOP. The important check is whether the displayed DOP matches the consumer-group cap, not the original DOP 16 request.": "Para sessões de relatórios, operações PX podem ser esperadas quando o Resource Manager permite um DOP limitado. A verificação importante é se o DOP exibido corresponde ao limite do consumer group, não à solicitação original de DOP 16.",
+          "Check the PX process sets in the": "Verifique os conjuntos de processos PX na coluna",
+          "column. Entries such as": ". Entradas como",
+          "identify separate parallel execution server sets used by the statement.": "identificam conjuntos separados de servidores de execução paralela usados pela instrução.",
+          "Check the PX operations:": "Verifique as operações PX:",
+          "is the query coordinator, while": "é o coordenador da consulta, enquanto",
+          "Run the same lightweight sampled DOP test in the reporting session; the business-hours plan should cap reports at DOP 2, and the after-hours plan should allow DOP 4.": "Executar o mesmo teste DOP leve com amostragem na sessão de relatórios; o plano de horário comercial deve limitar relatórios a DOP 2, e o plano fora do horário deve permitir DOP 4.",
+          "Validate the reporting session mapping, then run the same lightweight sampled DOP test; the business-hours plan should cap reports at DOP 2, and the after-hours plan should allow DOP 4.": "Validar o mapeamento da sessão de relatórios e depois executar o mesmo teste DOP leve com amostragem; o plano de horário comercial deve limitar relatórios a DOP 2, e o plano fora do horário deve permitir DOP 4.",
+          "Validate the reporting session service and Resource Manager consumer group.": "Validar o serviço da sessão de relatórios e o consumer group do Resource Manager.",
+          "Run the same lightweight sampled DOP test in the validated reporting session; the business-hours plan should cap reports at DOP 2, and the after-hours plan should allow DOP 4.": "Executar o mesmo teste DOP leve com amostragem na sessão de relatórios validada; o plano de horário comercial deve limitar relatórios a DOP 2, e o plano fora do horário deve permitir DOP 4.",
+          "Run the same lightweight sampled DOP test against the view in the validated reporting session; the business-hours plan should cap reports at DOP 2, and the after-hours plan should allow DOP 4.": "Executar o mesmo teste DOP leve com amostragem contra a view na sessão de relatórios validada; o plano de horário comercial deve limitar relatórios a DOP 2, e o plano fora do horário deve permitir DOP 4.",
+          "Run the same lightweight sampled DOP test against the view in the validated reporting session and capture elapsed time.": "Executar o mesmo teste DOP leve com amostragem contra a view na sessão de relatórios validada e capturar o tempo decorrido.",
+          "Verify whether the reporting workload was actually parallelized in this session.": "Verificar se a carga de relatórios foi realmente paralelizada nesta sessão.",
+          "Expected reporting output showing faster elapsed time and parallelized execution.": "Saída esperada de relatórios mostrando menor tempo decorrido e execução paralelizada.",
+          "Reporting verification explanation": "Explicação da verificação de relatórios",
+          "Compared with the OLTP result, the reporting session completed faster because Resource Manager allowed the workload to run with parallel execution.": "Comparada ao resultado OLTP, a sessão de relatórios terminou mais rápido porque o Resource Manager permitiu que a carga executasse com paralelismo.",
+          "confirms the last workload statement was parallelized in this session. The elapsed time dropped from the OLTP serial run to about 19 seconds because the reporting consumer group permits DOP while OLTP is forced to serial execution.": "confirma que a última instrução de carga foi paralelizada nesta sessão. O tempo decorrido caiu em relação à execução OLTP serial para cerca de 19 segundos porque o consumer group de relatórios permite DOP enquanto OLTP é forçado à execução serial.",
+          "Display the actual cursor plan for the reporting DOP test.": "Mostrar o plano real do cursor para o teste de DOP de relatórios.",
+          "Expected reporting plan excerpt showing PX operations and elapsed time.": "Trecho esperado do plano de relatórios mostrando operações PX e tempo decorrido.",
+          "Reporting plan explanation": "Explicação do plano de relatórios",
+          "is the clearest comparison point: reporting records": "é o ponto de comparação mais claro: relatórios registra",
+          ", while OLTP records": ", enquanto OLTP registra",
+          "The plan lines with": "As linhas do plano com",
+          "entries such as": "como",
+          "show the parallel server sets used by the reporting execution.": "mostram os conjuntos de servidores paralelos usados pela execução de relatórios.",
+          "The result is visible in elapsed time: reporting finishes in about 19 seconds because its consumer group allows a capped DOP, while OLTP runs the same SQL serially.": "O resultado aparece no tempo decorrido: relatórios termina em cerca de 19 segundos porque seu consumer group permite um DOP limitado, enquanto OLTP executa o mesmo SQL em série.",
+          "OCI Performance Hub validation": "Validação com OCI Performance Hub",
+          "After the SQL-level checks, use OCI Performance Hub to confirm the same behavior visually. The official OCI documentation describes": "Após as verificações em nível SQL, use o OCI Performance Hub para confirmar visualmente o mesmo comportamento. A documentação oficial da OCI descreve",
+          "SQL Monitoring": "SQL Monitoring",
+          "and": "e",
+          "Real-time SQL Activity": "Real-time SQL Activity",
+          ", including the Plan Statistics and Parallel views used to inspect an individual SQL execution. In this reporting example, the Parallel tab is the visual confirmation that the workload ran with a DOP of two.": ", incluindo as visualizações Plan Statistics e Parallel usadas para inspecionar uma execução SQL individual. Neste exemplo de relatórios, a guia Parallel é a confirmação visual de que a carga executou com DOP dois.",
+          "SQL Monitoring evidence:": "Evidência do SQL Monitoring:",
+          "The Parallel tab shows the reporting SQL running on Instance 2, which matches the reporting service definition where CDB012 is the preferred instance. It also shows the Parallel Coordinator plus two parallel sets, confirming that Resource Manager capped the oversized": "A guia Parallel mostra o SQL de relatórios executando na Instance 2, o que corresponde à definição do serviço de relatórios em que CDB012 é a instância preferida. Ela também mostra o Parallel Coordinator mais dois conjuntos paralelos, confirmando que o Resource Manager limitou a solicitação superdimensionada",
+          "request to DOP 2 for the reporting consumer group.": "para DOP 2 para o consumer group de relatórios.",
+          "The later test SQL requests": "O SQL de teste posterior solicita",
+          "through SOE_OLTP and SOE_REPORTS so the requested DOP is intentionally higher than the OLTP and reporting limits enforced by Resource Manager.": "por SOE_OLTP e SOE_REPORTS para que o DOP solicitado seja intencionalmente maior que os limites de OLTP e relatórios aplicados pelo Resource Manager.",
+          "Because the request is oversized, the assigned CPU and effective parallel execution are limited by the active consumer-group directive instead of matching the requested DOP.": "Como a solicitação está superdimensionada, a CPU atribuída e a execução paralela efetiva ficam limitadas pela diretiva ativa do consumer group em vez de corresponder ao DOP solicitado.",
+          "Demo cleanup": "Limpeza da demo",
+          "The next three snippets remove only the temporary demo artifacts created for this walkthrough: the DOP test view and the diagnostic DBMS_XPLAN catalog grants. These cleanup steps are not normally required in production because production schemas should use permanent application objects and approved operational diagnostic roles instead of temporary demo grants.": "Os próximos três snippets removem apenas os artefatos temporários de demo criados para este guia: a view de teste de DOP e os grants de diagnóstico de catálogo para DBMS_XPLAN. Esses passos de limpeza normalmente não são necessários em produção porque schemas produtivos devem usar objetos permanentes da aplicação e roles operacionais de diagnóstico aprovadas em vez de grants temporários de demo.",
+          "Remove the DOP test view after the validation is complete.": "Remover a view de teste de DOP depois que a validação for concluída.",
+          "Open SQL*Plus as the SOE schema owner before cleanup.": "Abrir SQL*Plus como proprietário do schema SOE antes da limpeza.",
+          "Revoke the demo-only DBMS_XPLAN catalog view grants after validation.": "Revogar os grants de demo sobre views de catálogo para DBMS_XPLAN após a validação.",
           "Operational guidance": "Orientação operacional",
           "Summary": "Resumo",
           "Connection Services plus Resource Manager": "Connection Services mais Resource Manager",
@@ -1155,6 +1704,10 @@ CLEAR COMPUTES</code></pre></div>
           "Disable Resource Manager": "Desabilitar Resource Manager",
           "Oracle references": "Referências Oracle",
           "Oracle Official Documentation": "Documentação oficial Oracle",
+          "OCI Performance Hub": "OCI Performance Hub",
+          "OCI SQL Monitoring": "OCI SQL Monitoring",
+          "OCI Real-time SQL Activity": "OCI Real-time SQL Activity",
+          "OCI SQL Monitoring Report": "Relatório de SQL Monitoring no OCI",
           "Series documentation": "Documentação da série",
           "Series glossary": "Glossário da série",
           "Use dedicated services for OLTP, reporting, and batch workloads.": "Use serviços dedicados para cargas OLTP, relatórios e batch.",
