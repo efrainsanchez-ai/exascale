@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="description" content="Oracle Exadata Exascale Resource Manager guide for governing OLTP, reporting, batch, and administrative workloads with service-based consumer groups." />
   <title>Exadata Exascale Resource Manager</title>
-  <link rel="icon" href="data:," />
+  <link rel="icon" href="data:,">
   <script>
     (function () {
       const saved = localStorage.getItem("exascale-theme");
@@ -114,6 +114,59 @@
       outline: 2px solid rgba(255, 255, 255, 0.65);
       outline-offset: 2px;
     }
+    details.disclaimer {
+      margin-top: 1.35rem;
+      border: 1px solid #fcd34d !important;
+      border-radius: 8px !important;
+      background: #fffbeb !important;
+      color: #451a03 !important;
+      text-align: left;
+    }
+    .dark details.disclaimer {
+      border-color: rgba(245, 158, 11, 0.4) !important;
+      background: rgba(69, 26, 3, 0.25) !important;
+      color: #fef3c7 !important;
+    }
+    details.disclaimer summary {
+      cursor: pointer;
+      list-style: none;
+      padding: 0.8rem 1rem !important;
+      color: inherit !important;
+      font-size: 0.875rem !important;
+      font-weight: 800;
+      letter-spacing: 0.12em;
+      line-height: 1.25rem;
+      text-transform: uppercase;
+    }
+    details.disclaimer summary::-webkit-details-marker {
+      display: none;
+    }
+    .disclaimer-action {
+      color: #92400e !important;
+      font-size: 0.75rem !important;
+      font-weight: 700;
+      letter-spacing: 0;
+      text-decoration: underline;
+      text-transform: none;
+      white-space: nowrap;
+    }
+    .dark .disclaimer-action {
+      color: #fde68a !important;
+    }
+    details.disclaimer p {
+      margin: 0;
+      border-top: 1px solid #fde68a !important;
+      padding: 0.9rem 1rem 1rem !important;
+      color: inherit !important;
+      font-size: 0.875rem !important;
+      line-height: 1.5rem !important;
+    }
+    .dark details.disclaimer p {
+      border-top-color: rgba(245, 158, 11, 0.3) !important;
+    }
+    .site-footer details.disclaimer {
+      margin-top: 0;
+    }
     .code-description {
       border-bottom: 1px solid rgba(255, 255, 255, 0.1);
       color: #e7e5e4;
@@ -152,6 +205,15 @@
     .code-scroll::-webkit-scrollbar-thumb {
       background: rgba(255,255,255,0.28);
       border-radius: 999px;
+    }
+    @media (max-width: 760px) {
+      .article-gradient {
+        overflow-x: hidden;
+      }
+      .code-scroll,
+      .overflow-x-auto {
+        max-width: 100%;
+      }
     }
     .language-switch {
       display: inline-flex;
@@ -205,31 +267,20 @@
         </div>
       </nav>
 
-      <div class="grid gap-5 py-6 sm:gap-6 sm:py-10 lg:grid-cols-[minmax(0,1fr)_360px] lg:items-end lg:gap-8 lg:py-12">
+      <div class="grid gap-5 py-6 sm:gap-6 sm:py-10 lg:gap-8 lg:py-12">
         <div class="max-w-4xl">
           <p class="text-sm font-semibold uppercase tracking-[0.18em] text-oracle-red dark:text-orange-300">Oracle technical article</p>
           <h1 class="mt-4 text-3xl font-bold leading-tight tracking-tight text-stone-950 dark:text-white sm:text-5xl lg:text-6xl">Governing Workloads with Database Resource Manager</h1>
           <p class="mt-4 max-w-3xl text-base leading-7 text-stone-700 dark:text-stone-300 sm:text-lg sm:leading-8">A service-based Resource Manager pattern for OLTP, reporting, batch, and administrative workloads that builds on the connection services guide.</p>
           <div class="mt-5 flex min-w-0 flex-wrap gap-3 text-sm text-stone-600 dark:text-stone-400">
-            <span class="max-w-full rounded-md border border-stone-300 bg-white px-3 py-1.5 break-words dark:border-stone-700 dark:bg-stone-900">Last updated June 16, 2026</span>
+            <span class="max-w-full rounded-md border border-stone-300 bg-white px-3 py-1.5 break-words dark:border-stone-700 dark:bg-stone-900">Last updated June 17, 2026</span>
           </div>
           <details class="disclaimer mt-5 max-w-3xl rounded-lg border border-amber-300 bg-amber-50 text-amber-950 dark:border-amber-500/40 dark:bg-amber-950/25 dark:text-amber-100">
-            <summary class="cursor-pointer list-none px-4 py-3 text-sm font-bold uppercase tracking-[0.14em] focus:outline-none focus:ring-2 focus:ring-amber-500/50">Educational use and validation required <span class="ml-2 whitespace-nowrap text-xs font-semibold normal-case tracking-normal text-amber-800 underline underline-offset-2 dark:text-amber-200">click here</span></summary>
+            <summary class="cursor-pointer list-none px-4 py-3 text-sm font-bold uppercase tracking-[0.14em] focus:outline-none focus:ring-2 focus:ring-amber-500/50">Educational use and validation required <span class="disclaimer-action ml-2 whitespace-nowrap text-xs font-semibold normal-case tracking-normal text-amber-800 underline underline-offset-2 dark:text-amber-200">click here</span></summary>
             <p class="border-t border-amber-200 px-4 pb-4 pt-3 text-sm leading-6 dark:border-amber-500/30">This content is for educational and planning purposes only. Apply every command and configuration first in a non-production test environment that mirrors your RAC, service, client driver, workload, and failover requirements. The recommended values shown here may not work in your specific environment, may require change-control approval, and can affect availability, connection routing, transaction behavior, memory use, and batch workload placement. Validate with application owners, DBAs, network teams, and Oracle Support guidance before using any setting in production.</p>
           </details>
-          <div class="related-links mt-5 grid gap-3 sm:grid-cols-2" aria-label="Navigate the guide set">
-            <a href="../index.html" class="rounded-lg border border-stone-200 bg-white p-4 text-sm shadow-sm transition hover:border-oracle-red hover:shadow-subtle focus:outline-none focus:ring-2 focus:ring-oracle-red/40 dark:border-stone-700 dark:bg-[#211d1b]"><strong class="text-oracle-red dark:text-orange-300">Exascale Overview</strong><span class="mt-1 block leading-6 text-stone-700 dark:text-stone-300">Architecture context, continuity concepts, and shared glossary.</span></a>
-            <a href="../ConnectionServices/index.html" class="rounded-lg border border-stone-200 bg-white p-4 text-sm shadow-sm transition hover:border-oracle-red hover:shadow-subtle focus:outline-none focus:ring-2 focus:ring-oracle-red/40 dark:border-stone-700 dark:bg-[#211d1b]"><strong class="text-oracle-red dark:text-orange-300">Connection Services</strong><span class="mt-1 block leading-6 text-stone-700 dark:text-stone-300">Dedicated OLTP, reporting, and batch services used by this guide.</span></a>
-          </div>
+          <nav class="related-links mt-5 grid gap-3 sm:grid-cols-2" data-guide-cards data-guide-variant="resourceManager" data-guide-scope="nested" aria-label="Guide links" data-card-class="rounded-lg border border-stone-200 bg-white p-4 text-sm shadow-sm transition hover:border-oracle-red hover:shadow-subtle focus:outline-none focus:ring-2 focus:ring-oracle-red/40 dark:border-stone-700 dark:bg-[#211d1b]" data-card-title-class="text-oracle-red dark:text-orange-300" data-card-description-class="mt-1 block leading-6 text-stone-700 dark:text-stone-300"></nav>
         </div>
-        <aside class="hero-visual rounded-lg border border-stone-200 bg-white p-4 shadow-subtle dark:border-stone-700 dark:bg-[#211d1b] sm:p-5" aria-label="Navigate the guide set">
-          <h2 class="visual-caption text-sm font-bold uppercase tracking-[0.16em] text-stone-500 dark:text-stone-400"><span>Navigate the guide set</span></h2>
-          <ul class="hero-highlights mt-3 space-y-1.5 sm:mt-4 sm:space-y-3">
-            <li class="highlight flex gap-3 text-sm leading-5 text-stone-700 dark:text-stone-300 sm:leading-6"><span class="mt-2 h-2 w-2 flex-none rounded-full bg-oracle-red" aria-hidden="true"></span><span><b>Use this page</b>: Create consumer groups and an application resource plan.</span></li>
-            <li class="highlight flex gap-3 text-sm leading-5 text-stone-700 dark:text-stone-300 sm:leading-6"><span class="mt-2 h-2 w-2 flex-none rounded-full bg-oracle-red" aria-hidden="true"></span><span><b>Use Connection Services</b>: Confirm dedicated OLTP, reporting, and batch services first.</span></li>
-            <li class="highlight flex gap-3 text-sm leading-5 text-stone-700 dark:text-stone-300 sm:leading-6"><span class="mt-2 h-2 w-2 flex-none rounded-full bg-oracle-red" aria-hidden="true"></span><span><b>Use Healthcheck</b>: Validate RAC state before applying workload governance.</span></li>
-          </ul>
-        </aside>
       </div>
     </div>
   </header>
@@ -325,8 +376,8 @@
             <div class="rounded-lg border border-stone-200 bg-white p-4 dark:border-stone-700 dark:bg-stone-900/45">
               <p class="text-xs font-bold uppercase tracking-[0.16em] text-oracle-red dark:text-orange-300">Resource Plans</p>
               <div class="mt-4 space-y-3">
-                <div class="rounded-md border border-oracle-red/30 bg-red-50 p-3 dark:border-orange-300/30 dark:bg-orange-950/20"><p class="break-words font-mono text-xs font-bold text-oracle-red dark:text-orange-300">APP_RM_BUSINESS_HOURS</p><p class="mt-1 text-xs text-stone-700 dark:text-stone-300">8 AM-6 PM Central: OLTP serial, reports DOP 2, batch serial</p></div>
-                <div class="rounded-md border border-oracle-red/30 bg-red-50 p-3 dark:border-orange-300/30 dark:bg-orange-950/20"><p class="break-words font-mono text-xs font-bold text-oracle-red dark:text-orange-300">APP_RM_AFTER_HOURS</p><p class="mt-1 text-xs text-stone-700 dark:text-stone-300">After 6 PM Central: OLTP serial, reports DOP 4, batch DOP 2</p></div>
+                <div class="rounded-md border border-oracle-red/30 bg-red-50 p-3 dark:border-orange-300/30 dark:bg-orange-950/20"><p class="overflow-x-auto whitespace-nowrap font-mono text-xs font-bold text-oracle-red dark:text-orange-300">APP_RM_BUSINESS_HOURS</p><p class="mt-1 text-xs text-stone-700 dark:text-stone-300">8 AM-6 PM Central: OLTP serial, reports DOP 2, batch serial</p></div>
+                <div class="rounded-md border border-oracle-red/30 bg-red-50 p-3 dark:border-orange-300/30 dark:bg-orange-950/20"><p class="overflow-x-auto whitespace-nowrap font-mono text-xs font-bold text-oracle-red dark:text-orange-300">APP_RM_AFTER_HOURS</p><p class="mt-1 text-xs text-stone-700 dark:text-stone-300">After 6 PM Central: OLTP serial, reports DOP 4, batch DOP 2</p></div>
                 <div class="rounded-md border border-stone-200 bg-stone-50 p-3 dark:border-stone-700 dark:bg-[#171412]"><p class="text-sm font-bold text-stone-950 dark:text-white">Manual plan switch</p><p class="mt-1 text-xs text-stone-600 dark:text-stone-400">Use ALTER SYSTEM during the demo; Scheduler windows can automate later</p></div>
               </div>
             </div>
@@ -389,14 +440,22 @@ COLUMN resource_consumer_group FORMAT A30</code></pre></div>
           </table>
         </div>
         <div class="mt-5 space-y-5">
-          <div class="code-card"><div class="code-toolbar"><span class="code-type">SQL</span><button class="copy-btn" type="button">Copy</button></div><div class="code-description code-objective"><span class="objective-label">Objective:</span> Create reusable roles for reporting and batch application access.</div><pre class="code-scroll"><code>CREATE ROLE APP_READONLY_ROLE;
+          <div class="code-card"><div class="code-toolbar"><span class="code-type">SQL</span><button class="copy-btn" type="button">Copy</button></div><div class="code-description code-objective"><span class="objective-label">Objective:</span> Create reusable roles for reporting and batch application access.</div><pre class="code-scroll"><code>SET LINESIZE 220
+SET PAGESIZE 100
+SET TRIMSPOOL ON
+SET TAB OFF
+CREATE ROLE APP_READONLY_ROLE;
 CREATE ROLE APP_REPORTING_ROLE;
 CREATE ROLE APP_READWRITE_ROLE;</code></pre></div>
           <div class="rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 text-sm leading-6 text-amber-950 dark:border-amber-500/40 dark:bg-amber-950/25 dark:text-amber-100">
             <p class="font-semibold">Swingbench PL/SQL reporting note</p>
             <p class="mt-1">The Swingbench <code class="rounded bg-white px-1.5 py-0.5 text-xs font-semibold text-oracle-deep dark:bg-stone-900 dark:text-orange-200">orderentryplsql</code> workload calls package routines during initialization and execution. If you use that workload through the reporting service for Resource Manager testing, the reporting user needs <code class="rounded bg-white px-1.5 py-0.5 text-xs font-semibold text-oracle-deep dark:bg-stone-900 dark:text-orange-200">EXECUTE</code> on SOE program units and synonyms for the package names it references. For production reporting, keep reporting access least-privilege and avoid granting executable packages that can modify data.</p>
           </div>
-          <div class="code-card"><div class="code-toolbar"><span class="code-type">PL/SQL</span><button class="copy-btn" type="button">Copy</button></div><div class="code-description code-objective"><span class="objective-label">Objective:</span> Grant SOE object privileges to the reusable application roles across tables, views, sequences, and executable objects.</div><pre class="code-scroll"><code>BEGIN
+          <div class="code-card"><div class="code-toolbar"><span class="code-type">PL/SQL</span><button class="copy-btn" type="button">Copy</button></div><div class="code-description code-objective"><span class="objective-label">Objective:</span> Grant SOE object privileges to the reusable application roles across tables, views, sequences, and executable objects.</div><pre class="code-scroll"><code>SET LINESIZE 220
+SET PAGESIZE 100
+SET TRIMSPOOL ON
+SET TAB OFF
+BEGIN
   FOR obj IN (
     SELECT object_name, object_type
     FROM dba_objects
@@ -459,7 +518,11 @@ CREATE ROLE APP_READWRITE_ROLE;</code></pre></div>
   END LOOP;
 END;
 /</code></pre></div>
-          <div class="code-card"><div class="code-toolbar"><span class="code-type">SQL</span><button class="copy-btn" type="button">Copy</button></div><div class="code-description code-objective"><span class="objective-label">Objective:</span> Create dedicated application users for OLTP, reporting, and batch workloads while keeping SOE as the schema owner.</div><pre class="code-scroll"><code>CREATE USER SOE_OLTP IDENTIFIED BY "&lt;password&gt;";
+          <div class="code-card"><div class="code-toolbar"><span class="code-type">SQL</span><button class="copy-btn" type="button">Copy</button></div><div class="code-description code-objective"><span class="objective-label">Objective:</span> Create dedicated application users for OLTP, reporting, and batch workloads while keeping SOE as the schema owner.</div><pre class="code-scroll"><code>SET LINESIZE 220
+SET PAGESIZE 100
+SET TRIMSPOOL ON
+SET TAB OFF
+CREATE USER SOE_OLTP IDENTIFIED BY "&lt;password&gt;";
 GRANT CREATE SESSION TO SOE_OLTP;
 
 CREATE USER SOE_REPORTS IDENTIFIED BY "&lt;password&gt;";
@@ -470,7 +533,11 @@ GRANT CREATE SESSION TO SOE_BATCH;</code></pre></div>
           <div class="code-card"><div class="code-toolbar"><span class="code-type">SQL</span><button class="copy-btn" type="button">Copy</button></div><div class="code-description code-objective"><span class="objective-label">Objective:</span> Assign application roles to the workload users.</div><pre class="code-scroll"><code>GRANT APP_REPORTING_ROLE TO SOE_REPORTS;
 GRANT APP_READWRITE_ROLE TO SOE_OLTP;
 GRANT APP_READWRITE_ROLE TO SOE_BATCH;</code></pre></div>
-          <div class="code-card"><div class="code-toolbar"><span class="code-type">PL/SQL</span><button class="copy-btn" type="button">Copy</button></div><div class="code-description code-objective"><span class="objective-label">Objective:</span> Create private synonyms so workload users can reference SOE objects without prefixing each object with SOE.</div><pre class="code-scroll"><code>BEGIN
+          <div class="code-card"><div class="code-toolbar"><span class="code-type">PL/SQL</span><button class="copy-btn" type="button">Copy</button></div><div class="code-description code-objective"><span class="objective-label">Objective:</span> Create private synonyms so workload users can reference SOE objects without prefixing each object with SOE.</div><pre class="code-scroll"><code>SET LINESIZE 220
+SET PAGESIZE 100
+SET TRIMSPOOL ON
+SET TAB OFF
+BEGIN
   FOR obj IN (
     SELECT object_name, object_type
     FROM dba_objects
@@ -532,7 +599,11 @@ END;
           <div class="rounded-lg border border-stone-200 bg-stone-50 p-4 dark:border-stone-700 dark:bg-stone-900/45"><p class="text-sm font-bold text-stone-950 dark:text-white">Ungrouped sessions need a policy</p><p class="mt-2 text-sm leading-6 text-stone-700 dark:text-stone-300">Oracle includes special consumer groups such as OTHER_GROUPS for sessions not assigned elsewhere. Validate your final production plan includes required fallback directives.</p></div>
         </div>
         <p class="mt-5 max-w-3xl text-base leading-7 text-stone-700 dark:text-stone-300">Assuming the same privileged <code class="rounded bg-stone-100 px-1.5 py-0.5 text-sm font-semibold text-oracle-deep dark:bg-stone-800 dark:text-orange-200">PDB01</code> session is still open from the Security Model section, execute the following Resource Manager commands in that session.</p>
-        <div class="mt-5 code-card"><div class="code-toolbar"><span class="code-type">PL/SQL</span><button class="copy-btn" type="button">Copy</button></div><div class="code-description code-objective"><span class="objective-label">Objective:</span> Create the Resource Manager consumer groups used by the application plan.</div><pre class="code-scroll"><code>BEGIN
+        <div class="mt-5 code-card"><div class="code-toolbar"><span class="code-type">PL/SQL</span><button class="copy-btn" type="button">Copy</button></div><div class="code-description code-objective"><span class="objective-label">Objective:</span> Create the Resource Manager consumer groups used by the application plan.</div><pre class="code-scroll"><code>SET LINESIZE 220
+SET PAGESIZE 100
+SET TRIMSPOOL ON
+SET TAB OFF
+BEGIN
   DBMS_RESOURCE_MANAGER.CREATE_PENDING_AREA();
 
   DBMS_RESOURCE_MANAGER.CREATE_CONSUMER_GROUP(
@@ -581,7 +652,11 @@ END;
         <div class="mt-5 code-card code-text"><div class="code-toolbar"><span class="code-type">Output</span><button class="copy-btn" type="button">Copy</button></div><div class="code-description code-objective"><span class="objective-label">Objective:</span> Expected default output when no PDB resource plan is active.</div><pre class="code-scroll"><code>NAME                                 TYPE        VALUE
 ------------------------------------ ----------- ------------------------------
 resource_manager_plan                string</code></pre></div>
-        <div class="mt-5 code-card"><div class="code-toolbar"><span class="code-type">PL/SQL</span><button class="copy-btn" type="button">Copy</button></div><div class="code-description code-objective"><span class="objective-label">Objective:</span> Create business-hours and after-hours Resource Manager plans with reusable constants for CPU shares, parallel limits, and report runtime guardrails.</div><pre class="code-scroll"><code>DECLARE
+        <div class="mt-5 code-card"><div class="code-toolbar"><span class="code-type">PL/SQL</span><button class="copy-btn" type="button">Copy</button></div><div class="code-description code-objective"><span class="objective-label">Objective:</span> Create business-hours and after-hours Resource Manager plans with reusable constants for CPU shares, parallel limits, and report runtime guardrails.</div><pre class="code-scroll"><code>SET LINESIZE 220
+SET PAGESIZE 100
+SET TRIMSPOOL ON
+SET TAB OFF
+DECLARE
   c_business_plan                  CONSTANT VARCHAR2(30) := 'APP_RM_BUSINESS_HOURS';
   c_after_hours_plan               CONSTANT VARCHAR2(30) := 'APP_RM_AFTER_HOURS';
   c_oltp_cpu                       CONSTANT PLS_INTEGER := 75;
@@ -659,7 +734,9 @@ BEGIN
 END;
 /</code></pre></div>
         <p class="mt-5 max-w-3xl text-base leading-7 text-stone-700 dark:text-stone-300">Oracle creates some Resource Manager plans by default. Filter those out when the goal is to review only the application plans created for this demo.</p>
-        <div class="mt-5 code-card"><div class="code-toolbar"><span class="code-type">SQL</span><button class="copy-btn" type="button">Copy</button></div><div class="code-description code-objective"><span class="objective-label">Objective:</span> Display user-defined Resource Manager plan directives and exclude common Oracle-maintained default plans.</div><pre class="code-scroll"><code>SET LINESIZE 220
+        <div class="mt-5 code-card"><div class="code-toolbar"><span class="code-type">SQL</span><button class="copy-btn" type="button">Copy</button></div><div class="code-description code-objective"><span class="objective-label">Objective:</span> Display user-defined Resource Manager plan directives and exclude common Oracle-maintained default plans.</div><pre class="code-scroll"><code>SET TRIMSPOOL ON
+SET TAB OFF
+SET LINESIZE 220
 SET PAGESIZE 100
 
 COLUMN plan FORMAT A30
@@ -693,7 +770,11 @@ WHERE plan NOT LIKE 'ORA$%'
 ORDER BY plan, group_or_subplan;</code></pre></div>
         <p class="mt-5 max-w-3xl text-base leading-7 text-stone-700 dark:text-stone-300">If you remove the filter, the catalog can also show Oracle-maintained or precreated plans such as <code class="rounded bg-stone-100 px-1.5 py-0.5 text-sm font-semibold text-oracle-deep dark:bg-stone-800 dark:text-orange-200">APPQOS_PLAN</code>, <code class="rounded bg-stone-100 px-1.5 py-0.5 text-sm font-semibold text-oracle-deep dark:bg-stone-800 dark:text-orange-200">ETL_CRITICAL_PLAN</code>, <code class="rounded bg-stone-100 px-1.5 py-0.5 text-sm font-semibold text-oracle-deep dark:bg-stone-800 dark:text-orange-200">DSS_PLAN</code>, and <code class="rounded bg-stone-100 px-1.5 py-0.5 text-sm font-semibold text-oracle-deep dark:bg-stone-800 dark:text-orange-200">INTERNAL_QUIESCE</code>, depending on the database version and environment. Do not delete those unless Oracle documentation or Oracle Support explicitly directs you to do so. Oracle documents that Resource Manager elements are stored in data dictionary views and that some Resource Manager groups are always present or used for automatic database activity.</p>
         <a href="https://docs.oracle.com/en/database/oracle/oracle-database/26/admin/managing-resources-with-oracle-database-resource-manager.html#GUID-F3717FD0-3022-42BD-B50C-5F783C02689F" target="_blank" rel="noreferrer" class="mt-3 inline-flex rounded-md text-sm font-semibold text-oracle-red underline-offset-4 hover:underline dark:text-orange-300">Oracle documentation: Consumer Groups, Plans, and Plan Directives</a>
-        <div class="mt-5 code-card"><div class="code-toolbar"><span class="code-type">PL/SQL</span><button class="copy-btn" type="button">Copy</button></div><div class="code-description code-objective"><span class="objective-label">Objective:</span> Delete a specific Resource Manager plan during cleanup or reruns. Replace the placeholder with the exact plan name to remove.</div><pre class="code-scroll"><code>BEGIN
+        <div class="mt-5 code-card"><div class="code-toolbar"><span class="code-type">PL/SQL</span><button class="copy-btn" type="button">Copy</button></div><div class="code-description code-objective"><span class="objective-label">Objective:</span> Delete a specific Resource Manager plan during cleanup or reruns. Replace the placeholder with the exact plan name to remove.</div><pre class="code-scroll"><code>SET LINESIZE 220
+SET PAGESIZE 100
+SET TRIMSPOOL ON
+SET TAB OFF
+BEGIN
   DBMS_RESOURCE_MANAGER.CREATE_PENDING_AREA();
 
   DBMS_RESOURCE_MANAGER.DELETE_PLAN(
@@ -702,7 +783,11 @@ ORDER BY plan, group_or_subplan;</code></pre></div>
   DBMS_RESOURCE_MANAGER.SUBMIT_PENDING_AREA();
 END;
 /</code></pre></div>
-        <div class="mt-5 code-card"><div class="code-toolbar"><span class="code-type">PL/SQL</span><button class="copy-btn" type="button">Copy</button></div><div class="code-description code-objective"><span class="objective-label">Objective:</span> Clear an unsubmitted Resource Manager pending area after a failed plan validation, then rerun the corrected plan creation block.</div><pre class="code-scroll"><code>BEGIN
+        <div class="mt-5 code-card"><div class="code-toolbar"><span class="code-type">PL/SQL</span><button class="copy-btn" type="button">Copy</button></div><div class="code-description code-objective"><span class="objective-label">Objective:</span> Clear an unsubmitted Resource Manager pending area after a failed plan validation, then rerun the corrected plan creation block.</div><pre class="code-scroll"><code>SET LINESIZE 220
+SET PAGESIZE 100
+SET TRIMSPOOL ON
+SET TAB OFF
+BEGIN
   DBMS_RESOURCE_MANAGER.CLEAR_PENDING_AREA();
 END;
 /</code></pre></div>
@@ -780,7 +865,11 @@ END;
         <p class="mt-5 max-w-3xl text-base leading-7 text-stone-700 dark:text-stone-300"><code class="rounded bg-stone-100 px-1.5 py-0.5 text-sm font-semibold text-oracle-deep dark:bg-stone-800 dark:text-orange-200">SET_CONSUMER_GROUP_MAPPING_PRI</code> sets which mapping attribute wins when more than one rule could match a session. <code class="rounded bg-stone-100 px-1.5 py-0.5 text-sm font-semibold text-oracle-deep dark:bg-stone-800 dark:text-orange-200">SET_CONSUMER_GROUP_MAPPING</code> then creates the actual user or service rule that points to a consumer group.</p>
         <p class="mt-4 max-w-3xl text-base leading-7 text-stone-700 dark:text-stone-300">For this design, <code class="rounded bg-stone-100 px-1.5 py-0.5 text-sm font-semibold text-oracle-deep dark:bg-stone-800 dark:text-orange-200">ORACLE_USER =&gt; 2</code> and <code class="rounded bg-stone-100 px-1.5 py-0.5 text-sm font-semibold text-oracle-deep dark:bg-stone-800 dark:text-orange-200">SERVICE_NAME =&gt; 3</code> is important because <code class="rounded bg-stone-100 px-1.5 py-0.5 text-sm font-semibold text-oracle-deep dark:bg-stone-800 dark:text-orange-200">SOE</code> and <code class="rounded bg-stone-100 px-1.5 py-0.5 text-sm font-semibold text-oracle-deep dark:bg-stone-800 dark:text-orange-200">SOE_OLTP</code> can connect through the same default service, but their user mappings still win over the service mapping.</p>
         <p class="mt-4 max-w-3xl text-base leading-7 text-stone-700 dark:text-stone-300">These Resource Manager changes must also run inside a pending area, so the block opens with <code class="rounded bg-stone-100 px-1.5 py-0.5 text-sm font-semibold text-oracle-deep dark:bg-stone-800 dark:text-orange-200">CREATE_PENDING_AREA</code> and finishes with <code class="rounded bg-stone-100 px-1.5 py-0.5 text-sm font-semibold text-oracle-deep dark:bg-stone-800 dark:text-orange-200">SUBMIT_PENDING_AREA</code>.</p>
-        <div class="mt-5 code-card"><div class="code-toolbar"><span class="code-type">PL/SQL</span><button class="copy-btn" type="button">Copy</button></div><div class="code-description code-objective"><span class="objective-label">Objective:</span> Prioritize user mappings, map SOE to CG_ADMIN, map SOE_OLTP to CG_OLTP, and map workload services to their Resource Manager consumer groups.</div><pre class="code-scroll"><code>BEGIN
+        <div class="mt-5 code-card"><div class="code-toolbar"><span class="code-type">PL/SQL</span><button class="copy-btn" type="button">Copy</button></div><div class="code-description code-objective"><span class="objective-label">Objective:</span> Prioritize user mappings, map SOE to CG_ADMIN, map SOE_OLTP to CG_OLTP, and map workload services to their Resource Manager consumer groups.</div><pre class="code-scroll"><code>SET LINESIZE 220
+SET PAGESIZE 100
+SET TRIMSPOOL ON
+SET TAB OFF
+BEGIN
   DBMS_RESOURCE_MANAGER.CREATE_PENDING_AREA();
 
   DBMS_RESOURCE_MANAGER.SET_CONSUMER_GROUP_MAPPING_PRI(
@@ -835,14 +924,26 @@ END;
           <p class="font-semibold text-stone-950 dark:text-stone-100">Connection check</p>
           <p class="mt-1">Before setting the plan, confirm the session container with <code class="rounded bg-white px-1.5 py-0.5 text-xs font-semibold text-oracle-deep dark:bg-stone-900 dark:text-orange-200">SHOW CON_NAME</code>. If the result is not <code class="rounded bg-white px-1.5 py-0.5 text-xs font-semibold text-oracle-deep dark:bg-stone-900 dark:text-orange-200">PDB01</code>, reconnect through the PDB service or switch to the PDB before running the command.</p>
         </div>
-        <div class="mt-5 code-card"><div class="code-toolbar"><span class="code-type">SQL</span><button class="copy-btn" type="button">Copy</button></div><div class="code-description code-objective"><span class="objective-label">Objective:</span> Connect to PDB01 with an account that has ALTER SYSTEM privilege, verify the current container, and activate the business-hours Resource Manager plan.</div><pre class="code-scroll"><code>CONNECT system@CDB01_PDB01
+        <div class="mt-5 code-card"><div class="code-toolbar"><span class="code-type">SQL</span><button class="copy-btn" type="button">Copy</button></div><div class="code-description code-objective"><span class="objective-label">Objective:</span> Connect to PDB01 with an account that has ALTER SYSTEM privilege, verify the current container, and activate the business-hours Resource Manager plan.</div><pre class="code-scroll"><code>SET LINESIZE 220
+SET PAGESIZE 100
+SET TRIMSPOOL ON
+SET TAB OFF
+CONNECT system@CDB01_PDB01
 SHOW CON_NAME
 
 ALTER SYSTEM SET RESOURCE_MANAGER_PLAN='APP_RM_BUSINESS_HOURS';</code></pre></div>
         <p class="mt-5 max-w-3xl text-base leading-7 text-stone-700 dark:text-stone-300">For this blog, switch plans manually during validation. Use the business-hours plan from 8:00 AM to 6:00 PM Central Time. After 6:00 PM Central Time, switch to the after-hours plan to allow report DOP 4 and batch DOP 2. At 8:00 AM Central Time, switch back to the business-hours plan to protect OLTP.</p>
         <div class="mt-5 grid gap-5">
-          <div class="code-card"><div class="code-toolbar"><span class="code-type">SQL</span><button class="copy-btn" type="button">Copy</button></div><div class="code-description code-objective"><span class="objective-label">Objective:</span> Manually switch to the after-hours plan after 6:00 PM Central Time.</div><pre class="code-scroll"><code>ALTER SYSTEM SET RESOURCE_MANAGER_PLAN='APP_RM_AFTER_HOURS';</code></pre></div>
-          <div class="code-card"><div class="code-toolbar"><span class="code-type">SQL</span><button class="copy-btn" type="button">Copy</button></div><div class="code-description code-objective"><span class="objective-label">Objective:</span> Manually switch back to the business-hours plan at 8:00 AM Central Time.</div><pre class="code-scroll"><code>ALTER SYSTEM SET RESOURCE_MANAGER_PLAN='APP_RM_BUSINESS_HOURS';</code></pre></div>
+          <div class="code-card"><div class="code-toolbar"><span class="code-type">SQL</span><button class="copy-btn" type="button">Copy</button></div><div class="code-description code-objective"><span class="objective-label">Objective:</span> Manually switch to the after-hours plan after 6:00 PM Central Time.</div><pre class="code-scroll"><code>SET LINESIZE 220
+SET PAGESIZE 100
+SET TRIMSPOOL ON
+SET TAB OFF
+ALTER SYSTEM SET RESOURCE_MANAGER_PLAN='APP_RM_AFTER_HOURS';</code></pre></div>
+          <div class="code-card"><div class="code-toolbar"><span class="code-type">SQL</span><button class="copy-btn" type="button">Copy</button></div><div class="code-description code-objective"><span class="objective-label">Objective:</span> Manually switch back to the business-hours plan at 8:00 AM Central Time.</div><pre class="code-scroll"><code>SET LINESIZE 220
+SET PAGESIZE 100
+SET TRIMSPOOL ON
+SET TAB OFF
+ALTER SYSTEM SET RESOURCE_MANAGER_PLAN='APP_RM_BUSINESS_HOURS';</code></pre></div>
         </div>
         <div class="mt-5 rounded-lg border-l-4 border-oracle-red bg-red-50 px-4 py-3 text-sm leading-6 text-stone-700 dark:border-orange-300 dark:bg-orange-950/20 dark:text-stone-300">
           <p class="font-semibold text-stone-950 dark:text-stone-100">Automation research note</p>
@@ -853,7 +954,11 @@ ALTER SYSTEM SET RESOURCE_MANAGER_PLAN='APP_RM_BUSINESS_HOURS';</code></pre></di
           <p class="font-semibold">Demo validation flow</p>
           <p class="mt-1">For demo purposes, open a separate SQL*Plus session as <code class="rounded bg-white px-1.5 py-0.5 text-xs font-semibold text-oracle-deep dark:bg-stone-900 dark:text-orange-200">SOE</code> and keep it connected. Then use a separate <code class="rounded bg-white px-1.5 py-0.5 text-xs font-semibold text-oracle-deep dark:bg-stone-900 dark:text-orange-200">SYSTEM</code> session to run the validation query. This avoids granting broad privileges to <code class="rounded bg-white px-1.5 py-0.5 text-xs font-semibold text-oracle-deep dark:bg-stone-900 dark:text-orange-200">SOE</code> and still proves that the user mapping assigns <code class="rounded bg-white px-1.5 py-0.5 text-xs font-semibold text-oracle-deep dark:bg-stone-900 dark:text-orange-200">SOE</code> to <code class="rounded bg-white px-1.5 py-0.5 text-xs font-semibold text-oracle-deep dark:bg-stone-900 dark:text-orange-200">CG_ADMIN</code>.</p>
         </div>
-        <div class="mt-5 code-card"><div class="code-toolbar"><span class="code-type">SQL</span><button class="copy-btn" type="button">Copy</button></div><div class="code-description code-objective"><span class="objective-label">Objective:</span> In a separate demo session, connect as SOE through the default PDB service and keep the session open for SYSTEM-side validation.</div><pre class="code-scroll"><code>sqlplus soe@CDB01_PDB01
+        <div class="mt-5 code-card"><div class="code-toolbar"><span class="code-type">SQL</span><button class="copy-btn" type="button">Copy</button></div><div class="code-description code-objective"><span class="objective-label">Objective:</span> In a separate demo session, connect as SOE through the default PDB service and keep the session open for SYSTEM-side validation.</div><pre class="code-scroll"><code>SET LINESIZE 220
+SET PAGESIZE 100
+SET TRIMSPOOL ON
+SET TAB OFF
+sqlplus soe@CDB01_PDB01
 SHOW USER
 SHOW CON_NAME
 
@@ -1038,14 +1143,22 @@ SELECT
 FROM v$session s
 WHERE s.audsid = SYS_CONTEXT('USERENV','SESSIONID')
   AND s.username = USER;</code></pre></div>
-          <div class="code-card"><div class="code-toolbar"><span class="code-type">SQL</span><button class="copy-btn" type="button">Copy</button></div><div class="code-description code-objective"><span class="objective-label">Objective:</span> Run a lightweight sampled DOP test against the view in the validated OLTP session and capture elapsed time.</div><pre class="code-scroll"><code>SET TIMING ON
+          <div class="code-card"><div class="code-toolbar"><span class="code-type">SQL</span><button class="copy-btn" type="button">Copy</button></div><div class="code-description code-objective"><span class="objective-label">Objective:</span> Run a lightweight sampled DOP test against the view in the validated OLTP session and capture elapsed time.</div><pre class="code-scroll"><code>SET LINESIZE 220
+SET PAGESIZE 100
+SET TRIMSPOOL ON
+SET TAB OFF
+SET TIMING ON
 
 SELECT /*+ gather_plan_statistics parallel(16) */
        COUNT(*) sampled_fact_rows,
        SUM(f.quantity * f.unit_price) sampled_line_value
 FROM soe.soe_dop_order_fact SAMPLE BLOCK (1) f
 WHERE f.quantity &gt; 0;</code></pre></div>
-          <div class="code-card"><div class="code-toolbar"><span class="code-type">SQL</span><button class="copy-btn" type="button">Copy</button></div><div class="code-description code-objective"><span class="objective-label">Objective:</span> Verify whether the last statement was actually parallelized in this session.</div><pre class="code-scroll"><code>SELECT
+          <div class="code-card"><div class="code-toolbar"><span class="code-type">SQL</span><button class="copy-btn" type="button">Copy</button></div><div class="code-description code-objective"><span class="objective-label">Objective:</span> Verify whether the last statement was actually parallelized in this session.</div><pre class="code-scroll"><code>SET LINESIZE 220
+SET PAGESIZE 100
+SET TRIMSPOOL ON
+SET TAB OFF
+SELECT
   statistic,
   last_query,
   session_total
@@ -1064,9 +1177,17 @@ Queries Parallelized                    0             0</code></pre></div>
             <p class="font-semibold">Parallel verification explanation</p>
             <p class="mt-1">Run this check immediately after the workload query, before displaying the cursor plan. <code class="rounded bg-white px-1.5 py-0.5 text-xs font-semibold text-oracle-deep dark:bg-stone-900 dark:text-orange-200">Queries Parallelized</code> with <code class="rounded bg-white px-1.5 py-0.5 text-xs font-semibold text-oracle-deep dark:bg-stone-900 dark:text-orange-200">LAST_QUERY=0</code> means the last workload statement was not recorded as a parallelized query in this session. For the OLTP service, this is the clearest evidence that the consumer-group limit forced serial execution even though the SQL text requested <code class="rounded bg-white px-1.5 py-0.5 text-xs font-semibold text-oracle-deep dark:bg-stone-900 dark:text-orange-200">parallel(16)</code>.</p>
           </div>
-          <div class="code-card"><div class="code-toolbar"><span class="code-type">SQL</span><button class="copy-btn" type="button">Copy</button></div><div class="code-description code-objective"><span class="objective-label">Objective:</span> Display the actual cursor plan for the DOP test.</div><pre class="code-scroll"><code>SELECT *
+          <div class="code-card"><div class="code-toolbar"><span class="code-type">SQL</span><button class="copy-btn" type="button">Copy</button></div><div class="code-description code-objective"><span class="objective-label">Objective:</span> Display the actual cursor plan for the DOP test.</div><pre class="code-scroll"><code>SET LINESIZE 220
+SET PAGESIZE 100
+SET TRIMSPOOL ON
+SET TAB OFF
+SELECT *
 FROM TABLE(DBMS_XPLAN.DISPLAY_CURSOR(NULL, NULL, 'ALLSTATS LAST +PARALLEL'));</code></pre></div>
-          <div class="code-card"><div class="code-toolbar"><span class="code-type">Output</span><button class="copy-btn" type="button">Copy</button></div><div class="code-description code-objective"><span class="objective-label">Objective:</span> Expected output excerpt showing elapsed time, PX operations, and requested DOP.</div><pre class="code-scroll"><code>SAMPLED_FACT_ROWS SAMPLED_LINE_VALUE
+          <div class="code-card"><div class="code-toolbar"><span class="code-type">Output</span><button class="copy-btn" type="button">Copy</button></div><div class="code-description code-objective"><span class="objective-label">Objective:</span> Expected output excerpt showing elapsed time, PX operations, and requested DOP.</div><pre class="code-scroll"><code>SET LINESIZE 220
+SET PAGESIZE 100
+SET TRIMSPOOL ON
+SET TAB OFF
+SAMPLED_FACT_ROWS SAMPLED_LINE_VALUE
 ----------------- ------------------
           3633217         1.6780E+10
 
@@ -1133,14 +1254,22 @@ SELECT
 FROM v$session s
 WHERE s.audsid = SYS_CONTEXT('USERENV','SESSIONID')
   AND s.username = USER;</code></pre></div>
-          <div class="code-card"><div class="code-toolbar"><span class="code-type">SQL</span><button class="copy-btn" type="button">Copy</button></div><div class="code-description code-objective"><span class="objective-label">Objective:</span> Run the same lightweight sampled DOP test against the view in the validated reporting session and capture elapsed time.</div><pre class="code-scroll"><code>SET TIMING ON
+          <div class="code-card"><div class="code-toolbar"><span class="code-type">SQL</span><button class="copy-btn" type="button">Copy</button></div><div class="code-description code-objective"><span class="objective-label">Objective:</span> Run the same lightweight sampled DOP test against the view in the validated reporting session and capture elapsed time.</div><pre class="code-scroll"><code>SET LINESIZE 220
+SET PAGESIZE 100
+SET TRIMSPOOL ON
+SET TAB OFF
+SET TIMING ON
 
 SELECT /*+ gather_plan_statistics parallel(16) */
        COUNT(*) sampled_fact_rows,
        SUM(f.quantity * f.unit_price) sampled_line_value
 FROM soe.soe_dop_order_fact SAMPLE BLOCK (1) f
 WHERE f.quantity &gt; 0;</code></pre></div>
-          <div class="code-card"><div class="code-toolbar"><span class="code-type">SQL</span><button class="copy-btn" type="button">Copy</button></div><div class="code-description code-objective"><span class="objective-label">Objective:</span> Verify whether the reporting workload was actually parallelized in this session.</div><pre class="code-scroll"><code>SELECT
+          <div class="code-card"><div class="code-toolbar"><span class="code-type">SQL</span><button class="copy-btn" type="button">Copy</button></div><div class="code-description code-objective"><span class="objective-label">Objective:</span> Verify whether the reporting workload was actually parallelized in this session.</div><pre class="code-scroll"><code>SET LINESIZE 220
+SET PAGESIZE 100
+SET TRIMSPOOL ON
+SET TAB OFF
+SELECT
   statistic,
   last_query,
   session_total
@@ -1165,9 +1294,17 @@ Queries Parallelized                    1             1</code></pre></div>
             <p class="font-semibold">Reporting verification explanation</p>
             <p class="mt-1">Compared with the OLTP result, the reporting session completed faster because Resource Manager allowed the workload to run with parallel execution. <code class="rounded bg-white px-1.5 py-0.5 text-xs font-semibold text-oracle-deep dark:bg-stone-900 dark:text-orange-200">Queries Parallelized</code> with <code class="rounded bg-white px-1.5 py-0.5 text-xs font-semibold text-oracle-deep dark:bg-stone-900 dark:text-orange-200">LAST_QUERY=1</code> confirms the last workload statement was parallelized in this session. The elapsed time dropped from the OLTP serial run to about 19 seconds because the reporting consumer group permits DOP while OLTP is forced to serial execution.</p>
           </div>
-          <div class="code-card"><div class="code-toolbar"><span class="code-type">SQL</span><button class="copy-btn" type="button">Copy</button></div><div class="code-description code-objective"><span class="objective-label">Objective:</span> Display the actual cursor plan for the reporting DOP test.</div><pre class="code-scroll"><code>SELECT *
+          <div class="code-card"><div class="code-toolbar"><span class="code-type">SQL</span><button class="copy-btn" type="button">Copy</button></div><div class="code-description code-objective"><span class="objective-label">Objective:</span> Display the actual cursor plan for the reporting DOP test.</div><pre class="code-scroll"><code>SET LINESIZE 220
+SET PAGESIZE 100
+SET TRIMSPOOL ON
+SET TAB OFF
+SELECT *
 FROM TABLE(DBMS_XPLAN.DISPLAY_CURSOR(NULL, NULL, 'ALLSTATS LAST +PARALLEL'));</code></pre></div>
-          <div class="code-card"><div class="code-toolbar"><span class="code-type">Output</span><button class="copy-btn" type="button">Copy</button></div><div class="code-description code-objective"><span class="objective-label">Objective:</span> Expected reporting plan excerpt showing PX operations and elapsed time.</div><pre class="code-scroll"><code>PLAN_TABLE_OUTPUT
+          <div class="code-card"><div class="code-toolbar"><span class="code-type">Output</span><button class="copy-btn" type="button">Copy</button></div><div class="code-description code-objective"><span class="objective-label">Objective:</span> Expected reporting plan excerpt showing PX operations and elapsed time.</div><pre class="code-scroll"><code>SET LINESIZE 220
+SET PAGESIZE 100
+SET TRIMSPOOL ON
+SET TAB OFF
+PLAN_TABLE_OUTPUT
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 SQL_ID  4nnk8kdkmkv14, child number 0
 -------------------------------------
@@ -1260,7 +1397,11 @@ REVOKE SELECT_CATALOG_ROLE FROM SOE_REPORTS;</code></pre></div>
         <p class="text-xs font-semibold uppercase tracking-[0.16em] text-oracle-red dark:text-orange-300">Disable plan</p>
         <h2 class="mt-2 text-2xl font-bold tracking-tight text-stone-950 dark:text-white sm:text-3xl">Disable Resource Manager</h2>
         <p class="mt-3 max-w-3xl text-base leading-7 text-stone-700 dark:text-stone-300">To disable the active PDB Resource Manager plan, set <code class="rounded bg-stone-100 px-1.5 py-0.5 text-sm font-semibold text-oracle-deep dark:bg-stone-800 dark:text-orange-200">RESOURCE_MANAGER_PLAN</code> back to a blank value while connected to <code class="rounded bg-stone-100 px-1.5 py-0.5 text-sm font-semibold text-oracle-deep dark:bg-stone-800 dark:text-orange-200">PDB01</code> with an account that has the required <code class="rounded bg-stone-100 px-1.5 py-0.5 text-sm font-semibold text-oracle-deep dark:bg-stone-800 dark:text-orange-200">ALTER SYSTEM</code> privilege. This stops the PDB from using the active business-hours or after-hours Resource Manager plan.</p>
-        <div class="mt-5 code-card"><div class="code-toolbar"><span class="code-type">SQL</span><button class="copy-btn" type="button">Copy</button></div><div class="code-description code-objective"><span class="objective-label">Objective:</span> Disable the active PDB Resource Manager plan and return RESOURCE_MANAGER_PLAN to a blank value.</div><pre class="code-scroll"><code>ALTER SYSTEM SET RESOURCE_MANAGER_PLAN='';</code></pre></div>
+        <div class="mt-5 code-card"><div class="code-toolbar"><span class="code-type">SQL</span><button class="copy-btn" type="button">Copy</button></div><div class="code-description code-objective"><span class="objective-label">Objective:</span> Disable the active PDB Resource Manager plan and return RESOURCE_MANAGER_PLAN to a blank value.</div><pre class="code-scroll"><code>SET LINESIZE 220
+SET PAGESIZE 100
+SET TRIMSPOOL ON
+SET TAB OFF
+ALTER SYSTEM SET RESOURCE_MANAGER_PLAN='';</code></pre></div>
       </section>
 
       <section id="documentation" class="border-t border-stone-200 py-10 dark:border-stone-800">
@@ -1286,10 +1427,10 @@ REVOKE SELECT_CATALOG_ROLE FROM SOE_REPORTS;</code></pre></div>
   <footer class="site-footer border-t border-stone-200 bg-stone-50 px-5 py-8 text-center text-sm text-stone-600 dark:border-stone-800 dark:bg-[#12100f] dark:text-stone-400">
     <div class="mx-auto max-w-4xl">
       <details class="disclaimer rounded-lg border border-amber-300 bg-amber-50 text-left text-amber-950 dark:border-amber-500/40 dark:bg-amber-950/25 dark:text-amber-100">
-        <summary class="cursor-pointer list-none px-4 py-3 text-sm font-bold uppercase tracking-[0.14em] focus:outline-none focus:ring-2 focus:ring-amber-500/50">Educational use and validation required <span class="ml-2 whitespace-nowrap text-xs font-semibold normal-case tracking-normal text-amber-800 underline underline-offset-2 dark:text-amber-200">click here</span></summary>
+        <summary class="cursor-pointer list-none px-4 py-3 text-sm font-bold uppercase tracking-[0.14em] focus:outline-none focus:ring-2 focus:ring-amber-500/50">Educational use and validation required <span class="disclaimer-action ml-2 whitespace-nowrap text-xs font-semibold normal-case tracking-normal text-amber-800 underline underline-offset-2 dark:text-amber-200">click here</span></summary>
         <p class="border-t border-amber-200 px-4 pb-4 pt-3 text-sm leading-6 dark:border-amber-500/30">This content is for educational and planning purposes only. Apply every command and configuration first in a non-production test environment that mirrors your RAC, service, client driver, workload, and failover requirements. The recommended values shown here may not work in your specific environment, may require change-control approval, and can affect availability, connection routing, transaction behavior, memory use, and batch workload placement. Validate with application owners, DBAs, network teams, and Oracle Support guidance before using any setting in production.</p>
       </details>
-      <p class="mt-5">Blog last updated June 16, 2026</p>
+      <p class="mt-5">Last updated June 17, 2026</p>
     </div>
   </footer>
 
@@ -1313,8 +1454,7 @@ REVOKE SELECT_CATALOG_ROLE FROM SOE_REPORTS;</code></pre></div>
           "This content is for educational and planning purposes only. Apply every command and configuration first in a non-production test environment that mirrors your RAC, service, client driver, workload, and failover requirements. The recommended values shown here may not work in your specific environment, may require change-control approval, and can affect availability, connection routing, transaction behavior, memory use, and batch workload placement. Validate with application owners, DBAs, network teams, and Oracle Support guidance before using any setting in production.": "Este contenido es solo para fines educativos y de planificación. Aplica cada comando y configuración primero en un entorno de prueba no productivo que refleje tus requisitos de RAC, servicio, controlador cliente, carga de trabajo y failover. Los valores recomendados aquí pueden no funcionar en tu entorno específico, pueden requerir aprobación de control de cambios y pueden afectar disponibilidad, enrutamiento de conexiones, comportamiento transaccional, uso de memoria y ubicación de cargas batch. Valida con dueños de aplicaciones, DBAs, equipos de red y la guía de Oracle Support antes de usar cualquier configuración en producción.",
           "Governing Workloads with Database Resource Manager": "Gobierno de cargas con Database Resource Manager",
           "A service-based Resource Manager pattern for OLTP, reporting, batch, and administrative workloads that builds on the connection services guide.": "Un patrón de Resource Manager basado en servicios para cargas OLTP, reportes, batch y administración, construido sobre la guía de Connection Services.",
-          "Blog last updated June 16, 2026": "Blog actualizado por última vez el 16 de junio de 2026",
-          "Navigate the guide set": "Navegar las guías",
+          "Last updated June 17, 2026": "Última actualización 17 de junio de 2026",
           "Table of contents": "Tabla de contenido",
           "Overview": "Overview",
           "Architecture": "Arquitectura",
@@ -1521,8 +1661,7 @@ REVOKE SELECT_CATALOG_ROLE FROM SOE_REPORTS;</code></pre></div>
           "This content is for educational and planning purposes only. Apply every command and configuration first in a non-production test environment that mirrors your RAC, service, client driver, workload, and failover requirements. The recommended values shown here may not work in your specific environment, may require change-control approval, and can affect availability, connection routing, transaction behavior, memory use, and batch workload placement. Validate with application owners, DBAs, network teams, and Oracle Support guidance before using any setting in production.": "Este conteúdo é apenas para fins educacionais e de planejamento. Aplique cada comando e configuração primeiro em um ambiente de teste não produtivo que reflita seus requisitos de RAC, serviço, driver cliente, carga de trabalho e failover. Os valores recomendados aqui podem não funcionar no seu ambiente específico, podem exigir aprovação de controle de mudanças e podem afetar disponibilidade, roteamento de conexões, comportamento transacional, uso de memória e posicionamento de cargas batch. Valide com responsáveis por aplicações, DBAs, equipes de rede e a orientação do Oracle Support antes de usar qualquer configuração em produção.",
           "Governing Workloads with Database Resource Manager": "Governança de cargas com Database Resource Manager",
           "A service-based Resource Manager pattern for OLTP, reporting, batch, and administrative workloads that builds on the connection services guide.": "Um padrão de Resource Manager baseado em serviços para cargas OLTP, relatórios, batch e administrativas, construído sobre o guia de Connection Services.",
-          "Blog last updated June 16, 2026": "Blog atualizado pela última vez em 16 de junho de 2026",
-          "Navigate the guide set": "Navegar pelos guias",
+          "Last updated June 17, 2026": "Última atualização 17 de junho de 2026",
           "Table of contents": "Sumário",
           "Overview": "Overview",
           "Architecture": "Arquitetura",
@@ -1751,6 +1890,18 @@ REVOKE SELECT_CATALOG_ROLE FROM SOE_REPORTS;</code></pre></div>
         });
       }
 
+      function ensureDisclaimerActions() {
+        document.querySelectorAll(".disclaimer summary").forEach((summary) => {
+          let action = summary.querySelector(".disclaimer-action");
+          if (!action) {
+            action = document.createElement("span");
+            action.className = "disclaimer-action ml-2 whitespace-nowrap text-xs font-semibold normal-case tracking-normal text-amber-800 underline underline-offset-2 dark:text-amber-200";
+            summary.append(document.createTextNode(" "), action);
+          }
+          action.textContent = "click here";
+        });
+      }
+
       function setLanguage(language) {
         document.documentElement.lang = language;
         localStorage.setItem("exascale-resource-manager-language", language);
@@ -1761,6 +1912,7 @@ REVOKE SELECT_CATALOG_ROLE FROM SOE_REPORTS;</code></pre></div>
           window.ExascaleGuideSet.applyStaticPage("resourceManager", "nested");
         }
         localizeText(language);
+        ensureDisclaimerActions();
         setThemeButton();
         backTop.textContent = labels[language].back;
         document.querySelector("a[href^='#article']").textContent = labels[language].skip;
@@ -1785,7 +1937,7 @@ REVOKE SELECT_CATALOG_ROLE FROM SOE_REPORTS;</code></pre></div>
           const card = button.closest(".code-card");
           const code = card ? card.querySelector("pre code") : null;
           if (!code) return;
-          const text = code.textContent;
+          const text = card.querySelector("pre code").textContent;
           let copied = false;
           if (navigator.clipboard && navigator.clipboard.writeText && window.isSecureContext) {
             try {

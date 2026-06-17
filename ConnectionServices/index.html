@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="Oracle Exadata Exascale 26ai RAC connection services guide covering TNS aliases, service configuration, failover, workload isolation, load balancing, and controlled failure simulation.">
-  <title>Exadata Exascale RAC Connection Services</title>
+  <title>RAC Connection Services</title>
   <link rel="icon" href="data:,">
   <style>
     :root {
@@ -241,7 +241,7 @@
 
     .hero-grid {
       display: grid;
-      grid-template-columns: minmax(0, 1fr) 360px;
+      grid-template-columns: minmax(0, 1fr);
       align-items: end;
       gap: 2rem;
       width: min(1280px, calc(100% - 2rem));
@@ -323,9 +323,10 @@
       list-style: none;
       padding: 0.8rem 1rem;
       color: inherit;
-      font-size: 0.8rem;
+      font-size: 0.875rem;
       font-weight: 800;
       letter-spacing: 0.12em;
+      line-height: 1.25rem;
       text-transform: uppercase;
     }
 
@@ -335,7 +336,7 @@
 
     .disclaimer-action {
       color: #92400e;
-      font-size: 0.72rem;
+      font-size: 0.75rem;
       font-weight: 700;
       letter-spacing: 0;
       text-decoration: underline;
@@ -352,8 +353,8 @@
       border-top: 1px solid #fde68a;
       padding: 0.9rem 1rem 1rem;
       color: inherit;
-      font-size: 0.92rem;
-      line-height: 1.65;
+      font-size: 0.875rem;
+      line-height: 1.5rem;
     }
 
     body[data-theme="dark"] .disclaimer p {
@@ -397,36 +398,42 @@
     .related-links {
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 0.85rem;
-      margin-top: 1.35rem;
+      gap: 0.75rem;
+      margin-top: 1.25rem;
+      max-width: 54rem;
     }
 
     .related-links a {
+      display: block;
       border: 1px solid var(--line);
       border-radius: var(--radius);
       background: var(--surface);
-      box-shadow: 0 8px 24px rgba(31, 27, 26, 0.06);
-      padding: 1rem;
-      transition: border-color 0.16s ease, transform 0.16s ease;
+      box-shadow: 0 1px 2px rgba(31, 27, 26, 0.04);
+      padding: 0.9rem;
+      transition: border-color 0.18s ease, box-shadow 0.18s ease, transform 0.18s ease;
     }
 
-    .related-links a:hover {
+    .related-links a:hover,
+    .related-links a:focus-visible {
       border-color: var(--accent);
+      box-shadow: var(--shadow);
+      outline: none;
       transform: translateY(-1px);
     }
 
     .related-links strong {
       display: block;
       color: var(--accent);
-      font-size: 0.95rem;
+      font-size: 0.9rem;
+      line-height: 1.3;
     }
 
     .related-links span {
       display: block;
-      margin-top: 0.35rem;
+      margin-top: 0.25rem;
       color: var(--muted);
-      font-size: 0.9rem;
-      line-height: 1.55;
+      font-size: 0.86rem;
+      line-height: 1.45;
     }
 
     .page-grid {
@@ -844,13 +851,12 @@
     <div class="hero-grid">
       <div class="hero-copy">
         <p class="eyebrow">Oracle technical article</p>
-        <h1>Exadata Exascale 26ai RAC Connection Services</h1>
+        <h1>RAC Connection Services</h1>
         <p class="subtitle">Service-oriented connection workflow for TNS aliases, default service review, OLTP failover, reporting and batch isolation, session distribution, runtime load balancing, and controlled failover simulation.</p>
-        <div class="hero-meta"><span>Last updated June 16, 2026</span></div>
-        <details class="disclaimer"><summary>Educational use and validation required <span class="disclaimer-action">click here</span></summary><p>This guide is for education and planning. Test every TNS, SRVCTL, service placement, load-balancing, and failover command first in a non-production RAC environment that mirrors your client drivers, application pools, workload profile, and availability requirements. The values shown here may require local tuning and change-control approval, and they can affect connection routing, transaction behavior, memory use, service availability, and batch or reporting workload placement. Validate the final plan with application owners, DBAs, network teams, and Oracle Support guidance before using any setting or failure simulation in production.</p></details>
-        <nav class="related-links" aria-label="Navigate the guide set"><a href="../index.html"><strong>Exascale Overview</strong><span>Architecture context, continuity concepts, and shared glossary.</span></a><a href="../Cluster/index.html"><strong>Cluster Scaling</strong><span>Single-node to two-node RAC scaling, SCAN, HA components, validation, AC, and TAC.</span></a><a href="../Healthcheck/index.html"><strong>RAC Health Check</strong><span>Operational RAC validation checks, sections 1 through 8.</span></a><a href="../ResourceManager/index.html"><strong>Resource Manager</strong><span>Service-based consumer groups, CPU shares, DOP limits, activation, and validation.</span></a></nav>
+        <div class="hero-meta"><span>Last updated June 17, 2026</span></div>
+        <details class="disclaimer"><summary>Educational use and validation required <span class="disclaimer-action">click here</span></summary><p>This content is for educational and planning purposes only. Apply every command and configuration first in a non-production test environment that mirrors your RAC, service, client driver, workload, and failover requirements. The recommended values shown here may not work in your specific environment, may require change-control approval, and can affect availability, connection routing, transaction behavior, memory use, and batch workload placement. Validate with application owners, DBAs, network teams, and Oracle Support guidance before using any setting in production.</p></details>
+        <nav class="related-links" data-guide-cards data-guide-variant="connection" data-guide-scope="nested" aria-label="Guide links"></nav>
       </div>
-      <aside class="hero-visual" aria-label="Navigate the guide set"><h2 class="visual-caption"><span>Navigate the guide set</span></h2><ul class="hero-highlights"><li class="highlight"><span><strong>Use this page:</strong> Review connection service sections 9 through 17.</span></li><li class="highlight"><span><strong>Use Exascale Overview:</strong> Get architecture context before applying service changes.</span></li><li class="highlight"><span><strong>Use Healthcheck:</strong> Run prerequisite RAC health checks.</span></li><li class="highlight"><span><strong>Use Resource Manager:</strong> Apply workload governance after service isolation is in place.</span></li></ul></aside>
     </div>
   </section>
   <div class="page-grid"><aside><nav class="toc" aria-label="Table of contents"><h2 class="toc-title">Contents</h2><ol><li><a href="#9-review-tns-aliases">9. Review TNS Aliases</a></li>
@@ -1553,7 +1559,7 @@ srvctl status service \
       <section class="article-section" id="shared-references"><p class="section-kicker">Shared references</p><h2>Glossary and Oracle Documentation</h2><p>Shared glossary terms and Oracle documentation links live in the Exascale overview so the guide set maintains one public reference list.</p><ul class="reference-list"><li><a href="../index.html#documentation">Oracle Official Documentation</a></li><li><a href="../index.html#glossary">Shared Glossary</a></li><li><a href="../Healthcheck/index.html">RAC Health Check Guide</a></li><li><a href="../ResourceManager/index.html">Resource Manager Guide</a></li></ul></section>
     </main>
   </div>
-  <footer class="site-footer"><div class="site-footer-inner"><details class="disclaimer"><summary>Educational use and validation required <span class="disclaimer-action">click here</span></summary><p>This guide is for education and planning. Test every TNS, SRVCTL, service placement, load-balancing, and failover command first in a non-production RAC environment that mirrors your client drivers, application pools, workload profile, and availability requirements. The values shown here may require local tuning and change-control approval, and they can affect connection routing, transaction behavior, memory use, service availability, and batch or reporting workload placement. Validate the final plan with application owners, DBAs, network teams, and Oracle Support guidance before using any setting or failure simulation in production.</p></details><p>Last updated June 16, 2026</p></div></footer>
+  <footer class="site-footer"><div class="site-footer-inner"><details class="disclaimer"><summary>Educational use and validation required <span class="disclaimer-action">click here</span></summary><p>This content is for educational and planning purposes only. Apply every command and configuration first in a non-production test environment that mirrors your RAC, service, client driver, workload, and failover requirements. The recommended values shown here may not work in your specific environment, may require change-control approval, and can affect availability, connection routing, transaction behavior, memory use, and batch workload placement. Validate with application owners, DBAs, network teams, and Oracle Support guidance before using any setting in production.</p></details><p>Last updated June 17, 2026</p></div></footer>
   <button class="back-top" type="button" id="back-top">Back to top</button>
   <script src="../shared-guide-set.js"></script>
   <script>
@@ -1566,7 +1572,7 @@ srvctl status service \
       const languageButtons = document.querySelectorAll("[data-language-button]");
       const textMap = {
         es: {
-          "Exadata Exascale RAC Connection Services": "Servicios de conexión RAC en Exadata Exascale",
+          "RAC Connection Services": "Servicios de conexión RAC en Exadata Exascale",
           "Skip to article": "Saltar al artículo",
           "Series": "Serie",
           "Dark mode": "Modo oscuro",
@@ -1577,24 +1583,10 @@ srvctl status service \
           "Copy": "Copiar",
           "Objective:": "Objetivo:",
           "Oracle technical article": "Artículo técnico de Oracle",
-          "Exadata Exascale 26ai RAC Connection Services": "Servicios de conexión RAC en Exadata Exascale",
           "Service-oriented connection workflow for TNS aliases, default service review, OLTP failover, reporting and batch isolation, session distribution, runtime load balancing, and controlled failover simulation.": "Flujo de conexión orientado a servicios para alias TNS, revisión del servicio predeterminado, failover OLTP, aislamiento de reportes y batch, distribución de sesiones, runtime load balancing y simulación controlada de failover.",
-          "Last updated June 16, 2026": "Última actualización 16 de junio de 2026",
+          "Last updated June 17, 2026": "Última actualización 17 de junio de 2026",
           "Educational use and validation required": "Uso educativo y validación requerida",
-          "This guide is for education and planning. Test every TNS, SRVCTL, service placement, load-balancing, and failover command first in a non-production RAC environment that mirrors your client drivers, application pools, workload profile, and availability requirements. The values shown here may require local tuning and change-control approval, and they can affect connection routing, transaction behavior, memory use, service availability, and batch or reporting workload placement. Validate the final plan with application owners, DBAs, network teams, and Oracle Support guidance before using any setting or failure simulation in production.": "Esta guía es para educación y planificación. Prueba cada comando de TNS, SRVCTL, ubicación de servicios, load-balancing y failover primero en un entorno RAC no productivo que refleje tus controladores cliente, pools de aplicación, perfil de carga y requisitos de disponibilidad. Los valores mostrados aquí pueden requerir ajustes locales y aprobación de control de cambios, y pueden afectar el enrutamiento de conexiones, comportamiento transaccional, uso de memoria, disponibilidad del servicio y ubicación de cargas batch o de reportes. Valida el plan final con dueños de aplicaciones, DBAs, equipos de red y la guía de Oracle Support antes de usar cualquier configuración o simulación de falla en producción.",
-          "Architecture context, continuity concepts, and shared glossary.": "Contexto de arquitectura, conceptos de continuidad y glosario compartido.",
-          "Single-node to two-node RAC scaling, SCAN, HA components, validation, AC, and TAC.": "Escalado RAC de un nodo a dos nodos, SCAN, componentes HA, validación, AC y TAC.",
-          "Operational RAC validation checks, sections 1 through 8.": "Validaciones operativas RAC, secciones 1 a 8.",
-          "Service-based consumer groups, CPU shares, DOP limits, activation, and validation.": "Consumer groups por servicio, cuotas de CPU, límites DOP, activación y validación.",
-          "Navigate the guide set": "Navegar las guías",
-          "Use this page:": "Usa esta página:",
-          "Review connection service sections 9 through 17.": "Revisa las secciones 9 a 17 de servicios de conexión.",
-          "Use Exascale Overview:": "Usa Exascale Overview:",
-          "Get architecture context before applying service changes.": "Consulta contexto de arquitectura antes de aplicar cambios de servicio.",
-          "Use Healthcheck:": "Usa Healthcheck:",
-          "Run prerequisite RAC health checks.": "Ejecuta las revisiones RAC previas.",
-          "Use Resource Manager:": "Usa Resource Manager:",
-          "Apply workload governance after service isolation is in place.": "Aplica gobierno de carga después del aislamiento por servicio.",
+          "This content is for educational and planning purposes only. Apply every command and configuration first in a non-production test environment that mirrors your RAC, service, client driver, workload, and failover requirements. The recommended values shown here may not work in your specific environment, may require change-control approval, and can affect availability, connection routing, transaction behavior, memory use, and batch workload placement. Validate with application owners, DBAs, network teams, and Oracle Support guidance before using any setting in production.": "Este contenido es solo para fines educativos y de planificación. Aplica cada comando y configuración primero en un entorno de prueba no productivo que refleje tus requisitos de RAC, servicio, controlador cliente, carga de trabajo y failover. Los valores recomendados aquí pueden no funcionar en tu entorno específico, pueden requerir aprobación de control de cambios y pueden afectar disponibilidad, enrutamiento de conexiones, comportamiento transaccional, uso de memoria y ubicación de cargas batch. Valida con dueños de aplicaciones, DBAs, equipos de red y la guía de Oracle Support antes de usar cualquier configuración en producción.",
           "Contents": "Contenido",
           "9. Review TNS Aliases": "9. Revisar alias TNS",
           "10. Review Default Connection Service Configuration": "10. Revisar la configuración del servicio de conexión predeterminado",
@@ -1819,7 +1811,7 @@ srvctl status service \
           "and": "y"
         },
         pt: {
-          "Exadata Exascale RAC Connection Services": "Serviços de conexão RAC no Exadata Exascale",
+          "RAC Connection Services": "Serviços de conexão RAC no Exadata Exascale",
           "Skip to article": "Pular para o artigo",
           "Series": "Série",
           "Dark mode": "Modo escuro",
@@ -1830,24 +1822,10 @@ srvctl status service \
           "Copy": "Copiar",
           "Objective:": "Objetivo:",
           "Oracle technical article": "Artigo técnico da Oracle",
-          "Exadata Exascale 26ai RAC Connection Services": "Serviços de conexão RAC no Exadata Exascale",
           "Service-oriented connection workflow for TNS aliases, default service review, OLTP failover, reporting and batch isolation, session distribution, runtime load balancing, and controlled failover simulation.": "Fluxo de conexão orientado a serviços para aliases TNS, revisão do serviço padrão, failover OLTP, isolamento de relatórios e batch, distribuição de sessões, runtime load balancing e simulação controlada de failover.",
-          "Last updated June 16, 2026": "Última atualização em 16 de junho de 2026",
+          "Last updated June 17, 2026": "Última atualização em 17 de junho de 2026",
           "Educational use and validation required": "Uso educacional e validação obrigatória",
-          "This guide is for education and planning. Test every TNS, SRVCTL, service placement, load-balancing, and failover command first in a non-production RAC environment that mirrors your client drivers, application pools, workload profile, and availability requirements. The values shown here may require local tuning and change-control approval, and they can affect connection routing, transaction behavior, memory use, service availability, and batch or reporting workload placement. Validate the final plan with application owners, DBAs, network teams, and Oracle Support guidance before using any setting or failure simulation in production.": "Este guia é para educação e planejamento. Teste cada comando de TNS, SRVCTL, posicionamento de serviço, load-balancing e failover primeiro em um ambiente RAC não produtivo que reflita seus drivers cliente, pools de aplicação, perfil de carga e requisitos de disponibilidade. Os valores mostrados aqui podem exigir ajuste local e aprovação de controle de mudanças, e podem afetar roteamento de conexões, comportamento transacional, uso de memória, disponibilidade do serviço e posicionamento de cargas batch ou de relatórios. Valide o plano final com responsáveis por aplicações, DBAs, equipes de rede e a orientação do Oracle Support antes de usar qualquer configuração ou simulação de falha em produção.",
-          "Architecture context, continuity concepts, and shared glossary.": "Contexto de arquitetura, conceitos de continuidade e glossário compartilhado.",
-          "Single-node to two-node RAC scaling, SCAN, HA components, validation, AC, and TAC.": "Escala RAC de um nó para dois nós, SCAN, componentes HA, validação, AC e TAC.",
-          "Operational RAC validation checks, sections 1 through 8.": "Validações operacionais RAC, seções 1 a 8.",
-          "Service-based consumer groups, CPU shares, DOP limits, activation, and validation.": "Consumer groups por serviço, cotas de CPU, limites DOP, ativação e validação.",
-          "Navigate the guide set": "Navegar pelos guias",
-          "Use this page:": "Use esta página:",
-          "Review connection service sections 9 through 17.": "Revise as seções 9 a 17 de serviços de conexão.",
-          "Use Exascale Overview:": "Use Exascale Overview:",
-          "Get architecture context before applying service changes.": "Consulte contexto de arquitetura antes de aplicar mudanças de serviço.",
-          "Use Healthcheck:": "Use Healthcheck:",
-          "Run prerequisite RAC health checks.": "Execute as verificações RAC prévias.",
-          "Use Resource Manager:": "Use Resource Manager:",
-          "Apply workload governance after service isolation is in place.": "Aplique governança de carga após o isolamento por serviço.",
+          "This content is for educational and planning purposes only. Apply every command and configuration first in a non-production test environment that mirrors your RAC, service, client driver, workload, and failover requirements. The recommended values shown here may not work in your specific environment, may require change-control approval, and can affect availability, connection routing, transaction behavior, memory use, and batch workload placement. Validate with application owners, DBAs, network teams, and Oracle Support guidance before using any setting in production.": "Este conteúdo é apenas para fins educacionais e de planejamento. Aplique cada comando e configuração primeiro em um ambiente de teste não produtivo que reflita seus requisitos de RAC, serviço, driver cliente, carga de trabalho e failover. Os valores recomendados aqui podem não funcionar no seu ambiente específico, podem exigir aprovação de controle de mudanças e podem afetar disponibilidade, roteamento de conexões, comportamento transacional, uso de memória e posicionamento de cargas batch. Valide com responsáveis por aplicações, DBAs, equipes de rede e a orientação do Oracle Support antes de usar qualquer configuração em produção.",
           "Contents": "Conteúdo",
           "9. Review TNS Aliases": "9. Revisar aliases TNS",
           "10. Review Default Connection Service Configuration": "10. Revisar a configuração do serviço de conexão padrão",
@@ -2105,7 +2083,7 @@ srvctl status service \
         localizeLinks(activeLanguage);
         backTop.textContent = labels[activeLanguage].back;
         document.querySelector(".skip-link").textContent = labels[activeLanguage].skip;
-        document.title = activeLanguage === "en" ? "Exadata Exascale RAC Connection Services" : textMap[activeLanguage]["Exadata Exascale RAC Connection Services"];
+        document.title = activeLanguage === "en" ? "RAC Connection Services" : textMap[activeLanguage]["RAC Connection Services"];
         document.querySelectorAll(".copy-btn").forEach((button) => { button.textContent = labels[activeLanguage].copy; });
         setTheme(document.body.getAttribute("data-theme") || "light");
       }

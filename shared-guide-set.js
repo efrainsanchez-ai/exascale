@@ -15,9 +15,9 @@
   };
 
   const labels = {
-    en: { guideSet: "Navigate the guide set" },
-    es: { guideSet: "Navegar las guías" },
-    pt: { guideSet: "Navegar pelos guias" }
+    en: { guideSet: "Guide links" },
+    es: { guideSet: "Enlaces de guías" },
+    pt: { guideSet: "Links dos guias" }
   };
 
   const seriesBrand = {
@@ -28,67 +28,87 @@
   const guideRegistry = [
     {
       key: "overview",
-      label: "Exascale Overview",
+      labels: {
+        en: "Exascale Overview",
+        es: "Overview",
+        pt: "Overview"
+      },
       paths: {
         root: "index.html",
         nested: "../index.html"
       },
       descriptions: {
-        en: "Architecture context, continuity concepts, and shared glossary.",
-        es: "Contexto de arquitectura, conceptos de continuidad y glosario compartido.",
-        pt: "Contexto de arquitetura, conceitos de continuidade e glossário compartilhado."
-      }
-    },
-    {
-      key: "healthcheck",
-      label: "RAC Health Check",
-      paths: {
-        root: "Healthcheck/index.html",
-        nested: "../Healthcheck/index.html"
-      },
-      descriptions: {
-        en: "Operational RAC validation checks, sections 1 through 8.",
-        es: "Validaciones operativas RAC, secciones 1 a 8.",
-        pt: "Validações operacionais RAC, seções 1 a 8."
-      }
-    },
-    {
-      key: "connection",
-      label: "Connection Services",
-      paths: {
-        root: "ConnectionServices/index.html",
-        nested: "../ConnectionServices/index.html"
-      },
-      descriptions: {
-        en: "TNS aliases, service configuration, load balancing, and failover simulation.",
-        es: "Alias TNS, configuración de servicios, load balancing y simulación de failover.",
-        pt: "Aliases TNS, configuração de serviços, load balancing e simulação de failover."
-      }
-    },
-    {
-      key: "resourceManager",
-      label: "Resource Manager",
-      paths: {
-        root: "ResourceManager/index.html",
-        nested: "../ResourceManager/index.html"
-      },
-      descriptions: {
-        en: "Service-based consumer groups, CPU shares, DOP limits, activation, and validation.",
-        es: "Consumer groups por servicio, cuotas de CPU, límites DOP, activación y validación.",
-        pt: "Consumer groups por serviço, cotas de CPU, limites DOP, ativação e validação."
+        en: "Exascale benefits, architecture map, continuity concepts, and shared glossary.",
+        es: "Beneficios Exascale, mapa de arquitectura, conceptos de continuidad y glosario compartido.",
+        pt: "Benefícios Exascale, mapa de arquitetura, conceitos de continuidade e glossário compartilhado."
       }
     },
     {
       key: "cluster",
-      label: "Cluster Scaling",
+      labels: {
+        en: "Cluster Scaling",
+        es: "Escalado de Cluster",
+        pt: "Escala de Cluster"
+      },
       paths: {
         root: "Cluster/index.html",
         nested: "../Cluster/index.html"
       },
       descriptions: {
-        en: "Single-node to two-node RAC scaling, SCAN, HA components, validation, AC, and TAC.",
-        es: "Escalado RAC de un nodo a dos nodos, SCAN, componentes HA, validación, AC y TAC.",
-        pt: "Escala RAC de um nó para dois nós, SCAN, componentes HA, validação, AC e TAC."
+        en: "Single-node to two-node RAC scaling with SCAN, services, load balancing, AC, TAC, and validation.",
+        es: "Escalado RAC de un nodo a dos nodos con SCAN, servicios, load balancing, AC, TAC y validación.",
+        pt: "Escala RAC de um nó para dois nós com SCAN, serviços, load balancing, AC, TAC e validação."
+      }
+    },
+    {
+      key: "healthcheck",
+      labels: {
+        en: "RAC Health Check",
+        es: "Health Check RAC",
+        pt: "Health Check RAC"
+      },
+      paths: {
+        root: "Healthcheck/index.html",
+        nested: "../Healthcheck/index.html"
+      },
+      descriptions: {
+        en: "Baseline cluster, listener, database, service, SQL view, and connectivity checks before changes.",
+        es: "Línea base de clúster, listener, base de datos, servicios, vistas SQL y conectividad antes de cambios.",
+        pt: "Linha de base de cluster, listener, banco, serviços, views SQL e conectividade antes de mudanças."
+      }
+    },
+    {
+      key: "connection",
+      labels: {
+        en: "Connection Services",
+        es: "Servicios de Conexión",
+        pt: "Serviços de Conexão"
+      },
+      paths: {
+        root: "ConnectionServices/index.html",
+        nested: "../ConnectionServices/index.html"
+      },
+      descriptions: {
+        en: "Default service review, OLTP failover, reporting and batch isolation, session distribution, RLB, and forced PDB failover simulation.",
+        es: "Revisión del servicio default, failover OLTP, aislamiento de reportes y batch, distribución de sesiones, RLB y simulación forzada de failover PDB.",
+        pt: "Revisão do serviço padrão, failover OLTP, isolamento de relatórios e batch, distribuição de sessões, RLB e simulação forçada de failover PDB."
+      }
+    },
+    {
+      key: "resourceManager",
+      labels: {
+        en: "Resource Manager",
+        es: "Resource Manager",
+        pt: "Resource Manager"
+      },
+      paths: {
+        root: "ResourceManager/index.html",
+        nested: "../ResourceManager/index.html"
+      },
+      descriptions: {
+        en: "Service-to-consumer-group mapping, business-hours and after-hours plans, DOP caps, report guardrails, activation, and validation.",
+        es: "Mapeo de servicios a consumer groups, planes de horario comercial y fuera de horario, límites DOP, controles de reportes, activación y validación.",
+        pt: "Mapeamento de serviços para consumer groups, planos de horário comercial e fora do horário, limites DOP, controles de relatórios, ativação e validação."
       }
     }
   ];
@@ -96,22 +116,25 @@
   const highlightItems = {
     overview: {
       en: [
-        ["Start here", "Review the overview, architecture map, and continuity concepts."],
-        ["Open Healthcheck", "Run RAC operational checks, sections 1 through 8."],
-        ["Open Connection Services", "Review service and client connection behavior, sections 9 through 17."],
-        ["Open Resource Manager", "Map workload services to consumer groups and CPU shares."]
+        ["Start here", "Connect Exascale benefits to the architecture map, glossary, and operating model."],
+        ["Run Healthcheck", "Capture baseline cluster, listener, service, SQL, and connectivity evidence before changing services."],
+        ["Shape Connection Services", "Review OLTP failover, reporting and batch isolation, session distribution, RLB, and forced PDB failure testing."],
+        ["Govern workloads", "Use Resource Manager for service-based consumer groups, business-hours and after-hours plans, DOP caps, and validation."],
+        ["Scale with continuity", "Use Cluster Scaling for the single-node to two-node path, service load balancing, AC, and TAC."]
       ],
       es: [
-        ["Empieza aquí", "Revisa el overview, el mapa de arquitectura y los conceptos de continuidad."],
-        ["Abre Healthcheck", "Ejecuta revisiones operativas RAC, secciones 1 a 8."],
-        ["Abre Connection Services", "Revisa servicios y conexiones cliente, secciones 9 a 17."],
-        ["Abre Resource Manager", "Mapea servicios de carga a consumer groups y cuotas de CPU."]
+        ["Empieza aquí", "Conecta beneficios Exascale con el mapa de arquitectura, el glosario y el modelo operativo."],
+        ["Ejecuta Healthcheck", "Captura evidencia base de cluster, listener, servicios, SQL y conectividad antes de cambiar servicios."],
+        ["Diseña Connection Services", "Revisa failover OLTP, aislamiento de reportes y batch, distribución de sesiones, RLB y pruebas forzadas de falla PDB."],
+        ["Gobierna cargas", "Usa Resource Manager para consumer groups por servicio, planes de horario comercial y fuera de horario, límites DOP y validación."],
+        ["Escala con continuidad", "Usa Cluster Scaling para la ruta de uno a dos nodos, load balancing de servicios, AC y TAC."]
       ],
       pt: [
-        ["Comece aqui", "Revise o overview, o mapa de arquitetura e os conceitos de continuidade."],
-        ["Abra Healthcheck", "Execute verificações operacionais RAC, seções 1 a 8."],
-        ["Abra Connection Services", "Revise serviços e conexões de cliente, seções 9 a 17."],
-        ["Abra Resource Manager", "Mapeie serviços de carga para consumer groups e cotas de CPU."]
+        ["Comece aqui", "Conecte benefícios Exascale ao mapa de arquitetura, glossário e modelo operacional."],
+        ["Execute Healthcheck", "Capture evidência base de cluster, listener, serviços, SQL e conectividade antes de mudar serviços."],
+        ["Modele Connection Services", "Revise failover OLTP, isolamento de relatórios e batch, distribuição de sessões, RLB e testes forçados de falha PDB."],
+        ["Governe cargas", "Use Resource Manager para consumer groups por serviço, planos de horário comercial e fora do horário, limites DOP e validação."],
+        ["Escale com continuidade", "Use Cluster Scaling para o caminho de um para dois nós, load balancing de serviços, AC e TAC."]
       ]
     },
     healthcheck: {
@@ -136,19 +159,19 @@
     },
     connection: {
       en: [
-        ["Use this page", "Review connection service sections 9 through 17."],
+        ["Use this page", "Review service design, workload isolation, session distribution, RLB, and controlled failover testing."],
         ["Use Exascale Overview", "Get architecture context before applying service changes."],
         ["Use Healthcheck", "Run prerequisite RAC health checks."],
         ["Use Resource Manager", "Apply workload governance after service isolation is in place."]
       ],
       es: [
-        ["Usa esta página", "Revisa las secciones 9 a 17 de servicios de conexión."],
+        ["Usa esta página", "Revisa diseño de servicios, aislamiento de cargas, distribución de sesiones, RLB y pruebas controladas de failover."],
         ["Usa Exascale Overview", "Consulta contexto de arquitectura antes de aplicar cambios de servicio."],
         ["Usa Healthcheck", "Ejecuta las revisiones RAC previas."],
         ["Usa Resource Manager", "Aplica gobierno de carga después del aislamiento por servicio."]
       ],
       pt: [
-        ["Use esta página", "Revise as seções 9 a 17 de serviços de conexão."],
+        ["Use esta página", "Revise desenho de serviços, isolamento de cargas, distribuição de sessões, RLB e testes controlados de failover."],
         ["Use Exascale Overview", "Consulte contexto de arquitetura antes de aplicar mudanças de serviço."],
         ["Use Healthcheck", "Execute as verificações RAC prévias."],
         ["Use Resource Manager", "Aplique governança de carga após o isolamento por serviço."]
@@ -225,7 +248,7 @@
     const activeLang = normalizeLanguage(lang || languageFromLocation());
     return guideRegistry.filter((guide) => guide.key !== variant).map((guide) => ({
       href: withLanguage(guide.paths[scope], activeLang),
-      label: guide.label,
+      label: guide.labels ? guide.labels[activeLang] || guide.labels.en : guide.label,
       description: lang ? guide.descriptions[activeLang] || guide.descriptions.en : guide.descriptions
     }));
   }
@@ -239,20 +262,22 @@
       if (!notice[lang]) return;
       translations[lang].disclaimerTitle = notice[lang].title;
       translations[lang].disclaimer = notice[lang].text;
-      translations[lang].controls.highlights = labels[lang].guideSet;
     });
 
     Object.keys(pageConfigs).forEach((variant) => {
       const scope = variant === "overview" ? "root" : "nested";
+      const isRoot = variant === "overview";
       pageConfigs[variant].relativeLinks = cardList(variant, scope, "en");
       pageConfigs[variant].relativeLinksByLanguage = supportedLanguages.reduce((links, lang) => {
         links[lang] = cardList(variant, scope, lang);
         return links;
       }, {});
       pageConfigs[variant].seriesBrand = seriesBrand;
-      Object.keys(pageConfigs[variant].copy).forEach((lang) => {
-        pageConfigs[variant].copy[lang].highlights = highlightText(variant, lang);
-      });
+      if (isRoot) {
+        Object.keys(pageConfigs[variant].copy).forEach((lang) => {
+          pageConfigs[variant].copy[lang].highlights = highlightText(variant, lang);
+        });
+      }
     });
   }
 
@@ -271,16 +296,37 @@
   }
 
   function setDisclaimerHeading(box, heading, title) {
-    heading.textContent = title;
+    const target = heading || box.querySelector("summary");
+    if (!target) return;
+    target.textContent = title;
     if (box.tagName === "DETAILS") {
+      box.removeAttribute("open");
       const action = document.createElement("span");
       action.className = "disclaimer-action";
       action.textContent = "click here";
-      heading.append(document.createTextNode(" "), action);
+      target.append(document.createTextNode(" "), action);
     }
   }
 
+  function createCard(link, templates) {
+    const anchor = document.createElement("a");
+    anchor.className = templates.anchorClass || "related-link";
+    anchor.href = link.href;
+
+    const strong = document.createElement("strong");
+    strong.className = templates.strongClass || "";
+    strong.textContent = link.label;
+
+    const span = document.createElement("span");
+    span.className = templates.spanClass || "";
+    span.textContent = link.description;
+
+    anchor.append(strong, span);
+    return anchor;
+  }
+
   function applyStaticPage(variant, scope) {
+    const isRoot = variant === "overview";
     staticPanels().forEach((panel) => {
       const lang = panelLanguage(panel);
       const localizedNotice = notice[lang] || notice.en;
@@ -288,33 +334,33 @@
         const heading = box.querySelector("h2, h3");
         const paragraph = box.querySelector("p");
         box.setAttribute("aria-label", localizedNotice.title);
-        if (heading) setDisclaimerHeading(box, heading, localizedNotice.title);
+        setDisclaimerHeading(box, heading, localizedNotice.title);
         if (paragraph) paragraph.textContent = localizedNotice.text;
       });
 
-      const links = panel.querySelector(".related-links");
-      if (links) {
+      const linkContainers = Array.from(panel.querySelectorAll("[data-guide-cards]"));
+      if (!linkContainers.length) {
+        const legacyLinks = panel.querySelector(".related-links");
+        if (legacyLinks) linkContainers.push(legacyLinks);
+      }
+      linkContainers.forEach((links) => {
         links.setAttribute("aria-label", labels[lang].guideSet);
         const anchorTemplate = links.querySelector("a");
         const strongTemplate = anchorTemplate && anchorTemplate.querySelector("strong");
         const spanTemplate = anchorTemplate && anchorTemplate.querySelector("span");
-        replaceChildren(links, cardList(variant, scope, lang).map((link) => {
-          const anchor = document.createElement("a");
-          anchor.className = anchorTemplate ? anchorTemplate.className : "related-link";
-          anchor.href = link.href;
-          const strong = document.createElement("strong");
-          strong.className = strongTemplate ? strongTemplate.className : "";
-          strong.textContent = link.label;
-          const span = document.createElement("span");
-          span.className = spanTemplate ? spanTemplate.className : "";
-          span.textContent = link.description;
-          anchor.append(strong, span);
-          return anchor;
-        }));
-      }
+        const templates = {
+          anchorClass: links.getAttribute("data-card-class") || (anchorTemplate && anchorTemplate.className) || "related-link",
+          strongClass: links.getAttribute("data-card-title-class") || (strongTemplate && strongTemplate.className) || "",
+          spanClass: links.getAttribute("data-card-description-class") || (spanTemplate && spanTemplate.className) || ""
+        };
+        replaceChildren(links, cardList(variant, scope, lang).map((link) => createCard(link, templates)));
+      });
 
       const visual = panel.querySelector(".hero-visual");
       if (visual) {
+        if (!isRoot) {
+          visual.remove();
+        } else {
         visual.setAttribute("aria-label", labels[lang].guideSet);
         const caption = visual.querySelector(".visual-caption span");
         if (caption) caption.textContent = labels[lang].guideSet;
@@ -338,6 +384,7 @@
             return item;
           }));
         }
+        }
       }
     });
 
@@ -346,7 +393,7 @@
       const heading = footer.querySelector("h2, h3");
       const paragraph = footer.querySelector("p");
       footer.setAttribute("aria-label", notice.en.title);
-      if (heading) setDisclaimerHeading(footer, heading, notice.en.title);
+      setDisclaimerHeading(footer, heading, notice.en.title);
       if (paragraph) paragraph.textContent = notice.en.text;
     }
 
@@ -356,6 +403,36 @@
     document.querySelectorAll("[data-series-brand-subtitle]").forEach((node) => {
       node.textContent = seriesBrand.subtitle;
     });
+  }
+
+  function hydrateGuideCards() {
+    document.querySelectorAll("[data-guide-cards]").forEach((container) => {
+      const variant = container.getAttribute("data-guide-variant");
+      if (!variant) return;
+
+      const scope = container.getAttribute("data-guide-scope") || (variant === "overview" ? "root" : "nested");
+      const panel = container.closest("[data-language-panel]");
+      const lang = normalizeLanguage(container.getAttribute("data-guide-language") || container.getAttribute("data-guide-lang") || (panel && panelLanguage(panel)) || document.documentElement.lang || "en");
+      const localizedLabels = labels[lang] || labels.en;
+      container.setAttribute("aria-label", localizedLabels.guideSet);
+
+      const anchorTemplate = container.querySelector("a");
+      const strongTemplate = anchorTemplate && anchorTemplate.querySelector("strong");
+      const spanTemplate = anchorTemplate && anchorTemplate.querySelector("span");
+      const templates = {
+        anchorClass: container.getAttribute("data-card-class") || (anchorTemplate && anchorTemplate.className) || "related-link",
+        strongClass: container.getAttribute("data-card-title-class") || (strongTemplate && strongTemplate.className) || "",
+        spanClass: container.getAttribute("data-card-description-class") || (spanTemplate && spanTemplate.className) || ""
+      };
+
+      replaceChildren(container, cardList(variant, scope, lang).map((link) => createCard(link, templates)));
+    });
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", hydrateGuideCards);
+  } else {
+    hydrateGuideCards();
   }
 
   window.ExascaleGuideSet = {
@@ -371,6 +448,7 @@
     cardList,
     highlightText,
     applyReactShell,
-    applyStaticPage
+    applyStaticPage,
+    hydrateGuideCards
   };
 }());
