@@ -176,8 +176,41 @@
     .top-actions {
       display: flex;
       align-items: center;
+      flex-wrap: wrap;
       gap: 0.55rem;
       flex: 0 0 auto;
+    }
+
+    .language-switch {
+      display: inline-flex;
+      gap: 0.35rem;
+      align-items: center;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.72);
+      padding: 0.25rem;
+    }
+
+    body[data-theme="dark"] .language-switch {
+      background: rgba(31, 27, 26, 0.8);
+      border-color: rgba(120, 113, 108, 0.45);
+    }
+
+    .language-switch button {
+      border: 0;
+      border-radius: 6px;
+      padding: 0.45rem 0.7rem;
+      background: transparent;
+      color: var(--muted);
+      font: inherit;
+      font-size: 0.75rem;
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    .language-switch button[aria-pressed="true"] {
+      background: var(--accent);
+      color: #ffffff;
     }
 
     .theme-toggle,
@@ -273,17 +306,23 @@
 
     .disclaimer {
       margin-top: 1.35rem;
-      border: 1px solid color-mix(in srgb, var(--gold), transparent 55%);
+      border: 1px solid #fcd34d;
       border-radius: var(--radius);
-      background: color-mix(in srgb, var(--gold), transparent 88%);
-      color: var(--text);
+      background: #fffbeb;
+      color: #451a03;
+    }
+
+    body[data-theme="dark"] .disclaimer {
+      border-color: rgba(245, 158, 11, 0.4);
+      background: rgba(69, 26, 3, 0.25);
+      color: #fef3c7;
     }
 
     .disclaimer summary {
       cursor: pointer;
       list-style: none;
       padding: 0.8rem 1rem;
-      color: var(--accent-strong);
+      color: inherit;
       font-size: 0.8rem;
       font-weight: 800;
       letter-spacing: 0.12em;
@@ -295,7 +334,7 @@
     }
 
     .disclaimer-action {
-      color: var(--accent-strong);
+      color: #92400e;
       font-size: 0.72rem;
       font-weight: 700;
       letter-spacing: 0;
@@ -304,13 +343,21 @@
       white-space: nowrap;
     }
 
+    body[data-theme="dark"] .disclaimer-action {
+      color: #fde68a;
+    }
+
     .disclaimer p {
       margin: 0;
-      border-top: 1px solid color-mix(in srgb, var(--gold), transparent 65%);
+      border-top: 1px solid #fde68a;
       padding: 0.9rem 1rem 1rem;
-      color: var(--muted);
+      color: inherit;
       font-size: 0.92rem;
       line-height: 1.65;
+    }
+
+    body[data-theme="dark"] .disclaimer p {
+      border-top-color: rgba(245, 158, 11, 0.3);
     }
 
     .hero-visual {
@@ -737,6 +784,11 @@
         </span>
       </a>
       <div class="top-actions">
+        <div class="language-switch" role="group" aria-label="Language">
+          <button type="button" data-language-button="en" aria-pressed="true">EN</button>
+          <button type="button" data-language-button="es" aria-pressed="false">ES</button>
+          <button type="button" data-language-button="pt" aria-pressed="false">PT</button>
+        </div>
         <button class="theme-toggle" id="theme-toggle" type="button" aria-pressed="false">Dark mode</button>
       </div>
     </div>
@@ -750,8 +802,6 @@
         <p class="subtitle">Operational validation workflow for Grid Infrastructure, listener state, RAC database resources, services, SQL inventory views, and end-to-end connectivity.</p>
         <div class="hero-meta">
           <span>Last updated June 16, 2026</span>
-          <span>Scope: sections 1 through 8</span>
-          <span>Audience: DBAs and operations teams</span>
         </div>
         <details class="disclaimer">
           <summary>Educational use and validation required <span class="disclaimer-action">click here</span></summary>
@@ -957,22 +1007,337 @@ sqlplus system@CDB01_PDB01</code></pre>
   <script>
     (function () {
       const storageKey = "exascale-theme";
+      const languageStorageKey = "exascale-healthcheck-language";
       const saved = localStorage.getItem(storageKey);
       const prefersDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
       const themeButton = document.getElementById("theme-toggle");
       const backTop = document.getElementById("back-top");
+      const languageButtons = document.querySelectorAll("[data-language-button]");
+      const metaDescription = document.querySelector("meta[name='description']");
+      const labels = {
+        en: {
+          title: "Exadata Exascale RAC Health Check",
+          description: "Oracle Exadata Exascale 26ai RAC health check guide covering Clusterware, listener, database, service, SQL view, and connectivity validation.",
+          language: "Language",
+          dark: "Dark mode",
+          light: "Light mode",
+          copied: "Copied",
+          copy: "Copy",
+          back: "Back to top",
+          skip: "Skip to article"
+        },
+        es: {
+          title: "Health Check RAC de Exadata Exascale",
+          description: "Guía de health check RAC para Oracle Exadata Exascale 26ai que cubre Clusterware, listener, base de datos, servicios, vistas SQL y validación de conectividad.",
+          language: "Idioma",
+          dark: "Modo oscuro",
+          light: "Modo claro",
+          copied: "Copiado",
+          copy: "Copiar",
+          back: "Volver arriba",
+          skip: "Saltar al artículo"
+        },
+        pt: {
+          title: "Health Check RAC do Exadata Exascale",
+          description: "Guia de health check RAC para Oracle Exadata Exascale 26ai que cobre Clusterware, listener, banco de dados, serviços, views SQL e validação de conectividade.",
+          language: "Idioma",
+          dark: "Modo escuro",
+          light: "Modo claro",
+          copied: "Copiado",
+          copy: "Copiar",
+          back: "Voltar ao topo",
+          skip: "Ir para o artigo"
+        }
+      };
+      const textMap = {
+        es: {
+          "Skip to article": "Saltar al artículo",
+          "Series": "Serie",
+          "Dark mode": "Modo oscuro",
+          "Light mode": "Modo claro",
+          "Copied": "Copiado",
+          "Copy": "Copiar",
+          "Objective:": "Objetivo:",
+          "Oracle technical article": "Artículo técnico de Oracle",
+          "Exadata Exascale 26ai RAC Health Check": "Health Check RAC de Exadata Exascale 26ai",
+          "Operational validation workflow for Grid Infrastructure, listener state, RAC database resources, services, SQL inventory views, and end-to-end connectivity.": "Flujo de validación operativa para Grid Infrastructure, estado del listener, recursos de base de datos RAC, servicios, vistas SQL de inventario y conectividad de extremo a extremo.",
+          "Last updated June 16, 2026": "Última actualización 16 de junio de 2026",
+          "Educational use and validation required": "Uso educativo y validación requerida",
+          "This content is for educational and planning purposes only. Apply every command and configuration first in a non-production test environment that mirrors your RAC, service, client driver, workload, and failover requirements. The recommended values shown here may not work in your specific environment, may require change-control approval, and can affect availability, connection routing, transaction behavior, memory use, and batch workload placement. Validate with application owners, DBAs, network teams, and Oracle Support guidance before using any setting in production.": "Este contenido es solo para fines educativos y de planificación. Aplica cada comando y configuración primero en un entorno de prueba no productivo que refleje tus requisitos de RAC, servicio, controlador cliente, carga de trabajo y failover. Los valores recomendados aquí pueden no funcionar en tu entorno específico, pueden requerir aprobación de control de cambios y pueden afectar disponibilidad, enrutamiento de conexiones, comportamiento transaccional, uso de memoria y ubicación de cargas batch. Valida con dueños de aplicaciones, DBAs, equipos de red y la guía de Oracle Support antes de usar cualquier configuración en producción.",
+          "Contents": "Contenido",
+          "1. Grid Infrastructure": "1. Grid Infrastructure",
+          "2. ASM Expectation": "2. Expectativa de ASM",
+          "3. Listener": "3. Listener",
+          "4. Database Health": "4. Salud de la base de datos",
+          "5. Database Configuration": "5. Configuración de la base de datos",
+          "6. Service Validation": "6. Validación de servicios",
+          "7. SQL Health Checks": "7. Revisiones de salud SQL",
+          "8. Connectivity": "8. Conectividad",
+          "Operational Notes": "Notas operativas",
+          "Shared References": "Referencias compartidas",
+          "Section 1": "Sección 1",
+          "Section 2": "Sección 2",
+          "Section 3": "Sección 3",
+          "Section 4": "Sección 4",
+          "Section 5": "Sección 5",
+          "Section 6": "Sección 6",
+          "Section 7": "Sección 7",
+          "Section 8": "Sección 8",
+          "Operations": "Operaciones",
+          "Shared references": "Referencias compartidas",
+          "Grid Infrastructure Health Checks": "Revisiones de salud de Grid Infrastructure",
+          "Oracle Clusterware provides the cluster-aware resource framework used by RAC. CRSCTL is the Clusterware interface for checking cluster health, resource state, and node membership before database-level checks begin.": "Oracle Clusterware proporciona el framework de recursos consciente del cluster que usa RAC. CRSCTL es la interfaz de Clusterware para revisar la salud del cluster, el estado de recursos y la membresía de nodos antes de iniciar las revisiones a nivel de base de datos.",
+          "Validate Clusterware status, resource state, and node membership from the Grid Infrastructure owner before checking database resources.": "Valida el estado de Clusterware, el estado de recursos y la membresía de nodos desde el propietario de Grid Infrastructure antes de revisar recursos de base de datos.",
+          "Operational note:": "Nota operativa:",
+          "is deprecated.": "está obsoleto.",
+          "ASM Checks: Not Applicable to Exascale": "Revisiones ASM: no aplican a Exascale",
+          "In the Exadata Exascale path used by this guide, storage is presented through Exascale-managed infrastructure rather than customer-managed ASM instances. An absent": "En la ruta de Exadata Exascale usada por esta guía, el almacenamiento se presenta mediante infraestructura administrada por Exascale en lugar de instancias ASM administradas por el cliente. La ausencia del recurso",
+          "resource is therefore an expected characteristic, not automatically a fault.": "es por lo tanto una característica esperada, no automáticamente una falla.",
+          "Confirm the Exascale expectation that customer-managed ASM is not present for this deployment path.": "Confirma la expectativa de Exascale de que ASM administrado por el cliente no está presente para esta ruta de despliegue.",
+          "Output": "Salida",
+          "Expected output when the ASM resource does not exist in this Exascale path.": "Salida esperada cuando el recurso ASM no existe en esta ruta de Exascale.",
+          "Listener Health Checks": "Revisiones de salud del listener",
+          "Oracle Net listeners receive client connection requests and route them to registered database services. In RAC, listener health is part of the path between SCAN or node addresses and the database service selected by the client.": "Los listeners de Oracle Net reciben solicitudes de conexión de clientes y las enrutan hacia servicios de base de datos registrados. En RAC, la salud del listener forma parte de la ruta entre SCAN o direcciones de nodo y el servicio de base de datos seleccionado por el cliente.",
+          "Verify that the node listener resource is online on the target cluster node.": "Verifica que el recurso listener del nodo esté en línea en el nodo de cluster objetivo.",
+          "Database Health Checks": "Revisiones de salud de la base de datos",
+          "SRVCTL is the management utility Oracle expects for Oracle-managed RAC entities such as databases, instances, listeners, and services. Database status checks confirm whether each RAC instance is running under Clusterware control.": "SRVCTL es la utilidad de administración que Oracle espera para entidades RAC administradas por Oracle, como bases de datos, instancias, listeners y servicios. Las revisiones de estado de la base de datos confirman si cada instancia RAC se ejecuta bajo control de Clusterware.",
+          "Load the database owner environment and confirm RAC database instance status through SRVCTL.": "Carga el entorno del propietario de la base de datos y confirma el estado de las instancias RAC mediante SRVCTL.",
+          "Database Configuration": "Configuración de la base de datos",
+          "The database configuration is the Clusterware metadata that describes how the RAC database is managed, including instance names, Oracle homes, startup policy, and placement information used by SRVCTL.": "La configuración de la base de datos es la metadata de Clusterware que describe cómo se administra la base de datos RAC, incluidos nombres de instancia, Oracle homes, política de arranque e información de ubicación usada por SRVCTL.",
+          "Review the database configuration registered in Oracle Clusterware, including instance placement and management attributes.": "Revisa la configuración de la base de datos registrada en Oracle Clusterware, incluida la ubicación de instancias y los atributos de administración.",
+          "Service Validation": "Validación de servicios",
+          "RAC services are logical workload entry points. They decouple application connection names from individual instances and carry placement, failover, and load-balancing attributes used by clients and pools.": "Los servicios RAC son puntos de entrada lógicos para cargas de trabajo. Desacoplan los nombres de conexión de aplicaciones de instancias individuales y contienen atributos de ubicación, failover y load balancing usados por clientes y pools.",
+          "List service configuration and runtime status for the database, then check the default PDB service explicitly.": "Lista la configuración y el estado en runtime de los servicios para la base de datos, y luego revisa explícitamente el servicio PDB predeterminado.",
+          "SQL Health Checks": "Revisiones de salud SQL",
+          "Dynamic performance views expose current database and instance state. In RAC, GV$ views return instance-scoped rows so the same query can compare status, services, and sessions across nodes.": "Las vistas dinámicas de rendimiento exponen el estado actual de la base de datos y de las instancias. En RAC, las vistas GV$ devuelven filas por instancia para que la misma consulta pueda comparar estado, servicios y sesiones entre nodos.",
+          "View": "Vista",
+          "Inventory purpose": "Propósito de inventario",
+          "Instance-scoped RAC status and identity.": "Estado e identidad RAC por instancia.",
+          "Database-level state.": "Estado a nivel de base de datos.",
+          "Cluster-wide service metadata.": "Metadata de servicios a nivel de cluster.",
+          "Services currently active by instance.": "Servicios actualmente activos por instancia.",
+          "Instance-scoped session inventory.": "Inventario de sesiones por instancia.",
+          "Local service metadata.": "Metadata de servicios locales.",
+          "Pluggable database inventory and state.": "Inventario y estado de pluggable databases.",
+          "Connectivity Validation": "Validación de conectividad",
+          "Connectivity validation covers both name resolution and session creation. A TNS alias can resolve correctly while the final database service connection still fails, so both layers need to be checked.": "La validación de conectividad cubre tanto resolución de nombres como creación de sesiones. Un alias TNS puede resolver correctamente mientras la conexión final al servicio de base de datos aún falla, por lo que ambas capas deben revisarse.",
+          "Test client naming resolution with tnsping and validate an actual SQL*Plus connection.": "Prueba la resolución de nombres del cliente con tnsping y valida una conexión real de SQL*Plus.",
+          "Exascale Operational Notes": "Notas operativas de Exascale",
+          "Run Grid Infrastructure commands as the": "Ejecuta comandos de Grid Infrastructure como el usuario",
+          "Run database commands as the": "Ejecuta comandos de base de datos como el usuario",
+          "Use": "Usa",
+          "for database-scoped SRVCTL checks.": "para revisiones SRVCTL con alcance de base de datos.",
+          "Replace": "Reemplaza",
+          "with values from": "con valores de",
+          "Glossary and Oracle Documentation": "Glosario y documentación de Oracle",
+          "Shared glossary terms and Oracle documentation links live in the Exascale overview so the guide set maintains one public reference list.": "Los términos del glosario compartido y los enlaces de documentación de Oracle viven en el overview de Exascale para que el conjunto de guías mantenga una sola lista pública de referencias.",
+          "Oracle Official Documentation": "Documentación oficial de Oracle",
+          "Shared Glossary": "Glosario compartido",
+          "Connection Services Guide": "Guía de Connection Services",
+          "Resource Manager Guide": "Guía de Resource Manager",
+          "Back to top": "Volver arriba"
+        },
+        pt: {
+          "Skip to article": "Ir para o artigo",
+          "Series": "Série",
+          "Dark mode": "Modo escuro",
+          "Light mode": "Modo claro",
+          "Copied": "Copiado",
+          "Copy": "Copiar",
+          "Objective:": "Objetivo:",
+          "Oracle technical article": "Artigo técnico da Oracle",
+          "Exadata Exascale 26ai RAC Health Check": "Health Check RAC do Exadata Exascale 26ai",
+          "Operational validation workflow for Grid Infrastructure, listener state, RAC database resources, services, SQL inventory views, and end-to-end connectivity.": "Fluxo de validação operacional para Grid Infrastructure, estado do listener, recursos de banco de dados RAC, serviços, views SQL de inventário e conectividade de ponta a ponta.",
+          "Last updated June 16, 2026": "Última atualização 16 de junho de 2026",
+          "Educational use and validation required": "Uso educacional e validação obrigatória",
+          "This content is for educational and planning purposes only. Apply every command and configuration first in a non-production test environment that mirrors your RAC, service, client driver, workload, and failover requirements. The recommended values shown here may not work in your specific environment, may require change-control approval, and can affect availability, connection routing, transaction behavior, memory use, and batch workload placement. Validate with application owners, DBAs, network teams, and Oracle Support guidance before using any setting in production.": "Este conteúdo é apenas para fins educacionais e de planejamento. Aplique cada comando e configuração primeiro em um ambiente de teste não produtivo que reflita seus requisitos de RAC, serviço, driver cliente, carga de trabalho e failover. Os valores recomendados aqui podem não funcionar no seu ambiente específico, podem exigir aprovação de controle de mudanças e podem afetar disponibilidade, roteamento de conexões, comportamento transacional, uso de memória e posicionamento de cargas batch. Valide com responsáveis por aplicações, DBAs, equipes de rede e a orientação do Oracle Support antes de usar qualquer configuração em produção.",
+          "Contents": "Conteúdo",
+          "1. Grid Infrastructure": "1. Grid Infrastructure",
+          "2. ASM Expectation": "2. Expectativa de ASM",
+          "3. Listener": "3. Listener",
+          "4. Database Health": "4. Saúde do banco de dados",
+          "5. Database Configuration": "5. Configuração do banco de dados",
+          "6. Service Validation": "6. Validação de serviços",
+          "7. SQL Health Checks": "7. Verificações de saúde SQL",
+          "8. Connectivity": "8. Conectividade",
+          "Operational Notes": "Notas operacionais",
+          "Shared References": "Referências compartilhadas",
+          "Section 1": "Seção 1",
+          "Section 2": "Seção 2",
+          "Section 3": "Seção 3",
+          "Section 4": "Seção 4",
+          "Section 5": "Seção 5",
+          "Section 6": "Seção 6",
+          "Section 7": "Seção 7",
+          "Section 8": "Seção 8",
+          "Operations": "Operações",
+          "Shared references": "Referências compartilhadas",
+          "Grid Infrastructure Health Checks": "Verificações de saúde do Grid Infrastructure",
+          "Oracle Clusterware provides the cluster-aware resource framework used by RAC. CRSCTL is the Clusterware interface for checking cluster health, resource state, and node membership before database-level checks begin.": "Oracle Clusterware fornece o framework de recursos consciente do cluster usado pelo RAC. CRSCTL é a interface do Clusterware para verificar a saúde do cluster, o estado dos recursos e a associação de nós antes do início das verificações em nível de banco de dados.",
+          "Validate Clusterware status, resource state, and node membership from the Grid Infrastructure owner before checking database resources.": "Valide o status do Clusterware, o estado dos recursos e a associação de nós a partir do proprietário do Grid Infrastructure antes de verificar recursos de banco de dados.",
+          "Operational note:": "Nota operacional:",
+          "is deprecated.": "está obsoleto.",
+          "ASM Checks: Not Applicable to Exascale": "Verificações ASM: não aplicáveis ao Exascale",
+          "In the Exadata Exascale path used by this guide, storage is presented through Exascale-managed infrastructure rather than customer-managed ASM instances. An absent": "No caminho do Exadata Exascale usado por este guia, o armazenamento é apresentado por infraestrutura gerenciada pelo Exascale em vez de instâncias ASM gerenciadas pelo cliente. A ausência do recurso",
+          "resource is therefore an expected characteristic, not automatically a fault.": "é, portanto, uma característica esperada, não automaticamente uma falha.",
+          "Confirm the Exascale expectation that customer-managed ASM is not present for this deployment path.": "Confirme a expectativa do Exascale de que ASM gerenciado pelo cliente não está presente para este caminho de implantação.",
+          "Output": "Saída",
+          "Expected output when the ASM resource does not exist in this Exascale path.": "Saída esperada quando o recurso ASM não existe neste caminho do Exascale.",
+          "Listener Health Checks": "Verificações de saúde do listener",
+          "Oracle Net listeners receive client connection requests and route them to registered database services. In RAC, listener health is part of the path between SCAN or node addresses and the database service selected by the client.": "Listeners do Oracle Net recebem solicitações de conexão de clientes e as roteiam para serviços de banco de dados registrados. Em RAC, a saúde do listener faz parte do caminho entre SCAN ou endereços de nó e o serviço de banco de dados selecionado pelo cliente.",
+          "Verify that the node listener resource is online on the target cluster node.": "Verifique se o recurso listener do nó está online no nó de cluster de destino.",
+          "Database Health Checks": "Verificações de saúde do banco de dados",
+          "SRVCTL is the management utility Oracle expects for Oracle-managed RAC entities such as databases, instances, listeners, and services. Database status checks confirm whether each RAC instance is running under Clusterware control.": "SRVCTL é a utilidade de gerenciamento esperada pela Oracle para entidades RAC gerenciadas pela Oracle, como bancos de dados, instâncias, listeners e serviços. As verificações de status do banco de dados confirmam se cada instância RAC está em execução sob controle do Clusterware.",
+          "Load the database owner environment and confirm RAC database instance status through SRVCTL.": "Carregue o ambiente do proprietário do banco de dados e confirme o status das instâncias RAC por meio do SRVCTL.",
+          "Database Configuration": "Configuração do banco de dados",
+          "The database configuration is the Clusterware metadata that describes how the RAC database is managed, including instance names, Oracle homes, startup policy, and placement information used by SRVCTL.": "A configuração do banco de dados é a metadata do Clusterware que descreve como o banco de dados RAC é gerenciado, incluindo nomes de instância, Oracle homes, política de inicialização e informações de posicionamento usadas pelo SRVCTL.",
+          "Review the database configuration registered in Oracle Clusterware, including instance placement and management attributes.": "Revise a configuração do banco de dados registrada no Oracle Clusterware, incluindo posicionamento de instâncias e atributos de gerenciamento.",
+          "Service Validation": "Validação de serviços",
+          "RAC services are logical workload entry points. They decouple application connection names from individual instances and carry placement, failover, and load-balancing attributes used by clients and pools.": "Serviços RAC são pontos de entrada lógicos para cargas de trabalho. Eles desacoplam nomes de conexão de aplicações de instâncias individuais e carregam atributos de posicionamento, failover e load balancing usados por clientes e pools.",
+          "List service configuration and runtime status for the database, then check the default PDB service explicitly.": "Liste a configuração e o status em runtime dos serviços para o banco de dados e depois verifique explicitamente o serviço PDB padrão.",
+          "SQL Health Checks": "Verificações de saúde SQL",
+          "Dynamic performance views expose current database and instance state. In RAC, GV$ views return instance-scoped rows so the same query can compare status, services, and sessions across nodes.": "Views dinâmicas de desempenho expõem o estado atual do banco de dados e das instâncias. Em RAC, as views GV$ retornam linhas por instância para que a mesma consulta possa comparar status, serviços e sessões entre nós.",
+          "View": "View",
+          "Inventory purpose": "Propósito do inventário",
+          "Instance-scoped RAC status and identity.": "Status e identidade RAC por instância.",
+          "Database-level state.": "Estado em nível de banco de dados.",
+          "Cluster-wide service metadata.": "Metadata de serviços em todo o cluster.",
+          "Services currently active by instance.": "Serviços atualmente ativos por instância.",
+          "Instance-scoped session inventory.": "Inventário de sessões por instância.",
+          "Local service metadata.": "Metadata de serviços locais.",
+          "Pluggable database inventory and state.": "Inventário e estado de pluggable databases.",
+          "Connectivity Validation": "Validação de conectividade",
+          "Connectivity validation covers both name resolution and session creation. A TNS alias can resolve correctly while the final database service connection still fails, so both layers need to be checked.": "A validação de conectividade cobre tanto resolução de nomes quanto criação de sessões. Um alias TNS pode resolver corretamente enquanto a conexão final ao serviço de banco de dados ainda falha, portanto ambas as camadas precisam ser verificadas.",
+          "Test client naming resolution with tnsping and validate an actual SQL*Plus connection.": "Teste a resolução de nomes do cliente com tnsping e valide uma conexão real do SQL*Plus.",
+          "Exascale Operational Notes": "Notas operacionais do Exascale",
+          "Run Grid Infrastructure commands as the": "Execute comandos do Grid Infrastructure como o usuário",
+          "Run database commands as the": "Execute comandos de banco de dados como o usuário",
+          "Use": "Use",
+          "for database-scoped SRVCTL checks.": "para verificações SRVCTL com escopo de banco de dados.",
+          "Replace": "Substitua",
+          "with values from": "por valores de",
+          "Glossary and Oracle Documentation": "Glossário e documentação da Oracle",
+          "Shared glossary terms and Oracle documentation links live in the Exascale overview so the guide set maintains one public reference list.": "Os termos do glossário compartilhado e os links da documentação Oracle ficam no overview do Exascale para que o conjunto de guias mantenha uma única lista pública de referências.",
+          "Oracle Official Documentation": "Documentação oficial da Oracle",
+          "Shared Glossary": "Glossário compartilhado",
+          "Connection Services Guide": "Guia de Connection Services",
+          "Resource Manager Guide": "Guia de Resource Manager",
+          "Back to top": "Voltar ao topo"
+        }
+      };
+      const originalTextNodes = [];
+
+      document.querySelectorAll(".copy-btn").forEach((button) => {
+        if (!button.dataset.originalLabel) button.dataset.originalLabel = "Copy";
+      });
+
+      const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, {
+        acceptNode(node) {
+          if (!node.nodeValue.trim()) return NodeFilter.FILTER_REJECT;
+          const parent = node.parentElement;
+          if (!parent || parent.closest("code, pre, script, style, noscript")) return NodeFilter.FILTER_REJECT;
+          return NodeFilter.FILTER_ACCEPT;
+        }
+      });
+      while (walker.nextNode()) {
+        originalTextNodes.push({ node: walker.currentNode, text: walker.currentNode.nodeValue });
+      }
+
+      function normalizeLanguage(language) {
+        return window.ExascaleGuideSet
+          ? window.ExascaleGuideSet.normalizeLanguage(language)
+          : (["en", "es", "pt"].includes(language) ? language : "en");
+      }
+
+      function initialLanguage() {
+        const queryLanguage = new URLSearchParams(window.location.search).get("lang");
+        return normalizeLanguage(queryLanguage || localStorage.getItem(languageStorageKey) || "en");
+      }
+
+      function updateLanguageLinks(language) {
+        const activeLanguage = normalizeLanguage(language);
+        document.querySelectorAll("a[href]").forEach((anchor) => {
+          if (!anchor.dataset.baseHref) anchor.dataset.baseHref = anchor.getAttribute("href");
+          const baseHref = anchor.dataset.baseHref;
+          anchor.setAttribute("href", window.ExascaleGuideSet ? window.ExascaleGuideSet.withLanguage(baseHref, activeLanguage) : baseHref);
+        });
+      }
+
+      function localizeText(language) {
+        const map = textMap[language] || {};
+        originalTextNodes.forEach(({ node, text }) => {
+          const trimmed = text.trim();
+          const leading = text.match(/^\s*/)[0];
+          const trailing = text.match(/\s*$/)[0];
+          node.nodeValue = map[trimmed] ? `${leading}${map[trimmed]}${trailing}` : text;
+        });
+      }
 
       function setTheme(theme) {
+        const language = document.documentElement.lang || "en";
         document.body.setAttribute("data-theme", theme);
         localStorage.setItem(storageKey, theme);
-        themeButton.textContent = theme === "dark" ? "Light mode" : "Dark mode";
+        themeButton.textContent = theme === "dark" ? labels[language].light : labels[language].dark;
         themeButton.setAttribute("aria-pressed", String(theme === "dark"));
       }
 
+      function setLanguage(language, updateUrl) {
+        const activeLanguage = normalizeLanguage(language);
+        document.documentElement.lang = activeLanguage;
+        document.title = labels[activeLanguage].title;
+        if (metaDescription) metaDescription.setAttribute("content", labels[activeLanguage].description);
+        localStorage.setItem(languageStorageKey, activeLanguage);
+        languageButtons.forEach((button) => {
+          button.setAttribute("aria-pressed", String(button.dataset.languageButton === activeLanguage));
+        });
+        const switcher = document.querySelector(".language-switch");
+        if (switcher) switcher.setAttribute("aria-label", labels[activeLanguage].language);
+        if (window.ExascaleGuideSet) {
+          window.ExascaleGuideSet.applyStaticPage("healthcheck", "nested");
+        }
+        document.querySelectorAll("[data-series-brand-subtitle]").forEach((node) => {
+          node.textContent = activeLanguage === "es" ? "Serie" : activeLanguage === "pt" ? "Série" : "Series";
+        });
+        const footerNotice = document.querySelector(".site-footer .disclaimer");
+        const localizedNotice = window.ExascaleGuideSet && window.ExascaleGuideSet.notice
+          ? window.ExascaleGuideSet.notice[activeLanguage] || window.ExascaleGuideSet.notice.en
+          : null;
+        if (footerNotice && localizedNotice) {
+          const summary = footerNotice.querySelector("summary");
+          const paragraph = footerNotice.querySelector("p");
+          if (summary) {
+            summary.textContent = localizedNotice.title;
+            const action = document.createElement("span");
+            action.className = "disclaimer-action";
+            action.textContent = "click here";
+            summary.append(document.createTextNode(" "), action);
+          }
+          if (paragraph) paragraph.textContent = localizedNotice.text;
+        }
+        localizeText(activeLanguage);
+        updateLanguageLinks(activeLanguage);
+        backTop.textContent = labels[activeLanguage].back;
+        const skipLink = document.querySelector("a[href^='#article']");
+        if (skipLink) skipLink.textContent = labels[activeLanguage].skip;
+        setTheme(document.body.getAttribute("data-theme") || "light");
+        if (updateUrl) {
+          const url = new URL(window.location.href);
+          url.searchParams.set("lang", activeLanguage);
+          window.history.replaceState({}, "", url);
+        }
+      }
+
       setTheme(saved || (prefersDark ? "dark" : "light"));
+      setLanguage(initialLanguage(), false);
 
       themeButton.addEventListener("click", function () {
         setTheme(document.body.getAttribute("data-theme") === "dark" ? "light" : "dark");
+      });
+
+      languageButtons.forEach((button) => {
+        button.addEventListener("click", function () {
+          setLanguage(button.dataset.languageButton, true);
+        });
       });
 
       document.querySelectorAll(".copy-btn").forEach(function (button) {
@@ -980,7 +1345,7 @@ sqlplus system@CDB01_PDB01</code></pre>
           const card = button.closest(".code-card");
           const code = card ? card.querySelector("pre code") : null;
           if (!code) return;
-          const text = code.textContent;
+          const text = card.querySelector("pre code").textContent;
           let copied = false;
           if (navigator.clipboard && navigator.clipboard.writeText && window.isSecureContext) {
             try {
@@ -1005,10 +1370,10 @@ sqlplus system@CDB01_PDB01</code></pre>
             document.body.removeChild(textarea);
           }
           if (copied) {
-            const original = button.textContent;
-            button.textContent = "Copied";
+            const language = document.documentElement.lang || "en";
+            button.textContent = labels[language].copied;
             window.setTimeout(function () {
-              button.textContent = original;
+              button.textContent = labels[document.documentElement.lang || "en"].copy;
             }, 1500);
           }
         });
@@ -1017,10 +1382,6 @@ sqlplus system@CDB01_PDB01</code></pre>
       backTop.addEventListener("click", function () {
         window.scrollTo({ top: 0, behavior: "smooth" });
       });
-
-      if (window.ExascaleGuideSet) {
-        window.ExascaleGuideSet.applyStaticPage("healthcheck", "nested");
-      }
     }());
   </script>
 </body>
