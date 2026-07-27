@@ -97,18 +97,52 @@
     {
       key: "resourceManager",
       labels: {
-        en: "Resource Manager",
-        es: "Resource Manager",
-        pt: "Resource Manager"
+        en: "PDB Resource Manager",
+        es: "Resource Manager PDB",
+        pt: "Resource Manager PDB"
       },
       paths: {
         root: "ResourceManager/index.html",
         nested: "../ResourceManager/index.html"
       },
       descriptions: {
-        en: "Service-to-consumer-group mapping, business-hours and after-hours plans, DOP caps, report guardrails, activation, and validation.",
-        es: "Mapeo de servicios a consumer groups, planes de horario comercial y fuera de horario, límites DOP, controles de reportes, activación y validación.",
-        pt: "Mapeamento de serviços para consumer groups, planos de horário comercial e fora do horário, limites DOP, controles de relatórios, ativação e validação."
+        en: "PDB-level service-to-consumer-group mapping, plans, DOP caps, activation, and validation.",
+        es: "Mapeo a nivel PDB de servicios a consumer groups, planes, límites DOP, activación y validación.",
+        pt: "Mapeamento no nível PDB de serviços para consumer groups, planos, limites DOP, ativação e validação."
+      }
+    },
+    {
+      key: "cdbResourceManager",
+      labels: {
+        en: "CDB Resource Manager",
+        es: "Resource Manager CDB",
+        pt: "Resource Manager CDB"
+      },
+      paths: {
+        root: "CDBResourceManager/index.html",
+        nested: "../CDBResourceManager/index.html"
+      },
+      descriptions: {
+        en: "Tiered PDB protection with CDB-level shares, CPU caps, and parallel-server caps.",
+        es: "Protección de PDBs por nivel con shares, límites de CPU y límites de servidores paralelos a nivel CDB.",
+        pt: "Proteção de PDBs por nível com shares, limites de CPU e limites de servidores paralelos no nível CDB."
+      }
+    },
+    {
+      key: "memoryManagement",
+      labels: {
+        en: "Database Memory",
+        es: "Memoria de Base de Datos",
+        pt: "Memória do Banco de Dados"
+      },
+      paths: {
+        root: "MemoryManagement/index.html",
+        nested: "../MemoryManagement/index.html"
+      },
+      descriptions: {
+        en: "Linux, root CDB, and PDB memory review with 12-PDB SGA and PGA planning.",
+        es: "Revisión de memoria Linux, CDB root y PDB con planificación SGA y PGA para 12 PDBs.",
+        pt: "Revisão de memória Linux, CDB root e PDB com planejamento SGA e PGA para 12 PDBs."
       }
     }
   ];
@@ -310,15 +344,13 @@
 
   function createCard(link, templates) {
     const anchor = document.createElement("a");
-    anchor.className = templates.anchorClass || "related-link";
+    anchor.className = "related-link";
     anchor.href = link.href;
 
     const strong = document.createElement("strong");
-    strong.className = templates.strongClass || "";
     strong.textContent = link.label;
 
     const span = document.createElement("span");
-    span.className = templates.spanClass || "";
     span.textContent = link.description;
 
     anchor.append(strong, span);
@@ -345,15 +377,7 @@
       }
       linkContainers.forEach((links) => {
         links.setAttribute("aria-label", labels[lang].guideSet);
-        const anchorTemplate = links.querySelector("a");
-        const strongTemplate = anchorTemplate && anchorTemplate.querySelector("strong");
-        const spanTemplate = anchorTemplate && anchorTemplate.querySelector("span");
-        const templates = {
-          anchorClass: links.getAttribute("data-card-class") || (anchorTemplate && anchorTemplate.className) || "related-link",
-          strongClass: links.getAttribute("data-card-title-class") || (strongTemplate && strongTemplate.className) || "",
-          spanClass: links.getAttribute("data-card-description-class") || (spanTemplate && spanTemplate.className) || ""
-        };
-        replaceChildren(links, cardList(variant, scope, lang).map((link) => createCard(link, templates)));
+        replaceChildren(links, cardList(variant, scope, lang).map((link) => createCard(link)));
       });
 
       const visual = panel.querySelector(".hero-visual");
@@ -416,23 +440,249 @@
       const localizedLabels = labels[lang] || labels.en;
       container.setAttribute("aria-label", localizedLabels.guideSet);
 
-      const anchorTemplate = container.querySelector("a");
-      const strongTemplate = anchorTemplate && anchorTemplate.querySelector("strong");
-      const spanTemplate = anchorTemplate && anchorTemplate.querySelector("span");
-      const templates = {
-        anchorClass: container.getAttribute("data-card-class") || (anchorTemplate && anchorTemplate.className) || "related-link",
-        strongClass: container.getAttribute("data-card-title-class") || (strongTemplate && strongTemplate.className) || "",
-        spanClass: container.getAttribute("data-card-description-class") || (spanTemplate && spanTemplate.className) || ""
-      };
+      replaceChildren(container, cardList(variant, scope, lang).map((link) => createCard(link)));
+    });
+  }
 
-      replaceChildren(container, cardList(variant, scope, lang).map((link) => createCard(link, templates)));
+  function relocateGuideNavigation() {
+    document.querySelectorAll("[data-guide-cards]").forEach((container) => {
+      if (!container.closest("header, .hero")) return;
+      const panel = container.closest("[data-language-panel]");
+      const scope = panel || document;
+      const destination = scope.querySelector('[id$="chapter-navigation"]');
+      if (!destination) return;
+      if (destination.querySelector("[data-guide-cards]")) {
+        container.remove();
+        return;
+      }
+      destination.appendChild(container);
+    });
+  }
+
+  function installChapterNavigationStyles() {
+    if (document.getElementById("exascale-chapter-navigation-styles")) return;
+    const style = document.createElement("style");
+    style.id = "exascale-chapter-navigation-styles";
+    style.textContent = `
+      .exascale-chapter-top { display: block !important; width: min(1180px, calc(100% - 2rem)) !important; margin: 1rem auto 0 !important; padding: 0 !important; }
+      .exascale-chapter-top-section { width: 100% !important; border: 0 !important; padding: 0 !important; margin: 0 !important; }
+      .exascale-chapter-top-section .exascale-chapter-top { margin: 1.25rem auto !important; }
+      .exascale-chapter-row { display: grid !important; grid-template-columns: repeat(3, minmax(0, 1fr)) !important; gap: .75rem !important; }
+      .exascale-chapter-card,
+      .chapter-card,
+      .chapter-link,
+      .nav-card,
+      .link-card,
+      .two-up a,
+      .related-link,
+      .related-links a,
+      [data-guide-cards] a {
+        display: grid !important;
+        gap: .35rem !important;
+        min-width: 0 !important;
+        padding: 1rem !important;
+        border: 1px solid #d6cfcb !important;
+        border-radius: 8px !important;
+        background: #fff !important;
+        color: #1f1b1a !important;
+        font: 1rem/1.7 ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
+        text-decoration: none !important;
+        box-shadow: 0 1px 2px rgba(31, 27, 26, .06) !important;
+        transition: border-color 160ms ease, transform 160ms ease !important;
+      }
+      .exascale-chapter-card,
+      .chapter-card,
+      .chapter-link,
+      .nav-card { min-height: 92px !important; }
+      .exascale-chapter-card:hover,
+      .exascale-chapter-card:focus-visible,
+      .chapter-card:hover,
+      .chapter-card:focus-visible,
+      .chapter-link:hover,
+      .chapter-link:focus-visible,
+      .nav-card:hover,
+      .nav-card:focus-visible,
+      .link-card:hover,
+      .link-card:focus-visible,
+      .two-up a:hover,
+      .two-up a:focus-visible,
+      .related-link:hover,
+      .related-link:focus-visible,
+      .related-links a:hover,
+      .related-links a:focus-visible,
+      [data-guide-cards] a:hover,
+      [data-guide-cards] a:focus-visible { border-color: rgba(199, 70, 52, .5) !important; color: #1f1b1a !important; outline: none !important; transform: translateY(-1px) !important; }
+      .exascale-chapter-card span,
+      .chapter-card span,
+      .chapter-link span,
+      .link-card span,
+      .nav-card-label,
+      .two-up a span {
+        display: block !important;
+        color: #5f2b24 !important;
+        font-size: .72rem !important;
+        font-weight: 800 !important;
+        letter-spacing: .08em !important;
+        line-height: 1.2 !important;
+        text-transform: uppercase !important;
+      }
+      .exascale-chapter-card strong,
+      .chapter-card strong,
+      .chapter-link strong,
+      .nav-card strong,
+      .link-card strong,
+      .two-up a strong,
+      .related-link strong,
+      .related-links a strong,
+      [data-guide-cards] a strong {
+        display: block !important;
+        color: inherit !important;
+        font-size: 1rem !important;
+        font-weight: 700 !important;
+        line-height: 1.35 !important;
+        margin: 0 !important;
+      }
+      .related-link span,
+      .related-links a span,
+      [data-guide-cards] a span {
+        display: block !important;
+        color: #57534e !important;
+        font-size: .92rem !important;
+        font-weight: 400 !important;
+        letter-spacing: 0 !important;
+        line-height: 1.55 !important;
+        margin: 0 !important;
+        text-transform: none !important;
+      }
+      .exascale-chapter-card.exascale-chapter-disabled,
+      .chapter-link.is-disabled,
+      .nav-card.is-disabled { background: #f5f5f4 !important; color: #78716c !important; opacity: .82 !important; }
+      .dark .exascale-chapter-card,
+      .dark .chapter-card,
+      .dark .chapter-link,
+      .dark .nav-card,
+      .dark .link-card,
+      .dark .two-up a,
+      .dark .related-link,
+      .dark .related-links a,
+      .dark [data-guide-cards] a,
+      body[data-theme="dark"] .exascale-chapter-card,
+      body[data-theme="dark"] .chapter-card,
+      body[data-theme="dark"] .chapter-link,
+      body[data-theme="dark"] .nav-card,
+      body[data-theme="dark"] .link-card,
+      body[data-theme="dark"] .two-up a,
+      body[data-theme="dark"] .related-link,
+      body[data-theme="dark"] .related-links a,
+      body[data-theme="dark"] [data-guide-cards] a { border-color: #57534e !important; background: #211d1b !important; color: #f5f5f4 !important; }
+      .dark .exascale-chapter-card span,
+      .dark .chapter-card span,
+      .dark .chapter-link span,
+      .dark .nav-card-label,
+      .dark .two-up a span,
+      body[data-theme="dark"] .exascale-chapter-card span,
+      body[data-theme="dark"] .chapter-card span,
+      body[data-theme="dark"] .chapter-link span,
+      body[data-theme="dark"] .nav-card-label,
+      body[data-theme="dark"] .two-up a span,
+      .dark .link-card span,
+      body[data-theme="dark"] .link-card span { color: #f4b8ad !important; }
+      .dark .related-link span,
+      .dark .related-links a span,
+      .dark [data-guide-cards] a span,
+      body[data-theme="dark"] .related-link span,
+      body[data-theme="dark"] .related-links a span,
+      body[data-theme="dark"] [data-guide-cards] a span { color: #d6d3d1 !important; }
+      @media (max-width: 700px) { .exascale-chapter-row { grid-template-columns: 1fr !important; } }
+    `;
+    document.head.appendChild(style);
+  }
+
+  function chapterCardText(card, selector, fallback) {
+    const node = card && card.querySelector(selector);
+    const text = node && node.textContent ? node.textContent.trim() : "";
+    return text || fallback;
+  }
+
+  function normalizeChapterNavigation(chapterNav) {
+    const candidateRow = chapterNav.firstElementChild && chapterNav.firstElementChild.tagName === "DIV" ? chapterNav.firstElementChild : chapterNav;
+    const sourceCards = Array.from(candidateRow.children).filter((node) => node.nodeType === 1).slice(0, 3);
+    const normalizedRow = document.createElement("div");
+    normalizedRow.className = "chapter-nav-row exascale-chapter-row";
+
+    sourceCards.forEach((sourceCard) => {
+      const isLink = sourceCard.matches("a[href]");
+      const card = document.createElement(isLink ? "a" : "div");
+      if (isLink) card.href = sourceCard.getAttribute("href");
+      card.className = "chapter-link nav-card";
+      if (!isLink) {
+        card.classList.add("is-disabled");
+        card.setAttribute("aria-disabled", "true");
+      }
+
+      const label = document.createElement("span");
+      label.textContent = chapterCardText(sourceCard, "span", "");
+      const title = document.createElement("strong");
+      title.textContent = chapterCardText(sourceCard, "strong", sourceCard.textContent.trim());
+      card.append(label, title);
+      normalizedRow.appendChild(card);
+    });
+
+    chapterNav.replaceChildren(normalizedRow);
+    chapterNav.className = "chapter-nav chapter-card-nav exascale-chapter-top";
+  }
+
+  function insertChapterNavigationAtTop(scope, section, chapterNav) {
+    const topSection = document.createElement("section");
+    topSection.className = "exascale-chapter-top-section";
+    if (section.id) {
+      topSection.id = `${section.id}-top`;
+    }
+    topSection.appendChild(chapterNav);
+
+    const contentStart = scope.querySelector(".page-grid, main#article, main.layout, main.article, main, .layout");
+    if (contentStart) {
+      contentStart.parentNode.insertBefore(topSection, contentStart);
+      return true;
+    }
+
+    const header = scope.querySelector("header");
+    if (header && header.parentNode) {
+      header.insertAdjacentElement("afterend", topSection);
+      return true;
+    }
+
+    if (section.parentNode) {
+      section.parentNode.insertBefore(topSection, section);
+      return true;
+    }
+    return false;
+  }
+
+  function relocateChapterNavigation() {
+    installChapterNavigationStyles();
+    document.querySelectorAll('[id$="chapter-navigation"]').forEach((section) => {
+      const panel = section.closest("[data-language-panel]");
+      const scope = panel || document;
+      const chapterNav = section.querySelector(".chapter-nav");
+      if (!chapterNav || chapterNav.dataset.positioned === "top") return;
+
+      normalizeChapterNavigation(chapterNav);
+      chapterNav.dataset.positioned = "top";
+      insertChapterNavigationAtTop(scope, section, chapterNav);
     });
   }
 
   if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", hydrateGuideCards);
+    document.addEventListener("DOMContentLoaded", () => {
+      hydrateGuideCards();
+      relocateGuideNavigation();
+      relocateChapterNavigation();
+    });
   } else {
     hydrateGuideCards();
+    relocateGuideNavigation();
+    relocateChapterNavigation();
   }
 
   window.ExascaleGuideSet = {
@@ -449,6 +699,8 @@
     highlightText,
     applyReactShell,
     applyStaticPage,
-    hydrateGuideCards
+    hydrateGuideCards,
+    relocateGuideNavigation,
+    relocateChapterNavigation
   };
 }());

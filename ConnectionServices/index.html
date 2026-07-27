@@ -241,7 +241,7 @@
 
     .hero-grid {
       display: grid;
-      grid-template-columns: minmax(0, 1fr);
+      grid-template-columns: minmax(0, 1fr) 360px;
       align-items: end;
       gap: 2rem;
       width: min(1280px, calc(100% - 2rem));
@@ -403,37 +403,78 @@
       max-width: 54rem;
     }
 
+    .chapter-nav,
+    .two-up {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 0.75rem;
+      margin-top: 1rem;
+    }
+
+    .two-up {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .chapter-link,
+    .link-card,
+    .related-link,
+    .chapter-card,
     .related-links a {
-      display: block;
+      display: grid;
+      gap: 0.35rem;
+      min-height: 92px;
+      padding: 1rem;
       border: 1px solid var(--line);
       border-radius: var(--radius);
       background: var(--surface);
-      box-shadow: 0 1px 2px rgba(31, 27, 26, 0.04);
-      padding: 0.9rem;
-      transition: border-color 0.18s ease, box-shadow 0.18s ease, transform 0.18s ease;
+      color: var(--text);
+      font: 1rem/1.7 ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      box-shadow: 0 8px 24px rgba(31, 27, 26, 0.05);
+      text-decoration: none;
     }
 
+    .chapter-link:hover,
+    .link-card:hover,
+    .related-link:hover,
+    .chapter-card:hover,
     .related-links a:hover,
     .related-links a:focus-visible {
       border-color: var(--accent);
-      box-shadow: var(--shadow);
-      outline: none;
-      transform: translateY(-1px);
+      color: var(--accent-strong);
     }
 
-    .related-links strong {
+    .nav-card-label,
+    .chapter-link span,
+    .link-card span,
+    .chapter-card span {
+      color: var(--accent-strong);
+      font-size: 0.72rem;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      line-height: 1.2;
+      text-transform: uppercase;
+    }
+
+    .chapter-link strong,
+    .link-card strong,
+    .related-link strong,
+    .chapter-card strong {
       display: block;
-      color: var(--accent);
-      font-size: 0.9rem;
-      line-height: 1.3;
+      color: inherit;
+      font-size: 1rem;
+      font-weight: 700;
+      line-height: 1.35;
     }
 
+    .related-link span,
     .related-links span {
       display: block;
-      margin-top: 0.25rem;
       color: var(--muted);
-      font-size: 0.86rem;
-      line-height: 1.45;
+      font-size: 0.92rem;
+      font-weight: 400;
+      letter-spacing: 0;
+      line-height: 1.55;
+      text-transform: none;
     }
 
     .page-grid {
@@ -636,6 +677,13 @@
       border-color: rgba(120, 113, 108, 0.35);
     }
 
+    .code-bash,
+    .code-sql,
+    .code-text {
+      background: #101922;
+      border-color: rgba(14, 165, 233, 0.35);
+    }
+
     .code-toolbar {
       display: flex;
       align-items: center;
@@ -806,6 +854,12 @@
         grid-template-columns: 1fr;
       }
 
+      .hero-grid,
+      .chapter-nav,
+      .two-up {
+        grid-template-columns: 1fr;
+      }
+
       .page-grid,
       .page-grid > aside,
       .page-grid > main,
@@ -853,20 +907,28 @@
         <p class="eyebrow">Oracle technical article</p>
         <h1>RAC Connection Services</h1>
         <p class="subtitle">Service-oriented connection workflow for TNS aliases, default service review, OLTP failover, reporting and batch isolation, session distribution, runtime load balancing, and controlled failover simulation.</p>
-        <div class="hero-meta"><span>Last updated June 17, 2026</span></div>
+        <div class="hero-meta"><span>Last updated July 24, 2026</span></div>
         <details class="disclaimer"><summary>Educational use and validation required <span class="disclaimer-action">click here</span></summary><p>This content is for educational and planning purposes only. Apply every command and configuration first in a non-production test environment that mirrors your RAC, service, client driver, workload, and failover requirements. The recommended values shown here may not work in your specific environment, may require change-control approval, and can affect availability, connection routing, transaction behavior, memory use, and batch workload placement. Validate with application owners, DBAs, network teams, and Oracle Support guidance before using any setting in production.</p></details>
-        <nav class="related-links" data-guide-cards data-guide-variant="connection" data-guide-scope="nested" aria-label="Guide links"></nav>
       </div>
+      <aside class="hero-visual" aria-label="Latest guide coverage">
+        <p class="visual-caption">Latest guide coverage</p>
+        <ul class="hero-highlights">
+          <li class="highlight">Baseline TNS aliases and default service placement before changing any service attributes.</li>
+          <li class="highlight">Dedicated reporting and batch endpoints with explicit preferred and available instances.</li>
+          <li class="highlight">RAC session, memory, and runtime load-balancing validation queries.</li>
+          <li class="highlight">A controlled PDB failover simulation with recovery guidance.</li>
+        </ul>
+      </aside>
     </div>
   </section>
   <div class="page-grid"><aside><nav class="toc" aria-label="Table of contents"><h2 class="toc-title">Contents</h2><ol><li><a href="#9-review-tns-aliases">9. Review TNS Aliases</a></li>
           <li><a href="#10-review-default-connection-service-configuration">10. Review Default Connection Service Configuration</a></li>
-          <li><a href="#11-recommended-oltp-configuration-memory-efficient">11. Recommended OLTP Configuration (Memory Efficient)</a></li>
+          <li><a href="#11-recommended-oltp-configuration-memory-efficient">11. Recommended OLTP Configuration</a></li>
           <li><a href="#13-reporting-service-isolation">13. Reporting Service Isolation</a></li>
           <li><a href="#14-batch-job-service-isolation">14. Batch Job Service Isolation</a></li>
           <li><a href="#15-session-and-memory-distribution-queries">15. Session and Memory Distribution Queries</a></li>
           <li><a href="#16-recommended-oltp-runtime-load-balancing-configuration">16. Recommended OLTP Runtime Load Balancing Configuration</a></li>
-          <li><a href="#17-simulate-node1-pdb-failure-and-force-sessions-to-node2">17. Simulate Node1 PDB Failure and Force Sessions to Node2</a></li><li><a href="#shared-references">Shared References</a></li></ol></nav></aside>
+          <li><a href="#17-simulate-node1-pdb-failure-and-force-sessions-to-node2">17. Simulate Node1 PDB Failure and Force Sessions to Node2</a></li><li><a href="#conclusion">Conclusion: Scale the Application, Not Only the Cluster</a></li><li><a href="#configured-cluster-connection-services">Configured Cluster Connection Services</a></li><li><a href="#shared-references">Shared References</a></li><li><a href="#chapter-navigation">Chapter Navigation</a></li></ol></nav></aside>
     <main class="article" id="article"><section class="article-section" id="9-review-tns-aliases">
         <p class="section-kicker">Section 9</p>
         <h2>Review TNS Aliases</h2>
@@ -897,8 +959,8 @@ cat tnsnames.ora</code></pre>
         <p>Default characteristics:</p>
         <ul class="component-list component-list-block"><li>Failover type: NONE</li><li>Runtime Load Balancing Goal: NONE</li><li>Connection Load Balancing Goal: LONG</li></ul>
         <p>Service configuration output:</p>
-        <div class="code-card code-text">
-          <div class="code-toolbar"><span class="code-type">Text</span><button class="copy-btn" type="button">Copy</button></div>
+        <div class="code-card code-output" data-card-state="expanded">
+          <div class="code-toolbar"><span class="code-type">Output</span></div>
           <div class="code-description code-objective"><span class="objective-label">Objective:</span> Review the captured SRVCTL output from the notes and focus on the failover and load-balancing attributes that define the default service behavior.</div>
           <pre class="code-scroll"><code>Service name: CDB01_PDB01.paas.oracle.com
 Cardinality: 2
@@ -942,7 +1004,7 @@ Service uses Java: false</code></pre>
 
       <section class="article-section" id="11-recommended-oltp-configuration-memory-efficient">
         <p class="section-kicker">Section 11</p>
-        <h2>Recommended OLTP Configuration (Memory Efficient)</h2>
+        <h2>Recommended OLTP Configuration</h2>
         <p>OLTP services usually prioritize short transactions, predictable reconnect behavior, and low operational overhead. This section explains a session-failover configuration that keeps the existing service name and avoids creating extra database services.</p>
         <div class="code-card code-bash">
           <div class="code-toolbar"><span class="code-type">Bash</span><button class="copy-btn" type="button">Copy</button></div>
@@ -1428,10 +1490,6 @@ SET PAGESIZE 100
 SET TRIMSPOOL ON
 SET TAB OFF
 
--- Run from a DBA or monitoring account with access to GV$ views.
--- Execute once before the forced PDB stop to capture the baseline distribution.
--- Execute again after the forced PDB stop to compare the surviving sessions and active service placement.
-
 COLUMN instance_name FORMAT a20
 COLUMN service_name FORMAT a45
 COLUMN active_service_name FORMAT a45
@@ -1466,6 +1524,7 @@ ORDER BY a.inst_id;</code></pre>
 -force</code></pre>
         </div>
         <p>Oracle documents <code>srvctl stop pdb</code> as stopping a PDB and its services. Use the <code>-node</code> option with the cluster node name, <code>exasc011-ngkxu</code>, not the database instance name <code>CDB011</code>. Use this disruptive command only for a controlled failure simulation when the application cannot drain connections. The <code>-drain_timeout 0</code> value makes the operation immediate, and <code>-force</code> tells SRVCTL to force the PDB, its services, and dependent resources to stop on that node.</p>
+        <div class="note-box"><strong>Warning:</strong> This command forcibly stops <code>PDB01</code> and its dependent services on the selected node. Run it only in an approved non-production test window after confirming the recovery steps below.</div>
         <div class="code-card code-sql">
           <div class="code-toolbar"><span class="code-type">SQL</span><button class="copy-btn" type="button">Copy</button></div>
           <div class="code-description code-objective"><span class="objective-label">Objective:</span> Compare the post-stop session distribution against the baseline and confirm the active service remains only on <code>CDB012</code>.</div>
@@ -1473,8 +1532,6 @@ ORDER BY a.inst_id;</code></pre>
 SET PAGESIZE 100
 SET TRIMSPOOL ON
 SET TAB OFF
-
--- Run after the forced PDB stop and compare with the baseline output.
 
 COLUMN instance_name FORMAT a20
 COLUMN service_name FORMAT a45
@@ -1496,8 +1553,8 @@ WHERE a.name = 'CDB01_PDB01.paas.oracle.com'
 ORDER BY a.inst_id;</code></pre>
         </div>
         <p>Run this compact check after the forced stop and compare it with the baseline. The expected result is no <code>CDB011</code> rows for this service and one active service row on <code>CDB012</code>. Use <code>GV$ACTIVE_SERVICES</code> as the authoritative in-database view for active service placement.</p>
-        <div class="code-card code-text">
-          <div class="code-toolbar"><span class="code-type">Text</span><button class="copy-btn" type="button">Copy</button></div>
+        <div class="code-card code-output" data-card-state="expanded">
+          <div class="code-toolbar"><span class="code-type">Output</span></div>
           <div class="code-description code-objective"><span class="objective-label">Objective:</span> Show the expected post-stop query shape where only the surviving <code>CDB012</code> sessions and active service row remain.</div>
           <pre class="code-scroll"><code>   INST_ID INSTANCE_NAME        SERVICE_NAME                                   STATUS     SESSIONS
 ---------- -------------------- --------------------------------------------- ---------- --------
@@ -1509,8 +1566,8 @@ ORDER BY a.inst_id;</code></pre>
          2 CDB012               CDB01_PDB01.paas.oracle.com</code></pre>
         </div>
         <p>This observed result confirms that only the surviving node2 sessions remained; the lost node1 sessions were not transparently recreated on <code>CDB012</code>. In the observed Charbench run, only the 28 surviving node2 sessions remained; the 128 original sessions were not recreated on node2.</p>
-        <div class="code-card code-text">
-          <div class="code-toolbar"><span class="code-type">Text</span><button class="copy-btn" type="button">Copy</button></div>
+        <div class="code-card code-output" data-card-state="expanded">
+          <div class="code-toolbar"><span class="code-type">Output</span></div>
           <div class="code-description code-objective"><span class="objective-label">Objective:</span> Document the recoverable JDBC errors observed by Charbench when node1 sessions are forcibly terminated.</div>
           <pre class="code-scroll"><code>The following error has occcured. Further occurences will be supressed but the error count will be incremented and recorded in the results file
 java.sql.SQLRecoverableException: ORA-03113: database connection closed by peer
@@ -1556,10 +1613,91 @@ srvctl status service \
         <p>Best-practice notes:</p>
         <ul class="component-list component-list-block"><li>Use the full SRVCTL keyword form in this section because Oracle documents single-letter SRVCTL parameters as deprecated and recommends full keywords for current scripts.</li><li>Existing sessions do not move as live sessions. Clients, pools, TAF, or Application Continuity must reconnect or replay according to their capabilities, and non-replayable in-flight work may fail and require application retry.</li><li>Run this in a controlled test window. A forced PDB stop is a failure simulation, not a graceful maintenance drain.</li></ul>
       </section>
-      <section class="article-section" id="shared-references"><p class="section-kicker">Shared references</p><h2>Glossary and Oracle Documentation</h2><p>Shared glossary terms and Oracle documentation links live in the Exascale overview so the guide set maintains one public reference list.</p><ul class="reference-list"><li><a href="../index.html#documentation">Oracle Official Documentation</a></li><li><a href="../index.html#glossary">Shared Glossary</a></li><li><a href="../Healthcheck/index.html">RAC Health Check Guide</a></li><li><a href="../ResourceManager/index.html">Resource Manager Guide</a></li></ul></section>
+      <section class="article-section" id="conclusion">
+        <p class="section-kicker">Conclusion</p>
+        <h2>Scale the Application, Not Only the Cluster</h2>
+        <p>RAC gives an application additional database capacity and service-level placement options, but it does not make every code path scale linearly. Parallel SQL can use every instance that offers the connected service; cross-node parallel execution can therefore add Global Cache and interconnect traffic. Temporary-table-heavy, sort-heavy, or complex reporting workloads can also consume substantial TEMP, workarea, I/O, CPU, and concurrency capacity. Measure these effects with the production-like SQL, data volume, concurrency, and connection-pool behavior before expanding a workload across the cluster.</p>
+        <p>Long-running reports and scheduled or batch jobs can compete with OLTP when they share the same service and instances. This is why this chapter uses separate reporting and batch services: they provide explicit placement and failover behavior, make AWR and service metrics attributable to each workload, and give Resource Manager a service-to-consumer-group mapping point. A separate service is a workload-management boundary, not a guaranteed resource reservation; pair it with Resource Manager limits, job scheduling controls, and capacity testing when protection is required.</p>
+        <p>For Oracle's service-oriented workload-management model, including service-scoped parallel execution and workload monitoring, see <a href="https://docs.oracle.com/en/database/oracle/oracle-database/26/racad/workload-management-with-dynamic-database-services.html" target="_blank" rel="noopener">Workload Management with Dynamic Database Services</a>.</p>
+      </section>
+      <section class="article-section" id="configured-cluster-connection-services">
+        <p class="section-kicker">Service inventory</p>
+        <h2>Configured Cluster Connection Services</h2>
+        <div class="content-card" aria-labelledby="configured-services-title">
+          <h3 id="configured-services-title">Service Placement Summary</h3>
+          <p>This captured cluster inventory includes the PDB01 default, reporting, batch, and PDB02 default services. Review it after any service change to confirm that each workload remains mapped to its intended RAC placement.</p>
+          <div class="table-wrap"><table class="data-table"><thead><tr><th>Workload</th><th>Service name</th><th>Status</th><th>Normal placement</th><th>Alternate placement</th></tr></thead><tbody><tr><td>PDB01 default</td><td><code>CDB01_PDB01.paas.oracle.com</code></td><td>Enabled</td><td><code>CDB012, CDB011</code></td><td>Not configured</td></tr><tr><td>Reporting</td><td><code>CDB01_PDB01_REPORTS.paas.oracle.com</code></td><td>Enabled</td><td><code>CDB012</code></td><td><code>CDB011</code></td></tr><tr><td>Batch</td><td><code>CDB01_PDB01_BATCH.paas.oracle.com</code></td><td>Enabled</td><td><code>CDB011</code></td><td><code>CDB012</code></td></tr><tr><td>PDB02 default</td><td><code>CDB01_PDB02.paas.oracle.com</code></td><td>Enabled</td><td><code>CDB011, CDB012</code></td><td>Not configured</td></tr></tbody></table></div>
+        </div>
+        <div class="code-card code-bash">
+          <div class="code-toolbar"><span class="code-type">Bash</span><button class="copy-btn" type="button">Copy</button></div>
+          <div class="code-description code-objective"><span class="objective-label">Objective:</span> Summarize each configured connection service with its preferred and available instances plus its connection and runtime load-balancing goals.</div>
+          <pre class="code-scroll"><code>connection_service_inventory() {
+  if [ -z "${ORACLE_UNQNAME:-}" ]; then
+    printf '%s\n' 'STOP: ORACLE_UNQNAME is not set.' &gt;&amp;2
+    return 1
+  fi
+
+  service_config=$(srvctl config service -db "$ORACLE_UNQNAME") || return 1
+
+  printf '%-45s | %-8s | %-18s | %-18s | %-8s | %-10s\n' \
+    'CONNECTION SERVICE' 'STATUS' 'PREFERRED' 'AVAILABLE' 'CLB GOAL' 'RLB GOAL'
+  printf '%-45s-+-%-8s-+-%-18s-+-%-18s-+-%-8s-+-%-10s\n' \
+    '---------------------------------------------' '--------' '------------------' '------------------' '--------' '----------'
+
+  printf '%s\n' "$service_config" | awk '
+    function value() { sub(/^[^:]*:[[:space:]]*/, ""); return $0 }
+    function emit() {
+      if (service != "" && service !~ /_SCHEDULER\./)
+        printf "%-45s | %-8s | %-18s | %-18s | %-8s | %-10s\n", service, status, preferred, available, clb, rlb
+      service = status = preferred = available = clb = rlb = ""
+    }
+    /^Service name:/ { emit(); service = value(); next }
+    /^Service is / { status = $0; sub(/^Service is[[:space:]]*/, "", status); status = toupper(status); next }
+    /^Preferred instances:/ { preferred = value(); next }
+    /^Available instances:/ { available = value(); next }
+    /^Connection Load Balancing Goal:/ { clb = value(); next }
+    /^Runtime Load Balancing Goal:/ { rlb = value(); next }
+    END { emit() }
+  '
+}
+
+connection_service_inventory</code></pre>
+        </div>
+        <div class="code-card code-output" data-card-state="expanded">
+          <div class="code-toolbar"><span class="code-type">Output</span></div>
+          <div class="code-description code-objective"><span class="objective-label">Objective:</span> Confirm the captured placement and load-balancing values for every configured connection service.</div>
+          <pre class="code-scroll"><code>CONNECTION SERVICE                            | STATUS   | PREFERRED          | AVAILABLE          | CLB GOAL | RLB GOAL
+----------------------------------------------+----------+--------------------+--------------------+----------+-----------
+CDB01_PDB01.paas.oracle.com                   | ENABLED  | CDB012,CDB011      |                    | LONG     | NONE
+CDB01_PDB01_REPORTS.paas.oracle.com           | ENABLED  | CDB012             | CDB011             | LONG     | NONE
+CDB01_PDB01_BATCH.paas.oracle.com             | ENABLED  | CDB011             | CDB012             | LONG     | NONE
+CDB01_PDB02.paas.oracle.com                   | ENABLED  | CDB011,CDB012      |                    | LONG     | NONE</code></pre>
+        </div>
+        <section class="subsection-block" aria-labelledby="load-balancing-goals-title">
+          <h3 id="load-balancing-goals-title">Interpreting the Load-Balancing Goals</h3>
+          <p>The <code>CLB GOAL</code> and <code>RLB GOAL</code> columns summarize the two service routing settings shown by <code>srvctl</code>:</p>
+          <div class="table-wrap"><table class="data-table"><thead><tr><th>Column</th><th>Meaning of the displayed configuration</th></tr></thead><tbody><tr><td><code>CLB GOAL</code></td><td><strong>Connection Load Balancing Goal.</strong> <code>LONG</code> is the service setting for longer-lived connections; it favors balancing new connections using the service's connection distribution rather than a short-connection routing goal.</td></tr><tr><td><code>RLB GOAL</code></td><td><strong>Runtime Load Balancing Goal.</strong> <code>NONE</code> means the service is not publishing runtime load-balancing advisories such as <code>SERVICE_TIME</code> or <code>THROUGHPUT</code> to integrated connection pools.</td></tr></tbody></table></div>
+          <p><code>PREFERRED</code> identifies the instance or instances where Clusterware normally runs the service. <code>AVAILABLE</code> identifies an alternate instance that Clusterware can use when the preferred placement is unavailable; an empty value means no alternate placement is configured.</p>
+        </section>
+      </section>
+      <section class="article-section" id="shared-references"><p class="section-kicker">Shared references</p><h2>Glossary and Oracle Documentation</h2><p>Shared glossary terms and Oracle documentation links live in the Exascale overview so the guide set maintains one public reference list.</p><ul class="reference-list"><li><a href="../index.html#documentation">Oracle Official Documentation</a></li><li><a href="../index.html#glossary">Shared Glossary</a></li><li><a href="../Healthcheck/index.html">RAC Health Check Guide</a></li><li><a href="../ResourceManager/index.html">PDB Resource Manager Guide</a></li></ul></section>
+      <section class="article-section" id="chapter-navigation">
+        <p class="section-kicker">Continue the series</p>
+        <h2>Chapter navigation</h2>
+        <nav class="chapter-nav chapter-card-nav" aria-label="Chapter navigation">
+          <a class="chapter-link nav-card" href="../index.html"><span class="nav-card-label">Main</span><strong>Exascale Overview</strong></a>
+          <a class="chapter-link nav-card" href="../Healthcheck/index.html"><span class="nav-card-label">Previous</span><strong>RAC Health Check</strong></a>
+          <a class="chapter-link nav-card" href="../ResourceManager/index.html"><span class="nav-card-label">Next</span><strong>PDB Resource Manager</strong></a>
+        </nav>
+        <div class="two-up">
+          <a class="link-card" href="../index.html#documentation"><span class="nav-card-label">Series reference</span><strong>Series documentation</strong></a>
+          <a class="link-card" href="../index.html#glossary"><span class="nav-card-label">Series reference</span><strong>Series glossary</strong></a>
+        </div>
+        <nav class="related-links" data-guide-cards data-guide-variant="connection" data-guide-scope="nested" aria-label="Guide links"></nav>
+      </section>
     </main>
   </div>
-  <footer class="site-footer"><div class="site-footer-inner"><details class="disclaimer"><summary>Educational use and validation required <span class="disclaimer-action">click here</span></summary><p>This content is for educational and planning purposes only. Apply every command and configuration first in a non-production test environment that mirrors your RAC, service, client driver, workload, and failover requirements. The recommended values shown here may not work in your specific environment, may require change-control approval, and can affect availability, connection routing, transaction behavior, memory use, and batch workload placement. Validate with application owners, DBAs, network teams, and Oracle Support guidance before using any setting in production.</p></details><p>Last updated June 17, 2026</p></div></footer>
+  <footer class="site-footer"><div class="site-footer-inner"><details class="disclaimer"><summary>Educational use and validation required <span class="disclaimer-action">click here</span></summary><p>This content is for educational and planning purposes only. Apply every command and configuration first in a non-production test environment that mirrors your RAC, service, client driver, workload, and failover requirements. The recommended values shown here may not work in your specific environment, may require change-control approval, and can affect availability, connection routing, transaction behavior, memory use, and batch workload placement. Validate with application owners, DBAs, network teams, and Oracle Support guidance before using any setting in production.</p></details><p>Last updated July 24, 2026</p></div></footer>
   <button class="back-top" type="button" id="back-top">Back to top</button>
   <script src="../shared-guide-set.js"></script>
   <script>
@@ -1584,13 +1722,13 @@ srvctl status service \
           "Objective:": "Objetivo:",
           "Oracle technical article": "Artículo técnico de Oracle",
           "Service-oriented connection workflow for TNS aliases, default service review, OLTP failover, reporting and batch isolation, session distribution, runtime load balancing, and controlled failover simulation.": "Flujo de conexión orientado a servicios para alias TNS, revisión del servicio predeterminado, failover OLTP, aislamiento de reportes y batch, distribución de sesiones, runtime load balancing y simulación controlada de failover.",
-          "Last updated June 17, 2026": "Última actualización 17 de junio de 2026",
+          "Last updated July 24, 2026": "Última actualización 24 de julio de 2026",
           "Educational use and validation required": "Uso educativo y validación requerida",
           "This content is for educational and planning purposes only. Apply every command and configuration first in a non-production test environment that mirrors your RAC, service, client driver, workload, and failover requirements. The recommended values shown here may not work in your specific environment, may require change-control approval, and can affect availability, connection routing, transaction behavior, memory use, and batch workload placement. Validate with application owners, DBAs, network teams, and Oracle Support guidance before using any setting in production.": "Este contenido es solo para fines educativos y de planificación. Aplica cada comando y configuración primero en un entorno de prueba no productivo que refleje tus requisitos de RAC, servicio, controlador cliente, carga de trabajo y failover. Los valores recomendados aquí pueden no funcionar en tu entorno específico, pueden requerir aprobación de control de cambios y pueden afectar disponibilidad, enrutamiento de conexiones, comportamiento transaccional, uso de memoria y ubicación de cargas batch. Valida con dueños de aplicaciones, DBAs, equipos de red y la guía de Oracle Support antes de usar cualquier configuración en producción.",
           "Contents": "Contenido",
           "9. Review TNS Aliases": "9. Revisar alias TNS",
           "10. Review Default Connection Service Configuration": "10. Revisar la configuración del servicio de conexión predeterminado",
-          "11. Recommended OLTP Configuration (Memory Efficient)": "11. Configuración OLTP recomendada (eficiente en memoria)",
+          "11. Recommended OLTP Configuration": "11. Configuración OLTP recomendada",
           "13. Reporting Service Isolation": "13. Aislamiento del servicio de reportes",
           "14. Batch Job Service Isolation": "14. Aislamiento del servicio para trabajos batch",
           "15. Session and Memory Distribution Queries": "15. Consultas de distribución de sesiones y memoria",
@@ -1618,7 +1756,7 @@ srvctl status service \
           "Service configuration output:": "Salida de configuración del servicio:",
           "Review the captured SRVCTL output from the notes and focus on the failover and load-balancing attributes that define the default service behavior.": "Revisa la salida capturada de SRVCTL en las notas y enfócate en los atributos de failover y load balancing que definen el comportamiento del servicio predeterminado.",
           "Section 11": "Sección 11",
-          "Recommended OLTP Configuration (Memory Efficient)": "Configuración OLTP recomendada (eficiente en memoria)",
+          "Recommended OLTP Configuration": "Configuración OLTP recomendada",
           "OLTP services usually prioritize short transactions, predictable reconnect behavior, and low operational overhead. This section explains a session-failover configuration that keeps the existing service name and avoids creating extra database services.": "Los servicios OLTP normalmente priorizan transacciones cortas, comportamiento de reconexión predecible y bajo overhead operativo. Esta sección explica una configuración de failover de sesión que mantiene el nombre de servicio existente y evita crear servicios de base de datos adicionales.",
           "Update the existing OLTP service with session failover retry behavior while preserving the same service name.": "Actualiza el servicio OLTP existente con comportamiento de reintentos de failover de sesión, conservando el mismo nombre de servicio.",
           "Recommended values:": "Valores recomendados:",
@@ -1792,7 +1930,7 @@ srvctl status service \
           "Oracle Official Documentation": "Documentación oficial de Oracle",
           "Shared Glossary": "Glosario compartido",
           "RAC Health Check Guide": "Guía de Health Check RAC",
-          "Resource Manager Guide": "Guía de Resource Manager",
+          "PDB Resource Manager Guide": "Guía de PDB Resource Manager",
           "Back to top": "Volver arriba"
           ,
           ", the service does not request TAF-style session failover; a connection loss is returned to the application or pool to handle. With": ", el servicio no solicita failover de sesión estilo TAF; una pérdida de conexión se devuelve a la aplicación o al pool para su manejo. Con",
@@ -1823,13 +1961,13 @@ srvctl status service \
           "Objective:": "Objetivo:",
           "Oracle technical article": "Artigo técnico da Oracle",
           "Service-oriented connection workflow for TNS aliases, default service review, OLTP failover, reporting and batch isolation, session distribution, runtime load balancing, and controlled failover simulation.": "Fluxo de conexão orientado a serviços para aliases TNS, revisão do serviço padrão, failover OLTP, isolamento de relatórios e batch, distribuição de sessões, runtime load balancing e simulação controlada de failover.",
-          "Last updated June 17, 2026": "Última atualização em 17 de junho de 2026",
+          "Last updated July 24, 2026": "Última atualização em 24 de julho de 2026",
           "Educational use and validation required": "Uso educacional e validação obrigatória",
           "This content is for educational and planning purposes only. Apply every command and configuration first in a non-production test environment that mirrors your RAC, service, client driver, workload, and failover requirements. The recommended values shown here may not work in your specific environment, may require change-control approval, and can affect availability, connection routing, transaction behavior, memory use, and batch workload placement. Validate with application owners, DBAs, network teams, and Oracle Support guidance before using any setting in production.": "Este conteúdo é apenas para fins educacionais e de planejamento. Aplique cada comando e configuração primeiro em um ambiente de teste não produtivo que reflita seus requisitos de RAC, serviço, driver cliente, carga de trabalho e failover. Os valores recomendados aqui podem não funcionar no seu ambiente específico, podem exigir aprovação de controle de mudanças e podem afetar disponibilidade, roteamento de conexões, comportamento transacional, uso de memória e posicionamento de cargas batch. Valide com responsáveis por aplicações, DBAs, equipes de rede e a orientação do Oracle Support antes de usar qualquer configuração em produção.",
           "Contents": "Conteúdo",
           "9. Review TNS Aliases": "9. Revisar aliases TNS",
           "10. Review Default Connection Service Configuration": "10. Revisar a configuração do serviço de conexão padrão",
-          "11. Recommended OLTP Configuration (Memory Efficient)": "11. Configuração OLTP recomendada (eficiente em memória)",
+          "11. Recommended OLTP Configuration": "11. Configuração OLTP recomendada",
           "13. Reporting Service Isolation": "13. Isolamento do serviço de relatórios",
           "14. Batch Job Service Isolation": "14. Isolamento do serviço para jobs batch",
           "15. Session and Memory Distribution Queries": "15. Consultas de distribuição de sessões e memória",
@@ -1857,7 +1995,7 @@ srvctl status service \
           "Service configuration output:": "Saída de configuração do serviço:",
           "Review the captured SRVCTL output from the notes and focus on the failover and load-balancing attributes that define the default service behavior.": "Revise a saída SRVCTL capturada nas notas e foque nos atributos de failover e load balancing que definem o comportamento do serviço padrão.",
           "Section 11": "Seção 11",
-          "Recommended OLTP Configuration (Memory Efficient)": "Configuração OLTP recomendada (eficiente em memória)",
+          "Recommended OLTP Configuration": "Configuração OLTP recomendada",
           "OLTP services usually prioritize short transactions, predictable reconnect behavior, and low operational overhead. This section explains a session-failover configuration that keeps the existing service name and avoids creating extra database services.": "Serviços OLTP normalmente priorizam transações curtas, comportamento de reconexão previsível e baixo overhead operacional. Esta seção explica uma configuração de failover de sessão que mantém o nome de serviço existente e evita criar serviços adicionais de banco de dados.",
           "Update the existing OLTP service with session failover retry behavior while preserving the same service name.": "Atualize o serviço OLTP existente com comportamento de retentativa de failover de sessão, preservando o mesmo nome de serviço.",
           "Recommended values:": "Valores recomendados:",
@@ -1940,7 +2078,7 @@ srvctl status service \
           "Oracle Official Documentation": "Documentação oficial da Oracle",
           "Shared Glossary": "Glossário compartilhado",
           "RAC Health Check Guide": "Guia de Health Check RAC",
-          "Resource Manager Guide": "Guia de Resource Manager",
+          "PDB Resource Manager Guide": "Guia de PDB Resource Manager",
           "Back to top": "Voltar ao topo",
           ", the service does not request TAF-style session failover; a connection loss is returned to the application or pool to handle. With": ", o serviço não solicita failover de sessão no estilo TAF; uma perda de conexão é retornada para a aplicação ou pool tratar. Com",
           ", the client can reconnect to an available instance and restore the database session context, but in-flight work is not replayed automatically.": ", o cliente pode reconectar a uma instância disponível e restaurar o contexto da sessão de banco de dados, mas o trabalho em andamento não é reproduzido automaticamente.",

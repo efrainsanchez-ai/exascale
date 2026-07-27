@@ -319,7 +319,7 @@
       position: relative;
       z-index: 1;
       display: grid;
-      grid-template-columns: minmax(0, 1fr);
+      grid-template-columns: minmax(0, 1fr) 360px;
       gap: 2rem;
       align-items: end;
       width: min(1280px, calc(100% - 2rem));
@@ -339,6 +339,78 @@
     .hero-copy {
       max-width: 56rem;
     }
+
+    .hero-visual {
+      border: 1px solid var(--hero-line);
+      border-radius: var(--radius);
+      background: rgba(255, 255, 255, 0.06);
+      padding: 1.1rem;
+      color: var(--hero-ink);
+    }
+
+    .hero-visual h2 {
+      font-size: 1rem;
+      color: inherit;
+    }
+
+    .hero-highlights li {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 0.65rem;
+      align-items: start;
+      color: var(--hero-ink);
+      font-size: 0.9rem;
+      line-height: 1.45;
+    }
+
+    .hero-highlights li::before {
+      content: "•";
+      color: var(--accent);
+      font-size: 1.2rem;
+      line-height: 1;
+    }
+
+    .chapter-navigation {
+      border-top: 1px solid var(--line);
+      margin-top: 3rem;
+      padding-top: 2rem;
+    }
+
+    .chapter-nav,
+    .two-up {
+      display: grid;
+      gap: 0.75rem;
+    }
+
+    .chapter-nav { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .two-up { grid-template-columns: repeat(2, minmax(0, 1fr)); margin-top: 0.75rem; }
+
+    .chapter-link,
+    .link-card,
+    .related-link,
+    .chapter-nav a,
+    .chapter-nav .chapter-disabled,
+    .two-up a {
+      display: grid;
+      gap: 0.35rem;
+      min-height: 92px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--surface);
+      color: var(--text);
+      font: 1rem/1.7 ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      padding: 1rem;
+      text-decoration: none;
+    }
+
+    .chapter-nav a:hover,
+    .two-up a:hover { border-color: var(--accent); }
+    .nav-card-label,
+    .chapter-nav span,
+    .two-up span { display: block; color: var(--accent-strong); font-size: 0.72rem; font-weight: 800; letter-spacing: 0.08em; line-height: 1.2; text-transform: uppercase; }
+    .chapter-nav strong,
+    .two-up strong { display: block; color: inherit; font-size: 1rem; font-weight: 700; line-height: 1.35; }
+    .chapter-disabled { opacity: 0.72; }
 
     .eyebrow {
       display: inline-flex;
@@ -485,16 +557,6 @@
       max-width: 54rem;
     }
 
-    .related-link {
-      display: block;
-      border: 1px solid var(--line);
-      border-radius: var(--radius);
-      background: var(--surface);
-      padding: 0.9rem;
-      box-shadow: 0 1px 2px rgba(31, 27, 26, 0.04);
-      transition: border-color 0.18s ease, box-shadow 0.18s ease, transform 0.18s ease;
-    }
-
     .related-link:hover,
     .related-link:focus-visible {
       border-color: var(--accent);
@@ -505,17 +567,18 @@
 
     .related-link strong {
       display: block;
-      color: var(--accent);
-      font-size: 0.9rem;
-      line-height: 1.3;
+      color: inherit;
+      font-size: 1rem;
+      font-weight: 700;
+      line-height: 1.35;
     }
 
     .related-link span {
       display: block;
-      margin-top: 0.25rem;
       color: var(--muted);
-      font-size: 0.86rem;
-      line-height: 1.45;
+      font-size: 0.92rem;
+      line-height: 1.55;
+      text-transform: none;
     }
 
     .highlight-grid {
@@ -1059,10 +1122,10 @@
       max-width: 100%;
       margin: 0.9rem 0;
       overflow: hidden;
-      border: 1px solid rgba(120, 113, 108, 0.35);
+      border: 1px solid rgba(14, 165, 233, 0.35);
       border-radius: var(--radius);
-      background: #171412;
-      box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+      background: #101922;
+      box-shadow: 0 8px 24px rgba(31, 27, 26, 0.12);
     }
 
     .code-bash {
@@ -1090,6 +1153,15 @@
       background: #191511;
     }
 
+    .code-bash,
+    .code-java,
+    .code-sql,
+    .code-text,
+    .code-diagram {
+      background: #101922;
+      border-color: rgba(14, 165, 233, 0.35);
+    }
+
     .code-description {
       border-bottom: 1px solid rgba(255, 255, 255, 0.1);
       padding: 0.75rem 1rem;
@@ -1097,6 +1169,10 @@
       font-size: 0.875rem;
       font-weight: 400;
       line-height: 1.5rem;
+    }
+
+    .objective-label {
+      font-weight: 600;
     }
 
     .code-highlight {
@@ -1143,6 +1219,7 @@
       color: white;
       font-size: 0.75rem;
       font-weight: 600;
+      line-height: 1rem;
       text-transform: none;
       transition: background 150ms ease, box-shadow 150ms ease, border-color 150ms ease;
     }
@@ -1578,6 +1655,9 @@
         grid-template-columns: 1fr;
       }
 
+      .chapter-nav,
+      .two-up { grid-template-columns: 1fr; }
+
       .rac-arrow {
         min-height: 1.5rem;
       }
@@ -1649,14 +1729,22 @@
           <h1 id="en-title">Scaling Oracle Database</h1>
           <p class="subtitle">From a single-node clustered database deployment to a two-node deployment, with service access, high availability components, service configuration, and workload validation organized for fast technical review.</p>
           <div class="hero-meta" aria-label="Article metadata">
-            <span class="meta-pill">Last updated June 17, 2026</span>
+            <span class="meta-pill">Last updated July 24, 2026</span>
           </div>
           <details class="disclaimer" aria-label="Educational use and validation required">
             <summary>Educational use and validation required <span class="disclaimer-action">click here</span></summary>
             <p>This content is for educational and planning purposes only. Apply every command and configuration first in a non-production test environment that mirrors your RAC, service, client driver, workload, and failover requirements. The recommended values shown here may not work in your specific environment, may require change-control approval, and can affect availability, connection routing, transaction behavior, memory use, and batch workload placement. Validate with application owners, DBAs, network teams, and Oracle Support guidance before using any setting in production.</p>
           </details>
-          <div class="related-links" data-guide-cards data-guide-variant="cluster" data-guide-scope="nested" data-guide-language="en" aria-label="Guide links"></div>
         </div>
+        <aside class="hero-visual" aria-label="Latest guide coverage">
+          <h2>Latest guide coverage</h2>
+          <ul class="hero-highlights">
+            <li>Scale the RAC footprint through the Exascale service workflow.</li>
+            <li>Validate SCAN, listeners, services, and instance placement.</li>
+            <li>Review connection and runtime load-balancing behavior.</li>
+            <li>Test continuity before increasing production traffic.</li>
+          </ul>
+        </aside>
       </div>
     </section>
 
@@ -1674,6 +1762,7 @@
           <li><a href="#en-tac">8. Transparent Application Continuity</a></li>
           <li><a href="#en-best-practices">9. Best Practices</a></li>
           <li><a href="#en-conclusion">10. Conclusion</a></li>
+          <li><a href="#chapter-navigation">Chapter navigation</a></li>
         </ol>
       </nav>
 
@@ -1802,7 +1891,7 @@
           <p>Runtime load balancing works best for stateless request models where connections are borrowed from the pool, used for a short request, and returned to the pool. Enable Fast Connection Failover and use UCP, WebLogic, OCI, or ODP.NET pools that consume FAN and RAC load balancing advisory events.</p>
           <div class="code-card code-bash">
             <div class="code-toolbar"><span class="code-type">Bash</span><button class="copy-btn" type="button">Copy</button></div>
-            <div class="code-description code-objective">Objective: Modify the existing OLTP service to publish SHORT connection load balancing and SERVICE_TIME runtime load balancing advisories for integrated pools.</div>
+            <div class="code-description code-objective"><span class="objective-label">Objective:</span> Modify the existing OLTP service to publish SHORT connection load balancing and SERVICE_TIME runtime load balancing advisories for integrated pools.</div>
             <pre class="code-scroll"><code>srvctl modify service \
 -d $ORACLE_UNQNAME \
 -s CDB01_PDB01.paas.oracle.com \
@@ -1811,21 +1900,21 @@
           </div>
           <div class="code-card code-bash">
             <div class="code-toolbar"><span class="code-type">Bash</span><button class="copy-btn" type="button">Copy</button></div>
-            <div class="code-description code-objective">Objective: Stop, start, and check the service so the updated CLB and RLB attributes are reloaded across the cluster.</div>
+            <div class="code-description code-objective"><span class="objective-label">Objective:</span> Stop, start, and check the service so the updated CLB and RLB attributes are reloaded across the cluster.</div>
             <pre class="code-scroll"><code>srvctl stop service -d $ORACLE_UNQNAME -s CDB01_PDB01.paas.oracle.com
 srvctl start service -d $ORACLE_UNQNAME -s CDB01_PDB01.paas.oracle.com
 srvctl status service -d $ORACLE_UNQNAME -s CDB01_PDB01.paas.oracle.com
 srvctl config service -d $ORACLE_UNQNAME -s CDB01_PDB01.paas.oracle.com</code></pre>
           </div>
-          <div class="code-card code-text">
-            <div class="code-toolbar"><span class="code-type">Text</span><button class="copy-btn" type="button">Copy</button></div>
-            <div class="code-description code-objective">Objective: Confirm SRVCTL reports the expected connection and runtime load-balancing goals after the service update.</div>
+          <div class="code-card code-text" data-card-state="expanded">
+            <div class="code-toolbar"><span class="code-type">Output</span></div>
+            <div class="code-description code-objective"><span class="objective-label">Objective:</span> Confirm SRVCTL reports the expected connection and runtime load-balancing goals after the service update.</div>
             <pre class="code-scroll"><code>Connection Load Balancing Goal: <span class="code-highlight">SHORT</span>
 Runtime Load Balancing Goal: <span class="code-highlight">SERVICE_TIME</span></code></pre>
           </div>
           <div class="code-card code-sql">
             <div class="code-toolbar"><span class="code-type">SQL</span><button class="copy-btn" type="button">Copy</button></div>
-            <div class="code-description code-objective">Objective: Validate the service load-balancing attributes from inside the RAC database by instance.</div>
+            <div class="code-description code-objective"><span class="objective-label">Objective:</span> Validate the service load-balancing attributes from inside the RAC database by instance.</div>
             <pre class="code-scroll"><code>SET LINESIZE 220
 SET PAGESIZE 100
 SET TRIMSPOOL ON
@@ -1857,7 +1946,7 @@ ORDER BY inst_id;
           </div>
           <div class="code-card code-bash">
             <div class="code-toolbar"><span class="code-type">Bash</span><button class="copy-btn" type="button">Copy</button></div>
-            <div class="code-description code-objective">Objective: Confirm Clusterware, nodes, database, services, SCAN, SCAN listeners, and local listeners are healthy after scaling.</div>
+            <div class="code-description code-objective"><span class="objective-label">Objective:</span> Confirm Clusterware, nodes, database, services, SCAN, SCAN listeners, and local listeners are healthy after scaling.</div>
             <pre class="code-scroll"><code>crsctl check cluster -all
 crsctl stat res -t
 olsnodes -n
@@ -1870,7 +1959,7 @@ srvctl status listener</code></pre>
           </div>
           <div class="code-card code-sql">
             <div class="code-toolbar"><span class="code-type">SQL</span><button class="copy-btn" type="button">Copy</button></div>
-            <div class="code-description code-objective">Objective: Verify user sessions are visible across RAC instances after scaling and workload routing.</div>
+            <div class="code-description code-objective"><span class="objective-label">Objective:</span> Verify user sessions are visible across RAC instances after scaling and workload routing.</div>
             <pre class="code-scroll"><code>SET LINESIZE 220
 SET PAGESIZE 100
 SET TRIMSPOOL ON
@@ -1884,7 +1973,7 @@ ORDER BY inst_id;</code></pre>
           </div>
           <div class="code-card code-sql">
             <div class="code-toolbar"><span class="code-type">SQL</span><button class="copy-btn" type="button">Copy</button></div>
-            <div class="code-description code-objective">Objective: Review session count and allocated PGA by PDB and RAC instance.</div>
+            <div class="code-description code-objective"><span class="objective-label">Objective:</span> Review session count and allocated PGA by PDB and RAC instance.</div>
             <pre class="code-scroll"><code>SET LINESIZE 220
 SET PAGESIZE 100
 SET TRIMSPOOL ON
@@ -1911,7 +2000,7 @@ ORDER BY c.name,s.inst_id;</code></pre>
           </div>
           <div class="code-card code-sql">
             <div class="code-toolbar"><span class="code-type">SQL</span><button class="copy-btn" type="button">Copy</button></div>
-            <div class="code-description code-objective">Objective: Combine sessions, total PGA, and average PGA per user session for scale and failover review.</div>
+            <div class="code-description code-objective"><span class="objective-label">Objective:</span> Combine sessions, total PGA, and average PGA per user session for scale and failover review.</div>
             <pre class="code-scroll"><code>SET LINESIZE 220
 SET PAGESIZE 100
 SET TRIMSPOOL ON
@@ -1940,7 +2029,7 @@ ORDER BY c.name,s.inst_id;</code></pre>
           </div>
           <div class="code-card code-bash">
             <div class="code-toolbar"><span class="code-type">Bash</span><button class="copy-btn" type="button">Copy</button></div>
-            <div class="code-description code-objective">Objective: Simulate a planned service move and observe client, pool, FAN, RLB, AC, or TAC behavior.</div>
+            <div class="code-description code-objective"><span class="objective-label">Objective:</span> Simulate a planned service move and observe client, pool, FAN, RLB, AC, or TAC behavior.</div>
             <pre class="code-scroll"><code>srvctl relocate service \
 -db CDB01 \
 -service CDB01_PDB01.paas.oracle.com \
@@ -1959,7 +2048,7 @@ ORDER BY c.name,s.inst_id;</code></pre>
               <p>Example: Server Control Utility (SRVCTL) manages Oracle RAC database services. In this guide, <code>CDB01</code> is the Container Database (CDB), and <code>CDB01_PDB01.paas.oracle.com</code> is the Pluggable Database (PDB) service.</p>
               <div class="code-card code-bash">
                 <div class="code-toolbar"><span class="code-type">Bash</span><button class="copy-btn" type="button">Copy</button></div>
-                <div class="code-description code-objective">Objective: Apply Application Continuity service attributes to the RAC service used by the application.</div>
+                <div class="code-description code-objective"><span class="objective-label">Objective:</span> Apply Application Continuity service attributes to the RAC service used by the application.</div>
                 <pre class="code-scroll"><code>srvctl modify service \
 -db CDB01 \
 -service CDB01_PDB01.paas.oracle.com \
@@ -1982,7 +2071,7 @@ ORDER BY c.name,s.inst_id;</code></pre>
               <p>Recommended configuration: SRVCTL applies the TAC service attributes to the <code>CDB01</code> database and <code>CDB01_PDB01.paas.oracle.com</code> service used in this example.</p>
               <div class="code-card code-bash">
                 <div class="code-toolbar"><span class="code-type">Bash</span><button class="copy-btn" type="button">Copy</button></div>
-                <div class="code-description code-objective">Objective: Apply Transparent Application Continuity service attributes to the RAC service used by the application.</div>
+                <div class="code-description code-objective"><span class="objective-label">Objective:</span> Apply Transparent Application Continuity service attributes to the RAC service used by the application.</div>
                 <pre class="code-scroll"><code>srvctl modify service \
 -db CDB01 \
 -service CDB01_PDB01.paas.oracle.com \
@@ -2016,6 +2105,7 @@ ORDER BY c.name,s.inst_id;</code></pre>
         <section id="en-conclusion" class="article-section">
           <h2>10. Conclusion</h2>
           <p>A two-node Oracle RAC deployment on Exadata Exascale provides active-active scalability, workload balancing, and high availability. Combining SCAN, FAN, RLB, AC, and TAC delivers a resilient architecture for Oracle Database 26ai workloads.</p>
+          <p>Service configuration is the first layer of RAC high availability: it defines where a service can run and publishes the connection and runtime load-balancing policy. It does not, by itself, make an application react to an outage. The application tier must use the service name and configure a supported Oracle client driver or connection pool to consume FAN and FCF events, remove invalid connections, and borrow replacements from an available instance. The application must also define and test its request, transaction, retry, and session-state behavior. Application Continuity or Transparent Application Continuity can replay eligible work, but it still requires compatible client and service configuration and failover testing with the real workload.</p>
           <h3>Official Oracle references</h3>
           <ul class="reference-list">
             <li><a href="https://docs.oracle.com/en/engineered-systems/exadata-database-exascale/exdxs/overview-exadb-xs-service.html" target="_blank" rel="noopener"><span>Exadata Exascale</span><strong>Oracle Exadata Database Service on Exascale Infrastructure Overview</strong><em>docs.oracle.com</em></a></li>
@@ -2025,6 +2115,16 @@ ORDER BY c.name,s.inst_id;</code></pre>
             <li><a href="https://docs.oracle.com/en/database/oracle/oracle-database/26/rilin/load-balancing-of-connections-to-oracle-rac-databases.html" target="_blank" rel="noopener"><span>RAC load balancing</span><strong>Load Balancing of Connections to Oracle RAC Databases</strong><em>docs.oracle.com</em></a></li>
             <li><a href="https://docs.oracle.com/en/database/oracle/oracle-database/26/haovw/oracle-real-application-clusters-and-oracle-clusterware.html" target="_blank" rel="noopener"><span>Cluster availability</span><strong>Oracle Real Application Clusters and Oracle Clusterware</strong><em>docs.oracle.com</em></a></li>
           </ul>
+        </section>
+        <section id="chapter-navigation" class="article-section chapter-navigation">
+          <h2>Chapter navigation</h2>
+          <nav class="chapter-nav chapter-card-nav" aria-label="Chapter navigation">
+            <a class="chapter-link nav-card" href="../index.html"><span class="nav-card-label">Main</span><strong>Exascale Overview</strong></a>
+            <div class="chapter-link nav-card is-disabled chapter-disabled"><span class="nav-card-label">Previous</span><strong>Start of workbook</strong></div>
+            <a class="chapter-link nav-card" href="../Healthcheck/index.html"><span class="nav-card-label">Next</span><strong>Health Checks</strong></a>
+          </nav>
+          <div class="two-up"><a class="link-card" href="../index.html#documentation"><span class="nav-card-label">Series reference</span><strong>Series documentation</strong></a><a class="link-card" href="../index.html#glossary"><span class="nav-card-label">Series reference</span><strong>Series glossary</strong></a></div>
+          <div class="related-links" data-guide-cards data-guide-variant="cluster" data-guide-scope="nested" data-guide-language="en" aria-label="Guide links"></div>
         </section>
       </main>
     </div>
@@ -2038,14 +2138,17 @@ ORDER BY c.name,s.inst_id;</code></pre>
           <h1 id="es-title">Escalado de Oracle Database</h1>
           <p class="subtitle">De un despliegue de base de datos en clúster de un solo nodo a un despliegue de dos nodos, con acceso por servicios, componentes de alta disponibilidad, configuración de servicios y validación de carga de trabajo organizados para una revisión técnica rápida.</p>
           <div class="hero-meta" aria-label="Metadatos del artículo">
-            <span class="meta-pill">Última actualización 17 de junio de 2026</span>
+            <span class="meta-pill">Última actualización 24 de julio de 2026</span>
           </div>
           <details class="disclaimer" aria-label="Uso educativo y validación requerida">
             <summary>Uso educativo y validación requerida <span class="disclaimer-action">click here</span></summary>
             <p>Este contenido es solo para fines educativos y de planificación. Aplica cada comando y configuración primero en un entorno de prueba no productivo que refleje tus requisitos de RAC, servicio, controlador cliente, carga de trabajo y failover. Los valores recomendados aquí pueden no funcionar en tu entorno específico, pueden requerir aprobación de control de cambios y pueden afectar disponibilidad, enrutamiento de conexiones, comportamiento transaccional, uso de memoria y ubicación de cargas batch. Valida con dueños de aplicaciones, DBAs, equipos de red y la guía de Oracle Support antes de usar cualquier configuración en producción.</p>
           </details>
-          <div class="related-links" data-guide-cards data-guide-variant="cluster" data-guide-scope="nested" data-guide-language="es" aria-label="Enlaces de guías"></div>
         </div>
+        <aside class="hero-visual" aria-label="Cobertura más reciente de la guía">
+          <h2>Cobertura más reciente</h2>
+          <ul class="hero-highlights"><li>Escala RAC mediante el flujo de servicio de Exascale.</li><li>Valida SCAN, listeners, servicios y ubicación de instancias.</li><li>Revisa el balanceo de conexiones y de tiempo de ejecución.</li><li>Prueba la continuidad antes de aumentar el tráfico productivo.</li></ul>
+        </aside>
       </div>
     </section>
 
@@ -2063,6 +2166,7 @@ ORDER BY c.name,s.inst_id;</code></pre>
           <li><a href="#es-tac">8. Transparent Application Continuity</a></li>
           <li><a href="#es-best-practices">9. Mejores prácticas</a></li>
           <li><a href="#es-conclusion">10. Conclusión</a></li>
+          <li><a href="#es-chapter-navigation">Navegación del capítulo</a></li>
         </ol>
       </nav>
 
@@ -2141,8 +2245,8 @@ srvctl start service -d $ORACLE_UNQNAME -s CDB01_PDB01.paas.oracle.com
 srvctl status service -d $ORACLE_UNQNAME -s CDB01_PDB01.paas.oracle.com
 srvctl config service -d $ORACLE_UNQNAME -s CDB01_PDB01.paas.oracle.com</code></pre>
           </div>
-          <div class="code-card code-text">
-            <div class="code-toolbar"><span class="code-type">Text</span><button class="copy-btn" type="button">Copiar</button></div>
+          <div class="code-card code-text" data-card-state="expanded">
+            <div class="code-toolbar"><span class="code-type">Output</span></div>
             <div class="code-description code-objective">Objetivo: Confirmar que SRVCTL reporta los objetivos esperados de connection y runtime load balancing.</div>
             <pre class="code-scroll"><code>Connection Load Balancing Goal: <span class="code-highlight">SHORT</span>
 Runtime Load Balancing Goal: <span class="code-highlight">SERVICE_TIME</span></code></pre>
@@ -2340,6 +2444,7 @@ ORDER BY c.name,s.inst_id;</code></pre>
         <section id="es-conclusion" class="article-section">
           <h2>10. Conclusión</h2>
           <p>Un despliegue Oracle RAC de dos nodos en Exadata Exascale proporciona escalabilidad activo-activo, balanceo de carga de trabajo y alta disponibilidad. La combinación de SCAN, FAN, RLB, AC y TAC ofrece una arquitectura resiliente para cargas de trabajo de Oracle Database 26ai.</p>
+          <p>La configuración del servicio es la primera capa de alta disponibilidad RAC: define dónde puede ejecutarse un servicio y publica la política de balanceo de conexiones y de tiempo de ejecución. Por sí sola no hace que una aplicación reaccione ante una interrupción. La capa de aplicación debe usar el nombre del servicio y configurar un controlador Oracle o pool de conexiones compatible para consumir eventos FAN y FCF, retirar conexiones no válidas y obtener reemplazos desde una instancia disponible. También debe definir y probar el comportamiento de solicitudes, transacciones, reintentos y estado de sesión. Application Continuity o Transparent Application Continuity pueden reproducir trabajo elegible, pero aún requieren configuración compatible del cliente y del servicio, además de pruebas de failover con la carga real.</p>
           <h3>Referencias oficiales de Oracle</h3>
           <ul class="reference-list">
             <li><a href="https://docs.oracle.com/en/engineered-systems/exadata-database-exascale/exdxs/overview-exadb-xs-service.html" target="_blank" rel="noopener"><span>Exadata Exascale</span><strong>Oracle Exadata Database Service on Exascale Infrastructure Overview</strong><em>docs.oracle.com</em></a></li>
@@ -2349,6 +2454,16 @@ ORDER BY c.name,s.inst_id;</code></pre>
             <li><a href="https://docs.oracle.com/en/database/oracle/oracle-database/26/rilin/load-balancing-of-connections-to-oracle-rac-databases.html" target="_blank" rel="noopener"><span>Load balancing RAC</span><strong>Load Balancing of Connections to Oracle RAC Databases</strong><em>docs.oracle.com</em></a></li>
             <li><a href="https://docs.oracle.com/en/database/oracle/oracle-database/26/haovw/oracle-real-application-clusters-and-oracle-clusterware.html" target="_blank" rel="noopener"><span>Disponibilidad de clúster</span><strong>Oracle Real Application Clusters and Oracle Clusterware</strong><em>docs.oracle.com</em></a></li>
           </ul>
+        </section>
+        <section id="es-chapter-navigation" class="article-section chapter-navigation">
+          <h2>Navegación del capítulo</h2>
+          <nav class="chapter-nav chapter-card-nav" aria-label="Navegación del capítulo">
+            <a class="chapter-link nav-card" href="../index.html?lang=es"><span class="nav-card-label">Principal</span><strong>Resumen de Exascale</strong></a>
+            <div class="chapter-link nav-card is-disabled chapter-disabled"><span class="nav-card-label">Anterior</span><strong>Inicio del workbook</strong></div>
+            <a class="chapter-link nav-card" href="../Healthcheck/index.html?lang=es"><span class="nav-card-label">Siguiente</span><strong>Comprobaciones de salud</strong></a>
+          </nav>
+          <div class="two-up"><a class="link-card" href="../index.html#documentation"><span class="nav-card-label">Referencia de la serie</span><strong>Documentación de la serie</strong></a><a class="link-card" href="../index.html#glossary"><span class="nav-card-label">Referencia de la serie</span><strong>Glosario de la serie</strong></a></div>
+          <div class="related-links" data-guide-cards data-guide-variant="cluster" data-guide-scope="nested" data-guide-language="es" aria-label="Enlaces de guías"></div>
         </section>
       </main>
     </div>
@@ -2362,14 +2477,17 @@ ORDER BY c.name,s.inst_id;</code></pre>
           <h1 id="pt-title">Escalando Oracle Database</h1>
           <p class="subtitle">De uma implantação de banco de dados em cluster de nó único para uma implantação de dois nós, com acesso por serviços, componentes de alta disponibilidade, configuração de serviços e validação de carga de trabalho organizados para revisão técnica rápida.</p>
           <div class="hero-meta" aria-label="Metadados do artigo">
-            <span class="meta-pill">Última atualização 17 de junho de 2026</span>
+            <span class="meta-pill">Última atualização 24 de julho de 2026</span>
           </div>
           <details class="disclaimer" aria-label="Uso educacional e validação obrigatória">
             <summary>Uso educacional e validação obrigatória <span class="disclaimer-action">click here</span></summary>
             <p>Este conteúdo é apenas para fins educacionais e de planejamento. Aplique cada comando e configuração primeiro em um ambiente de teste não produtivo que reflita seus requisitos de RAC, serviço, driver cliente, carga de trabalho e failover. Os valores recomendados aqui podem não funcionar no seu ambiente específico, podem exigir aprovação de controle de mudanças e podem afetar disponibilidade, roteamento de conexões, comportamento transacional, uso de memória e posicionamento de cargas batch. Valide com responsáveis por aplicações, DBAs, equipes de rede e a orientação do Oracle Support antes de usar qualquer configuração em produção.</p>
           </details>
-          <div class="related-links" data-guide-cards data-guide-variant="cluster" data-guide-scope="nested" data-guide-language="pt" aria-label="Links dos guias"></div>
         </div>
+        <aside class="hero-visual" aria-label="Cobertura mais recente do guia">
+          <h2>Cobertura mais recente</h2>
+          <ul class="hero-highlights"><li>Amplie o RAC pelo fluxo de serviço do Exascale.</li><li>Valide SCAN, listeners, serviços e posicionamento das instâncias.</li><li>Revise o balanceamento de conexões e de tempo de execução.</li><li>Teste a continuidade antes de aumentar o tráfego de produção.</li></ul>
+        </aside>
       </div>
     </section>
 
@@ -2387,6 +2505,7 @@ ORDER BY c.name,s.inst_id;</code></pre>
           <li><a href="#pt-tac">8. Transparent Application Continuity</a></li>
           <li><a href="#pt-best-practices">9. Melhores práticas</a></li>
           <li><a href="#pt-conclusion">10. Conclusão</a></li>
+          <li><a href="#pt-chapter-navigation">Navegação do capítulo</a></li>
         </ol>
       </nav>
 
@@ -2465,8 +2584,8 @@ srvctl start service -d $ORACLE_UNQNAME -s CDB01_PDB01.paas.oracle.com
 srvctl status service -d $ORACLE_UNQNAME -s CDB01_PDB01.paas.oracle.com
 srvctl config service -d $ORACLE_UNQNAME -s CDB01_PDB01.paas.oracle.com</code></pre>
           </div>
-          <div class="code-card code-text">
-            <div class="code-toolbar"><span class="code-type">Text</span><button class="copy-btn" type="button">Copiar</button></div>
+          <div class="code-card code-text" data-card-state="expanded">
+            <div class="code-toolbar"><span class="code-type">Output</span></div>
             <div class="code-description code-objective">Objetivo: Confirmar que o SRVCTL reporta os objetivos esperados de connection e runtime load balancing.</div>
             <pre class="code-scroll"><code>Connection Load Balancing Goal: <span class="code-highlight">SHORT</span>
 Runtime Load Balancing Goal: <span class="code-highlight">SERVICE_TIME</span></code></pre>
@@ -2664,6 +2783,7 @@ ORDER BY c.name,s.inst_id;</code></pre>
         <section id="pt-conclusion" class="article-section">
           <h2>10. Conclusão</h2>
           <p>Uma implantação Oracle RAC de dois nós no Exadata Exascale fornece escalabilidade ativo-ativo, balanceamento de carga de trabalho e alta disponibilidade. A combinação de SCAN, FAN, RLB, AC e TAC entrega uma arquitetura resiliente para cargas de trabalho do Oracle Database 26ai.</p>
+          <p>A configuração do serviço é a primeira camada de alta disponibilidade RAC: ela define onde um serviço pode executar e publica a política de balanceamento de conexões e de tempo de execução. Sozinha, ela não faz uma aplicação reagir a uma indisponibilidade. A camada de aplicação deve usar o nome do serviço e configurar um driver Oracle ou pool de conexões compatível para consumir eventos FAN e FCF, remover conexões inválidas e obter substituições de uma instância disponível. A aplicação também deve definir e testar o comportamento de solicitações, transações, tentativas e estado de sessão. Application Continuity ou Transparent Application Continuity podem reproduzir trabalho elegível, mas ainda exigem configuração compatível de cliente e serviço, além de testes de failover com a carga real.</p>
           <h3>Referências oficiais da Oracle</h3>
           <ul class="reference-list">
             <li><a href="https://docs.oracle.com/en/engineered-systems/exadata-database-exascale/exdxs/overview-exadb-xs-service.html" target="_blank" rel="noopener"><span>Exadata Exascale</span><strong>Oracle Exadata Database Service on Exascale Infrastructure Overview</strong><em>docs.oracle.com</em></a></li>
@@ -2673,6 +2793,16 @@ ORDER BY c.name,s.inst_id;</code></pre>
             <li><a href="https://docs.oracle.com/en/database/oracle/oracle-database/26/rilin/load-balancing-of-connections-to-oracle-rac-databases.html" target="_blank" rel="noopener"><span>Load balancing RAC</span><strong>Load Balancing of Connections to Oracle RAC Databases</strong><em>docs.oracle.com</em></a></li>
             <li><a href="https://docs.oracle.com/en/database/oracle/oracle-database/26/haovw/oracle-real-application-clusters-and-oracle-clusterware.html" target="_blank" rel="noopener"><span>Disponibilidade de cluster</span><strong>Oracle Real Application Clusters and Oracle Clusterware</strong><em>docs.oracle.com</em></a></li>
           </ul>
+        </section>
+        <section id="pt-chapter-navigation" class="article-section chapter-navigation">
+          <h2>Navegação do capítulo</h2>
+          <nav class="chapter-nav chapter-card-nav" aria-label="Navegação do capítulo">
+            <a class="chapter-link nav-card" href="../index.html?lang=pt"><span class="nav-card-label">Principal</span><strong>Visão geral do Exascale</strong></a>
+            <div class="chapter-link nav-card is-disabled chapter-disabled"><span class="nav-card-label">Anterior</span><strong>Início do workbook</strong></div>
+            <a class="chapter-link nav-card" href="../Healthcheck/index.html?lang=pt"><span class="nav-card-label">Próximo</span><strong>Verificações de saúde</strong></a>
+          </nav>
+          <div class="two-up"><a class="link-card" href="../index.html#documentation"><span class="nav-card-label">Referência da série</span><strong>Documentação da série</strong></a><a class="link-card" href="../index.html#glossary"><span class="nav-card-label">Referência da série</span><strong>Glossário da série</strong></a></div>
+          <div class="related-links" data-guide-cards data-guide-variant="cluster" data-guide-scope="nested" data-guide-language="pt" aria-label="Links dos guias"></div>
         </section>
       </main>
     </div>
@@ -2684,7 +2814,7 @@ ORDER BY c.name,s.inst_id;</code></pre>
         <summary>Educational use and validation required <span class="disclaimer-action">click here</span></summary>
         <p>This content is for educational and planning purposes only. Apply every command and configuration first in a non-production test environment that mirrors your RAC, service, client driver, workload, and failover requirements. The recommended values shown here may not work in your specific environment, may require change-control approval, and can affect availability, connection routing, transaction behavior, memory use, and batch workload placement. Validate with application owners, DBAs, network teams, and Oracle Support guidance before using any setting in production.</p>
       </details>
-      <p class="footer-meta">Last updated June 17, 2026</p>
+      <p class="footer-meta">Last updated July 24, 2026</p>
     </div>
   </footer>
 

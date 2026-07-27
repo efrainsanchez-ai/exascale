@@ -231,7 +231,9 @@
           <a class="static-fallback-card" href="Cluster/index.html"><strong>Cluster Scaling</strong><span>Single-node to two-node RAC scaling with SCAN, services, load balancing, AC, TAC, and validation.</span></a>
           <a class="static-fallback-card" href="Healthcheck/index.html"><strong>RAC Health Check</strong><span>Baseline cluster, listener, database, service, SQL view, and connectivity checks before changes.</span></a>
           <a class="static-fallback-card" href="ConnectionServices/index.html"><strong>Connection Services</strong><span>Default service review, OLTP failover, reporting and batch isolation, session distribution, RLB, and forced PDB failover simulation.</span></a>
-          <a class="static-fallback-card" href="ResourceManager/index.html"><strong>Resource Manager</strong><span>Service-to-consumer-group mapping, business-hours and after-hours plans, DOP caps, report guardrails, activation, and validation.</span></a>
+          <a class="static-fallback-card" href="ResourceManager/index.html"><strong>PDB Resource Manager</strong><span>PDB-level service-to-consumer-group mapping, plans, DOP caps, activation, and validation.</span></a>
+          <a class="static-fallback-card" href="CDBResourceManager/index.html"><strong>CDB Resource Manager</strong><span>Tiered PDB protection with CDB-level shares, CPU caps, parallel-server caps, and validation.</span></a>
+          <a class="static-fallback-card" href="MemoryManagement/index.html"><strong>Database Memory</strong><span>Linux, root CDB, and PDB memory review with 12-PDB SGA and PGA planning.</span></a>
         </nav>
       </div>
     </main>
@@ -895,8 +897,8 @@ ORDER BY c.name,s.inst_id;`
         title: "Exadata Exascale Overview",
         subtitle: "Exadata Exascale benefits, operating model, architecture context, continuity concepts, and entry points for the guide set.",
         eyebrow: "Oracle technical article",
-        updated: "Last updated June 17, 2026",
-        source: "Converted from Exadata_Exascale_26ai_RAC_Health_Check_Guide.md",
+        updated: "Last updated July 24, 2026",
+        source: "Generated guide",
         disclaimerTitle: "Educational use and validation required",
         disclaimer: "This content is for educational and planning purposes only. Apply every command and configuration first in a non-production test environment that mirrors your RAC, service, client driver, workload, and failover requirements. The recommended values shown here may not work in your specific environment, may require change-control approval, and can affect availability, connection routing, transaction behavior, memory use, and batch workload placement. Validate with application owners, DBAs, network teams, and Oracle Support guidance before using any setting in production.",
         controls: {
@@ -906,6 +908,7 @@ ORDER BY c.name,s.inst_id;`
           copy: "Copy",
           copied: "Copied",
           toc: "Table of contents",
+          continueSeries: "Continue the series",
           backTop: "Back to top",
           refs: "Oracle references",
           expected: "Expected",
@@ -1373,7 +1376,7 @@ ORDER BY c.name,s.inst_id;`
         subtitle: "Un procedimiento consistente para validar la salud de una implementación Oracle Exadata Exascale RAC en OCI.",
         eyebrow: "Artículo técnico Oracle",
         updated: "Última actualización: 17 de junio de 2026",
-        source: "Convertido desde Exadata_Exascale_26ai_RAC_Health_Check_Guide.md",
+        source: "Guia generada",
         disclaimerTitle: "Uso educativo y validación requerida",
         disclaimer: "Este contenido es solo para fines educativos y de planificación. Aplica cada comando y configuración primero en un entorno de prueba no productivo que refleje tus requisitos de RAC, servicio, controlador cliente, carga de trabajo y failover. Los valores recomendados aquí pueden no funcionar en tu entorno específico, pueden requerir aprobación de control de cambios y pueden afectar disponibilidad, enrutamiento de conexiones, comportamiento transaccional, uso de memoria y ubicación de cargas batch. Valida con dueños de aplicaciones, DBAs, equipos de red y la guía de Oracle Support antes de usar cualquier configuración en producción.",
         controls: {
@@ -1383,6 +1386,7 @@ ORDER BY c.name,s.inst_id;`
           copy: "Copiar",
           copied: "Copiado",
           toc: "Tabla de contenido",
+          continueSeries: "Continuar la serie",
           backTop: "Volver arriba",
           refs: "Referencias Oracle",
           expected: "Esperado",
@@ -1488,7 +1492,7 @@ ORDER BY c.name,s.inst_id;`
         subtitle: "Um procedimento consistente para validar a saúde de uma implantação Oracle Exadata Exascale RAC no OCI.",
         eyebrow: "Artigo técnico Oracle",
         updated: "Última atualização: 17 de junho de 2026",
-        source: "Convertido de Exadata_Exascale_26ai_RAC_Health_Check_Guide.md",
+        source: "Guia gerado",
         disclaimerTitle: "Uso educacional e validação obrigatória",
         disclaimer: "Este conteúdo é apenas para fins educacionais e de planejamento. Aplique cada comando e configuração primeiro em um ambiente de teste não produtivo que reflita seus requisitos de RAC, serviço, driver cliente, carga de trabalho e failover. Os valores recomendados aqui podem não funcionar no seu ambiente específico, podem exigir aprovação de controle de mudanças e podem afetar disponibilidade, roteamento de conexões, comportamento transacional, uso de memória e posicionamento de cargas batch. Valide com responsáveis por aplicações, DBAs, equipes de rede e a orientação do Oracle Support antes de usar qualquer configuração em produção.",
         controls: {
@@ -1498,6 +1502,7 @@ ORDER BY c.name,s.inst_id;`
           copy: "Copiar",
           copied: "Copiado",
           toc: "Sumário",
+          continueSeries: "Continuar a série",
           backTop: "Voltar ao topo",
           refs: "Referências Oracle",
           expected: "Esperado",
@@ -1704,7 +1709,7 @@ ORDER BY c.name,s.inst_id;`
         relativeLinks: [
           { href: "Healthcheck/index.html", label: "RAC Health Check", description: "Baseline cluster, listener, database, service, SQL view, and connectivity checks before changes." },
           { href: "ConnectionServices/index.html", label: "Connection Services", description: "Default service review, OLTP failover, reporting and batch isolation, session distribution, RLB, and forced PDB failover simulation." },
-          { href: "ResourceManager/index.html", label: "Resource Manager", description: "Service-to-consumer-group mapping, business-hours and after-hours plans, DOP caps, report guardrails, activation, and validation." },
+          { href: "ResourceManager/index.html", label: "PDB Resource Manager", description: "PDB-level service-to-consumer-group mapping, plans, DOP caps, activation, and validation." },
           { href: "Cluster/index.html", label: "Cluster Scaling", description: "Single-node to two-node RAC scaling with SCAN, services, load balancing, AC, TAC, and validation." }
         ],
         copy: {
@@ -2109,6 +2114,19 @@ ORDER BY c.name,s.inst_id;`
       );
     }
 
+    function SeriesNavigation({ links, lang }) {
+      return (
+        <nav className="mt-5 grid gap-3 sm:grid-cols-2" aria-label="Exascale workbook navigation">
+          {links.map((link) => (
+            <a key={link.href} href={link.href} className="rounded-lg border border-stone-200 bg-white p-4 text-sm shadow-sm transition hover:border-oracle-red hover:shadow-subtle focus:outline-none focus:ring-2 focus:ring-oracle-red/40 dark:border-stone-700 dark:bg-[#211d1b]">
+              <span className="font-bold text-oracle-red dark:text-orange-300">{link.label}</span>
+              <span className="mt-1 block leading-6 text-stone-700 dark:text-stone-300">{typeof link.description === "string" ? link.description : link.description[lang] || link.description.en}</span>
+            </a>
+          ))}
+        </nav>
+      );
+    }
+
     function DataTable({ table }) {
       return (
         <div className="table-wrap overflow-x-auto rounded-lg border border-stone-200 bg-white dark:border-stone-700 dark:bg-[#211d1b]">
@@ -2277,7 +2295,8 @@ ORDER BY c.name,s.inst_id;`
       const toc = useMemo(() => [
         ...visibleSections.map(({ id, title }) => ({ id, title })),
         ...(pageConfig.showConcepts ? [{ id: "concepts", title: t.calloutsTitle }] : []),
-        ...(pageConfig.showGlossary ? [{ id: "glossary", title: t.glossaryTitle }] : [])
+        ...(pageConfig.showGlossary ? [{ id: "glossary", title: t.glossaryTitle }] : []),
+        ...(pageVariant === "overview" ? [{ id: "series-navigation", title: t.controls.continueSeries }] : [])
       ], [t, visibleSections, pageConfig]);
 
       return (
@@ -2331,14 +2350,7 @@ ORDER BY c.name,s.inst_id;`
                   </div>
                   <div className="mt-5 max-w-3xl">
                     <Disclaimer title={t.disclaimerTitle} text={t.disclaimer} />
-                  </div>
-                  <div className="mt-5 grid gap-3 sm:grid-cols-2">
-                    {relativeLinks.map((link) => (
-                      <a key={link.href} href={link.href} className="rounded-lg border border-stone-200 bg-white p-4 text-sm shadow-sm transition hover:border-oracle-red hover:shadow-subtle focus:outline-none focus:ring-2 focus:ring-oracle-red/40 dark:border-stone-700 dark:bg-[#211d1b]">
-                        <span className="font-bold text-oracle-red dark:text-orange-300">{link.label}</span>
-                        <span className="mt-1 block leading-6 text-stone-700 dark:text-stone-300">{typeof link.description === "string" ? link.description : link.description[lang] || link.description.en}</span>
-                      </a>
-                    ))}
+                    {pageVariant === "overview" && <SeriesNavigation links={relativeLinks} lang={lang} />}
                   </div>
                 </div>
                 <aside className="rounded-lg border border-stone-200 bg-white p-4 shadow-subtle dark:border-stone-700 dark:bg-[#211d1b] sm:p-5">
@@ -2413,7 +2425,7 @@ ORDER BY c.name,s.inst_id;`
                 </div>
               </section>}
 
-              {pageConfig.showGlossary && <section id="glossary" className="border-t border-stone-200 py-10 dark:border-stone-800">
+              {pageConfig.showGlossary && <section id="glossary" className="border-t border-stone-200 py-10 dark:border-stone-800"><span id="documentation" className="sr-only" aria-hidden="true"></span>
                 <div className="space-y-3">
                   <p className="text-xs font-semibold uppercase tracking-[0.16em] text-oracle-red dark:text-orange-300">{t.controls.refs}</p>
                   <h2 className="text-2xl font-bold tracking-tight text-stone-950 dark:text-white sm:text-3xl">{t.glossaryTitle}</h2>
@@ -2431,6 +2443,12 @@ ORDER BY c.name,s.inst_id;`
                   ))}
                 </div>
               </section>}
+
+              <section id="series-navigation" className="border-t border-stone-200 py-10 dark:border-stone-800">
+                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-oracle-red dark:text-orange-300">Continue the series</p>
+                <h2 className="mt-2 text-2xl font-bold tracking-tight text-stone-950 dark:text-white sm:text-3xl">Explore the workbooks</h2>
+                <SeriesNavigation links={relativeLinks} lang={lang} />
+              </section>
             </article>
           </main>
 

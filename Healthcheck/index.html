@@ -403,16 +403,30 @@
       max-width: 54rem;
     }
 
+    .chapter-link,
+    .link-card,
+    .related-link,
     .related-links a {
-      display: block;
+      display: grid;
+      gap: 0.35rem;
+      min-height: 92px;
       border: 1px solid var(--line);
       border-radius: var(--radius);
       background: var(--surface);
+      color: var(--text);
+      font: 1rem/1.7 ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       box-shadow: 0 1px 2px rgba(31, 27, 26, 0.04);
-      padding: 0.9rem;
+      padding: 1rem;
+      text-decoration: none;
       transition: border-color 0.18s ease, box-shadow 0.18s ease, transform 0.18s ease;
     }
 
+    .chapter-link:hover,
+    .chapter-link:focus-visible,
+    .link-card:hover,
+    .link-card:focus-visible,
+    .related-link:hover,
+    .related-link:focus-visible,
     .related-links a:hover,
     .related-links a:focus-visible {
       border-color: var(--accent);
@@ -421,19 +435,36 @@
       transform: translateY(-1px);
     }
 
-    .related-links strong {
+    .nav-card-label,
+    .chapter-link span,
+    .link-card span {
       display: block;
-      color: var(--accent);
-      font-size: 0.9rem;
-      line-height: 1.3;
+      color: var(--accent-strong);
+      font-size: 0.72rem;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      line-height: 1.2;
+      text-transform: uppercase;
     }
 
+    .chapter-link strong,
+    .link-card strong,
+    .related-link strong,
+    .related-links strong {
+      display: block;
+      color: inherit;
+      font-size: 1rem;
+      font-weight: 700;
+      line-height: 1.35;
+    }
+
+    .related-link span,
     .related-links span {
       display: block;
-      margin-top: 0.25rem;
       color: var(--muted);
-      font-size: 0.86rem;
-      line-height: 1.45;
+      font-size: 0.92rem;
+      line-height: 1.55;
+      text-transform: none;
     }
 
     .page-grid {
@@ -602,6 +633,13 @@
     .code-text {
       background: #171412;
       border-color: rgba(120, 113, 108, 0.35);
+    }
+
+    .code-bash,
+    .code-sql,
+    .code-text {
+      background: #101922;
+      border-color: rgba(14, 165, 233, 0.35);
     }
 
     .code-toolbar {
@@ -808,13 +846,12 @@
         <h1>RAC Health Check</h1>
         <p class="subtitle">Operational validation workflow for Grid Infrastructure, listener state, RAC database resources, services, SQL inventory views, and end-to-end connectivity.</p>
         <div class="hero-meta">
-          <span>Last updated June 17, 2026</span>
+          <span>Last updated July 24, 2026</span>
         </div>
         <details class="disclaimer">
           <summary>Educational use and validation required <span class="disclaimer-action">click here</span></summary>
           <p>This content is for educational and planning purposes only. Apply every command and configuration first in a non-production test environment that mirrors your RAC, service, client driver, workload, and failover requirements. The recommended values shown here may not work in your specific environment, may require change-control approval, and can affect availability, connection routing, transaction behavior, memory use, and batch workload placement. Validate with application owners, DBAs, network teams, and Oracle Support guidance before using any setting in production.</p>
         </details>
-        <nav class="related-links" data-guide-cards data-guide-variant="healthcheck" data-guide-scope="nested" aria-label="Guide links"></nav>
       </div>
     </div>
   </section>
@@ -834,6 +871,7 @@
           <li><a href="#connectivity">8. Connectivity</a></li>
           <li><a href="#operational-notes">Operational Notes</a></li>
           <li><a href="#shared-references">Shared References</a></li>
+          <li><a href="#chapter-navigation">Chapter Navigation</a></li>
         </ol>
       </nav>
     </aside>
@@ -865,7 +903,7 @@ olsnodes -n</code></pre>
           <pre class="code-scroll"><code>srvctl status asm</code></pre>
         </div>
         <div class="code-card code-text">
-          <div class="code-toolbar"><span class="code-type">Output</span><button class="copy-btn" type="button">Copy</button></div>
+          <div class="code-toolbar"><span class="code-type">Output</span></div>
           <div class="code-description code-objective"><span class="objective-label">Objective:</span> Expected output when the ASM resource does not exist in this Exascale path.</div>
           <pre class="code-scroll"><code>PRCR-1001 : Resource ora.asm does not exist</code></pre>
         </div>
@@ -877,8 +915,10 @@ olsnodes -n</code></pre>
         <p>Oracle Net listeners receive client connection requests and route them to registered database services. In RAC, listener health is part of the path between SCAN or node addresses and the database service selected by the client.</p>
         <div class="code-card code-bash">
           <div class="code-toolbar"><span class="code-type">Bash</span><button class="copy-btn" type="button">Copy</button></div>
-          <div class="code-description code-objective"><span class="objective-label">Objective:</span> Verify that the node listener resource is online on the target cluster node.</div>
-          <pre class="code-scroll"><code>srvctl status listener -n &lt;node_name&gt;</code></pre>
+          <div class="code-description code-objective"><span class="objective-label">Objective:</span> Verify SCAN, SCAN listener, and node listener resources are online before testing database-service connectivity.</div>
+          <pre class="code-scroll"><code>srvctl status scan
+srvctl status scan_listener
+srvctl status listener -n &lt;node_name&gt;</code></pre>
         </div>
       </section>
 
@@ -979,8 +1019,22 @@ sqlplus system@CDB01_PDB01</code></pre>
           <li><a href="../index.html#documentation">Oracle Official Documentation</a></li>
           <li><a href="../index.html#glossary">Shared Glossary</a></li>
           <li><a href="../ConnectionServices/index.html">Connection Services Guide</a></li>
-          <li><a href="../ResourceManager/index.html">Resource Manager Guide</a></li>
+          <li><a href="../ResourceManager/index.html">PDB Resource Manager Guide</a></li>
         </ul>
+      </section>
+      <section class="article-section" id="chapter-navigation">
+        <p class="section-kicker">Continue the series</p>
+        <h2>Chapter navigation</h2>
+        <nav class="chapter-nav chapter-card-nav" aria-label="Chapter navigation">
+          <a class="chapter-link nav-card" href="../index.html"><span class="nav-card-label">Main</span><strong>Exascale Overview</strong></a>
+          <a class="chapter-link nav-card" href="../Cluster/index.html"><span class="nav-card-label">Previous</span><strong>Cluster Scaling</strong></a>
+          <a class="chapter-link nav-card" href="../ConnectionServices/index.html"><span class="nav-card-label">Next</span><strong>Connection Services</strong></a>
+        </nav>
+        <div class="two-up">
+          <a class="link-card" href="../index.html#documentation"><span class="nav-card-label">Series reference</span><strong>Series documentation</strong></a>
+          <a class="link-card" href="../index.html#glossary"><span class="nav-card-label">Series reference</span><strong>Series glossary</strong></a>
+        </div>
+        <nav class="related-links" data-guide-cards data-guide-variant="healthcheck" data-guide-scope="nested" aria-label="Guide links"></nav>
       </section>
     </main>
   </div>
@@ -991,7 +1045,7 @@ sqlplus system@CDB01_PDB01</code></pre>
         <summary>Educational use and validation required <span class="disclaimer-action">click here</span></summary>
         <p>This content is for educational and planning purposes only. Apply every command and configuration first in a non-production test environment that mirrors your RAC, service, client driver, workload, and failover requirements. The recommended values shown here may not work in your specific environment, may require change-control approval, and can affect availability, connection routing, transaction behavior, memory use, and batch workload placement. Validate with application owners, DBAs, network teams, and Oracle Support guidance before using any setting in production.</p>
       </details>
-      <p>Last updated June 17, 2026</p>
+      <p>Last updated July 24, 2026</p>
     </div>
   </footer>
 
@@ -1054,7 +1108,7 @@ sqlplus system@CDB01_PDB01</code></pre>
           "Oracle technical article": "Artículo técnico de Oracle",
           "RAC Health Check": "Health Check RAC de Exadata Exascale 26ai",
           "Operational validation workflow for Grid Infrastructure, listener state, RAC database resources, services, SQL inventory views, and end-to-end connectivity.": "Flujo de validación operativa para Grid Infrastructure, estado del listener, recursos de base de datos RAC, servicios, vistas SQL de inventario y conectividad de extremo a extremo.",
-          "Last updated June 17, 2026": "Última actualización 17 de junio de 2026",
+          "Last updated July 24, 2026": "Última actualización 24 de julio de 2026",
           "Educational use and validation required": "Uso educativo y validación requerida",
           "This content is for educational and planning purposes only. Apply every command and configuration first in a non-production test environment that mirrors your RAC, service, client driver, workload, and failover requirements. The recommended values shown here may not work in your specific environment, may require change-control approval, and can affect availability, connection routing, transaction behavior, memory use, and batch workload placement. Validate with application owners, DBAs, network teams, and Oracle Support guidance before using any setting in production.": "Este contenido es solo para fines educativos y de planificación. Aplica cada comando y configuración primero en un entorno de prueba no productivo que refleje tus requisitos de RAC, servicio, controlador cliente, carga de trabajo y failover. Los valores recomendados aquí pueden no funcionar en tu entorno específico, pueden requerir aprobación de control de cambios y pueden afectar disponibilidad, enrutamiento de conexiones, comportamiento transaccional, uso de memoria y ubicación de cargas batch. Valida con dueños de aplicaciones, DBAs, equipos de red y la guía de Oracle Support antes de usar cualquier configuración en producción.",
           "Contents": "Contenido",
@@ -1091,7 +1145,7 @@ sqlplus system@CDB01_PDB01</code></pre>
           "Expected output when the ASM resource does not exist in this Exascale path.": "Salida esperada cuando el recurso ASM no existe en esta ruta de Exascale.",
           "Listener Health Checks": "Revisiones de salud del listener",
           "Oracle Net listeners receive client connection requests and route them to registered database services. In RAC, listener health is part of the path between SCAN or node addresses and the database service selected by the client.": "Los listeners de Oracle Net reciben solicitudes de conexión de clientes y las enrutan hacia servicios de base de datos registrados. En RAC, la salud del listener forma parte de la ruta entre SCAN o direcciones de nodo y el servicio de base de datos seleccionado por el cliente.",
-          "Verify that the node listener resource is online on the target cluster node.": "Verifica que el recurso listener del nodo esté en línea en el nodo de cluster objetivo.",
+          "Verify SCAN, SCAN listener, and node listener resources are online before testing database-service connectivity.": "Verifica que los recursos SCAN, listener SCAN y listener del nodo estén en línea antes de probar la conectividad del servicio de base de datos.",
           "Database Health Checks": "Revisiones de salud de la base de datos",
           "SRVCTL is the management utility Oracle expects for Oracle-managed RAC entities such as databases, instances, listeners, and services. Database status checks confirm whether each RAC instance is running under Clusterware control.": "SRVCTL es la utilidad de administración que Oracle espera para entidades RAC administradas por Oracle, como bases de datos, instancias, listeners y servicios. Las revisiones de estado de la base de datos confirman si cada instancia RAC se ejecuta bajo control de Clusterware.",
           "Load the database owner environment and confirm RAC database instance status through SRVCTL.": "Carga el entorno del propietario de la base de datos y confirma el estado de las instancias RAC mediante SRVCTL.",
@@ -1127,7 +1181,7 @@ sqlplus system@CDB01_PDB01</code></pre>
           "Oracle Official Documentation": "Documentación oficial de Oracle",
           "Shared Glossary": "Glosario compartido",
           "Connection Services Guide": "Guía de Connection Services",
-          "Resource Manager Guide": "Guía de Resource Manager",
+          "PDB Resource Manager Guide": "Guía de PDB Resource Manager",
           "Back to top": "Volver arriba"
         },
         pt: {
@@ -1141,7 +1195,7 @@ sqlplus system@CDB01_PDB01</code></pre>
           "Oracle technical article": "Artigo técnico da Oracle",
           "RAC Health Check": "Health Check RAC do Exadata Exascale 26ai",
           "Operational validation workflow for Grid Infrastructure, listener state, RAC database resources, services, SQL inventory views, and end-to-end connectivity.": "Fluxo de validação operacional para Grid Infrastructure, estado do listener, recursos de banco de dados RAC, serviços, views SQL de inventário e conectividade de ponta a ponta.",
-          "Last updated June 17, 2026": "Última atualização 17 de junho de 2026",
+          "Last updated July 24, 2026": "Última atualização 24 de julho de 2026",
           "Educational use and validation required": "Uso educacional e validação obrigatória",
           "This content is for educational and planning purposes only. Apply every command and configuration first in a non-production test environment that mirrors your RAC, service, client driver, workload, and failover requirements. The recommended values shown here may not work in your specific environment, may require change-control approval, and can affect availability, connection routing, transaction behavior, memory use, and batch workload placement. Validate with application owners, DBAs, network teams, and Oracle Support guidance before using any setting in production.": "Este conteúdo é apenas para fins educacionais e de planejamento. Aplique cada comando e configuração primeiro em um ambiente de teste não produtivo que reflita seus requisitos de RAC, serviço, driver cliente, carga de trabalho e failover. Os valores recomendados aqui podem não funcionar no seu ambiente específico, podem exigir aprovação de controle de mudanças e podem afetar disponibilidade, roteamento de conexões, comportamento transacional, uso de memória e posicionamento de cargas batch. Valide com responsáveis por aplicações, DBAs, equipes de rede e a orientação do Oracle Support antes de usar qualquer configuração em produção.",
           "Contents": "Conteúdo",
@@ -1178,7 +1232,7 @@ sqlplus system@CDB01_PDB01</code></pre>
           "Expected output when the ASM resource does not exist in this Exascale path.": "Saída esperada quando o recurso ASM não existe neste caminho do Exascale.",
           "Listener Health Checks": "Verificações de saúde do listener",
           "Oracle Net listeners receive client connection requests and route them to registered database services. In RAC, listener health is part of the path between SCAN or node addresses and the database service selected by the client.": "Listeners do Oracle Net recebem solicitações de conexão de clientes e as roteiam para serviços de banco de dados registrados. Em RAC, a saúde do listener faz parte do caminho entre SCAN ou endereços de nó e o serviço de banco de dados selecionado pelo cliente.",
-          "Verify that the node listener resource is online on the target cluster node.": "Verifique se o recurso listener do nó está online no nó de cluster de destino.",
+          "Verify SCAN, SCAN listener, and node listener resources are online before testing database-service connectivity.": "Verifique se os recursos SCAN, listener SCAN e listener do nó estão online antes de testar a conectividade do serviço de banco de dados.",
           "Database Health Checks": "Verificações de saúde do banco de dados",
           "SRVCTL is the management utility Oracle expects for Oracle-managed RAC entities such as databases, instances, listeners, and services. Database status checks confirm whether each RAC instance is running under Clusterware control.": "SRVCTL é a utilidade de gerenciamento esperada pela Oracle para entidades RAC gerenciadas pela Oracle, como bancos de dados, instâncias, listeners e serviços. As verificações de status do banco de dados confirmam se cada instância RAC está em execução sob controle do Clusterware.",
           "Load the database owner environment and confirm RAC database instance status through SRVCTL.": "Carregue o ambiente do proprietário do banco de dados e confirme o status das instâncias RAC por meio do SRVCTL.",
@@ -1214,7 +1268,7 @@ sqlplus system@CDB01_PDB01</code></pre>
           "Oracle Official Documentation": "Documentação oficial da Oracle",
           "Shared Glossary": "Glossário compartilhado",
           "Connection Services Guide": "Guia de Connection Services",
-          "Resource Manager Guide": "Guia de Resource Manager",
+          "PDB Resource Manager Guide": "Guia de PDB Resource Manager",
           "Back to top": "Voltar ao topo"
         }
       };

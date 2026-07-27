@@ -1,0 +1,389 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="description" content="Oracle Exadata Exascale CDB and PDB memory planning workbook."><title>Database Memory</title><link rel="icon" href="data:,">
+<script>(function(){const saved=localStorage.getItem('exascale-theme');if(saved==='dark'||(!saved&&matchMedia('(prefers-color-scheme:dark)').matches))document.documentElement.classList.add('dark')})()</script><script src="https://cdn.tailwindcss.com"></script><script>tailwind.config={darkMode:'class',theme:{extend:{colors:{oracle:{red:'#c74634',ink:'#1f1b1a'}}}}}</script><script src="../shared-guide-set.js"></script>
+<style>.article-gradient{background:linear-gradient(135deg,rgba(199,70,52,.11),transparent 36%),linear-gradient(180deg,#fff 0%,#faf8f7 100%)}.dark .article-gradient{background:linear-gradient(135deg,rgba(199,70,52,.18),transparent 38%),linear-gradient(180deg,#171412 0%,#211d1b 100%)}.code-card{overflow:hidden;border:1px solid rgba(14,165,233,.35);border-radius:8px;background:#101922;box-shadow:0 8px 24px rgba(31,27,26,.12);color:#f5f5f4}.code-toolbar{display:flex;align-items:center;justify-content:space-between;gap:1rem;border-bottom:1px solid rgba(255,255,255,.1);padding:.5rem 1rem}.code-type{color:#e7e5e4;font-size:.75rem;font-weight:600;line-height:1rem;text-transform:uppercase}.copy-btn{border:1px solid rgba(255,255,255,.15);border-radius:6px;background:rgba(255,255,255,.1);color:#fff;font-size:.75rem;font-weight:600;line-height:1rem;padding:.25rem .75rem;transition:background 160ms ease,border-color 160ms ease}.copy-btn:hover{background:rgba(255,255,255,.18)}.copy-btn:focus-visible{outline:2px solid rgba(255,255,255,.65);outline-offset:2px}.code-description{border-bottom:1px solid rgba(255,255,255,.1);color:#e7e5e4;font-size:.875rem;font-weight:400;line-height:1.5rem;padding:.75rem 1rem}.objective-label{font-weight:600}.code-card pre{color:#f5f5f4;font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace;font-size:13px;font-weight:400;line-height:24px;margin:0;overflow-x:auto;padding:1rem;white-space:pre;-webkit-font-smoothing:antialiased}.code-card pre code{color:inherit;font:inherit;font-weight:400}.code-scroll::-webkit-scrollbar{height:10px;width:10px}.code-scroll::-webkit-scrollbar-track{background:rgba(255,255,255,.08)}.code-scroll::-webkit-scrollbar-thumb{background:rgba(255,255,255,.28);border-radius:999px}.dark .surface{background:#211d1b;border-color:#44403c}.dark .surface,.dark .prose{color:#e7e5e4}.dark table{background:#211d1b;color:#e7e5e4}.dark thead{background:#292524}.chapter-nav{display:block}.chapter-nav-row{display:grid;gap:.75rem;grid-template-columns:repeat(3,minmax(0,1fr))}.two-up,.related-links{display:grid;gap:.75rem;grid-template-columns:repeat(2,minmax(0,1fr));margin-top:.75rem}#chapter-navigation>.nav-card-label{display:block;margin:0 0 .5rem}#chapter-navigation>h2{margin:0 0 1rem}.chapter-link,.link-card,.related-link,.related-links a{display:grid;gap:.35rem;min-height:92px;border:1px solid #d6cfcb;border-radius:8px;background:#fff;color:#1f1b1a;font:1rem/1.7 ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;padding:1rem;text-decoration:none}.nav-card-label,.chapter-link span,.link-card span{color:#5f2b24;font-size:.72rem;font-weight:800;letter-spacing:.08em;line-height:1.2;text-transform:uppercase}.chapter-link strong,.link-card strong,.related-link strong,.related-links a strong{color:inherit;font-size:1rem;font-weight:700;line-height:1.35}.related-link span,.related-links a span{color:#57534e;font-size:.92rem;font-weight:400;letter-spacing:0;line-height:1.55;text-transform:none}.chapter-link.is-disabled,.nav-card.is-disabled{background:#f5f5f4;color:#78716c;opacity:.82}.dark .chapter-link,.dark .link-card,.dark .related-link,.dark .related-links a{background:#211d1b;border-color:#57534e;color:#f5f5f4}.dark .nav-card-label,.dark .chapter-link span,.dark .link-card span{color:#f4b8ad}.dark .related-link span,.dark .related-links a span{color:#d6d3d1}@media(max-width:640px){.chapter-nav-row,.two-up,.related-links{grid-template-columns:1fr}}</style></head>
+<body class="bg-white text-oracle-ink dark:bg-[#171412] dark:text-stone-100"><a href="#article" class="sr-only focus:not-sr-only">Skip to article</a><header class="article-gradient border-b border-stone-200 dark:border-stone-800"><div class="mx-auto max-w-7xl px-5 py-7"><nav class="flex items-center justify-between"><div><p class="font-semibold" data-series-brand-title>Oracle Exadata Exascale 26ai</p><p class="text-xs text-stone-500" data-series-brand-subtitle>Series</p></div><button id="theme" class="rounded border px-3 py-2 text-sm">Dark</button></nav><div class="grid gap-5 py-10 lg:grid-cols-[1fr_320px]"><div><p class="text-sm font-bold uppercase text-oracle-red">Oracle technical workbook</p><h1 class="mt-3 text-4xl font-bold">CDB Memory Management</h1><p class="mt-4 max-w-3xl text-lg leading-8">Measure Linux, root CDB, and PDB memory before adjusting SGA or PGA for a 12-PDB Exadata Exascale CDB.</p><p class="mt-5 text-sm">Last updated July 24, 2026</p><details class="mt-5 rounded border border-amber-300 bg-amber-50 p-4 text-sm text-amber-950 dark:bg-amber-950/25 dark:text-amber-100"><summary class="font-bold">Educational use and validation required <span class="normal-case underline">click here</span></summary><p class="mt-2">Validate every memory change first in a representative non-production RAC CDB.</p></details></div><aside class="surface rounded-lg border bg-white p-5"><p class="font-bold text-oracle-red">Latest guide coverage</p><ul class="mt-3 space-y-2 text-sm"><li>Linux memory interpretation</li><li>Root SGA and PGA review</li><li>12-PDB memory envelope</li><li>Measured root-SGA adjustment</li></ul></aside></div></div></header>
+<main id="article" class="mx-auto grid max-w-7xl gap-8 px-5 py-10 lg:grid-cols-[230px_1fr]"><aside class="hidden lg:block"><nav class="surface sticky top-6 rounded border bg-white p-4 text-sm"><a class="block py-2" href="#overview">Overview</a><a class="block py-2" href="#host">Host memory</a><a class="block py-2" href="#review">Configuration review</a><a class="block py-2" href="#implementation">12-PDB implementation</a><a class="block py-2" href="#root-sga">Root SGA planning</a><a class="block py-2" href="#chapter-navigation">Chapter navigation</a></nav></aside><article class="prose min-w-0 space-y-10">
+<section id="overview" class="border-t pt-10"><h2 class="text-3xl font-bold">Overview</h2><p class="mt-4 leading-7">This workbook separates CDB Resource Manager capacity controls from database memory controls. Its recommendations are based on the measured host and database values in the review cards.</p></section>
+<section id="host" class="border-t pt-10"><h2 class="text-3xl font-bold">Review operating-system memory</h2><p class="mt-4 leading-7">On the observed VM, 25 GiB used of 32 GiB is about 78%, but Linux used memory includes reclaimable cache. Use `available` as the immediate headroom indicator.</p><div class="code-card mt-5"><div class="code-toolbar"><span class="code-type">Bash</span><button class="copy-btn">Copy</button></div><div class="code-description code-objective"><span class="objective-label">Objective:</span> Display physical memory, cache, swap, and available memory.</div><pre class="code-scroll"><code>free -h</code></pre></div><div class="code-card mt-5 code-output"><div class="code-toolbar"><span class="code-type">Output</span></div><div class="code-description code-objective"><span class="objective-label">Objective:</span> Interpret the observed host-memory sample.</div><pre class="code-scroll"><code>              total        used        free      shared  buff/cache   available
+Mem:           32Gi        25Gi       1.2Gi       592Mi       5.7Gi       5.4Gi
+Swap:          15Gi       152Mi        15Gi</code></pre></div><p class="mt-4 leading-7">The 5.4 GiB available value is below the 6 GB provisional root/background plus OS/transient envelope. Collect a workload time series before increasing database memory limits.</p></section>
+<section id="review" class="border-t pt-10"><h2 class="text-3xl font-bold">Review root CDB configuration</h2><div class="code-card mt-5"><div class="code-toolbar"><span class="code-type">SQL</span><button class="copy-btn">Copy</button></div><div class="code-description code-objective"><span class="objective-label">Objective:</span> Confirm root memory parameters and whether they are defaults or explicit values on each RAC instance.</div><pre class="code-scroll"><code>SET LINESIZE 220
+SET PAGESIZE 100
+SET TRIMSPOOL ON
+SET TAB OFF
+SHOW CON_NAME
+SELECT inst_id, name, value, isdefault, ismodified
+FROM gv$parameter
+WHERE name IN ('memory_target','memory_max_target','sga_target','sga_max_size',
+               'pga_aggregate_target','pga_aggregate_limit')
+ORDER BY inst_id, name;</code></pre></div><div class="code-card code-output mt-5"><div class="code-toolbar"><span class="code-type">Output</span></div><div class="code-description code-objective"><span class="objective-label">Objective:</span> Record the retrieved root memory parameter values.</div><pre class="code-scroll"><code>INST NAME                         VALUE              ISDEFAULT  ISMODIFIED
+---- ---------------------------- ------------------ ---------- ----------
+   1 memory_max_target            0                  TRUE       FALSE
+   1 memory_target                0                  TRUE       FALSE
+   1 pga_aggregate_limit          10737418240        TRUE       FALSE
+   1 pga_aggregate_target         2621440000         FALSE      FALSE
+   1 sga_max_size                 3992977408         TRUE       FALSE
+   1 sga_target                   3992977408         FALSE      FALSE</code></pre></div><p class="mt-4 leading-7">The retrieved values show `MEMORY_TARGET=0`, a 3,808 MB root SGA per instance, a 2,500 MB PGA target, and a 10 GB default-derived PGA limit.</p><div class="code-card mt-5"><div class="code-toolbar"><span class="code-type">SQL</span><button class="copy-btn">Copy</button></div><div class="code-description code-objective"><span class="objective-label">Objective:</span> Capture current SGA components and automatic-sizing ranges.</div><pre class="code-scroll"><code>SET LINESIZE 220
+SET PAGESIZE 100
+SET TRIMSPOOL ON
+SET TAB OFF
+SELECT inst_id, name, ROUND(value/1024/1024) AS sga_mb
+FROM gv$sga ORDER BY inst_id, name;
+
+SELECT inst_id, component,
+       ROUND(current_size/1024/1024) AS current_mb,
+       ROUND(min_size/1024/1024) AS min_mb,
+       ROUND(max_size/1024/1024) AS max_mb,
+       ROUND(user_specified_size/1024/1024) AS user_mb
+FROM gv$sga_dynamic_components
+WHERE current_size > 0
+ORDER BY inst_id, component;</code></pre></div><div class="code-card code-output mt-5"><div class="code-toolbar"><span class="code-type">Output</span></div><div class="code-description code-objective"><span class="objective-label">Objective:</span> Record the retrieved SGA component allocation by RAC instance.</div><pre class="code-scroll"><code>INST NAME                               SGA_MB
+---- -------------------------------- --------
+   1 Database Buffers                     1616
+   1 Fixed Size                              5
+   1 Redo Buffers                          264
+   1 Variable Size                        1920
+   2 Database Buffers                     1952
+   2 Fixed Size                              5
+   2 Redo Buffers                          264
+   2 Variable Size                        1584</code></pre></div><p class="mt-4 leading-7">The component totals are about 3,805 MB on each instance, consistent with the retrieved 3,808 MB `SGA_TARGET`.</p></section>
+<section id="implementation" class="border-t pt-10"><h2 class="text-3xl font-bold">12-PDB memory implementation</h2><div class="mt-5 overflow-x-auto"><table class="w-full min-w-[620px] border-collapse text-sm"><thead><tr><th class="p-3 text-left">Per-VM consumer</th><th class="p-3 text-left">Allowance</th><th class="p-3 text-left">Meaning</th></tr></thead><tbody><tr class="border-t"><td class="p-3">PDB SGA targets</td><td class="p-3">18 GB</td><td class="p-3">Platinum 8 GB, Gold 6 GB, Silver 4 GB.</td></tr><tr class="border-t"><td class="p-3">PDB PGA limits</td><td class="p-3">9 GB</td><td class="p-3">Hard PDB private-memory ceilings.</td></tr><tr class="border-t"><td class="p-3">Root/background</td><td class="p-3">Up to 3 GB</td><td class="p-3">Provisional, measured allowance.</td></tr><tr class="border-t"><td class="p-3">OS/transient</td><td class="p-3">3 GB</td><td class="p-3">Protects host activity and short-lived demand.</td></tr></tbody></table></div><div class="code-card mt-5"><div class="code-toolbar"><span class="code-type">SQL</span><button class="copy-btn">Copy</button></div><div class="code-description code-objective"><span class="objective-label">Objective:</span> Display all PDB SGA and PGA values before applying the tier model.</div><pre class="code-scroll"><code>SET LINESIZE 220
+SET PAGESIZE 100
+SET TRIMSPOOL ON
+SET TAB OFF
+
+COLUMN pdb_name FORMAT A14
+COLUMN name FORMAT A24
+COLUMN value FORMAT A18
+
+SELECT c.name AS pdb_name, p.name, p.value
+FROM   cdb_parameters p
+JOIN   v$containers c ON c.con_id = p.con_id
+WHERE  p.name IN ('sga_target','pga_aggregate_target','pga_aggregate_limit')
+ORDER BY p.con_id, p.name;</code></pre></div><div class="code-card code-output mt-5"><div class="code-toolbar"><span class="code-type">Output</span></div><div class="code-description code-objective"><span class="objective-label">Objective:</span> Preserve the PDB before-state values for the tier allocation review.</div><pre class="code-scroll"><code>PDB_NAME       NAME                     VALUE
+-------------- ------------------------ ------------------
+PDB01          pga_aggregate_limit      &lt;current value&gt;
+PDB01          pga_aggregate_target     &lt;current value&gt;
+PDB01          sga_target               &lt;current value&gt;
+...             ...                      ...
+PDB12          pga_aggregate_limit      &lt;current value&gt;
+PDB12          pga_aggregate_target     &lt;current value&gt;
+PDB12          sga_target               &lt;current value&gt;</code></pre></div><div class="code-card mt-5"><div class="code-toolbar"><span class="code-type">SQL</span><button class="copy-btn">Copy</button></div><div class="code-description code-objective"><span class="objective-label">Objective:</span> Display the PGA configuration for every user PDB in one table, ordered by PDB name.</div><pre class="code-scroll"><code>SET LINESIZE 220
+SET PAGESIZE 100
+SET TRIMSPOOL ON
+SET TAB OFF
+
+COLUMN pdb_name FORMAT A14 HEADING 'PDB_NAME'
+COLUMN pga_target FORMAT A18 HEADING 'PGA_TARGET'
+COLUMN pga_limit FORMAT A18 HEADING 'PGA_LIMIT'
+
+SELECT c.name AS pdb_name,
+       MAX(CASE WHEN p.name = 'pga_aggregate_target' THEN p.value END) AS pga_target,
+       MAX(CASE WHEN p.name = 'pga_aggregate_limit'  THEN p.value END) AS pga_limit
+FROM   cdb_parameters p
+JOIN   v$containers c ON c.con_id = p.con_id
+WHERE  p.name IN ('pga_aggregate_target','pga_aggregate_limit')
+AND    c.con_id &gt; 2
+GROUP BY c.name
+ORDER BY pdb_name;</code></pre></div><div class="code-card code-output mt-5"><div class="code-toolbar"><span class="code-type">Output</span></div><div class="code-description code-objective"><span class="objective-label">Objective:</span> Confirm the PGA target and hard limit for each user PDB.</div><pre class="code-scroll"><code>PDB_NAME       PGA_TARGET         PGA_LIMIT
+-------------- ------------------ ------------------
+PDB01          &lt;current value&gt;    &lt;current value&gt;
+PDB02          &lt;current value&gt;    &lt;current value&gt;
+...             ...                ...
+PDB12          &lt;current value&gt;    &lt;current value&gt;</code></pre></div></section>
+<section id="root-sga" class="border-t pt-10"><h2 class="text-3xl font-bold">Root SGA planning and adjustment</h2><p class="mt-4 leading-7">A 21 GB candidate root `SGA_TARGET` represents the 18 GB PDB SGA model plus up to 3 GB provisional root/background SGA allowance. It is a review-first candidate. Reduce PDB SGA targets if peak PGA or OS pressure makes it unsafe.</p><div class="mt-5 rounded border-l-4 border-amber-500 bg-amber-50 p-4 text-sm text-amber-950 dark:bg-amber-950/25 dark:text-amber-100">Warning: confirm `MEMORY_TARGET=0`, sufficient `SGA_MAX_SIZE`, and measured per-instance headroom before applying this change.</div><div class="code-card mt-5"><div class="code-toolbar"><span class="code-type">SQL</span><button class="copy-btn">Copy</button></div><div class="code-description code-objective"><span class="objective-label">Objective:</span> Show the current root memory values and whether Oracle reports each one as a default.</div><pre class="code-scroll"><code>SET LINESIZE 220
+SET PAGESIZE 100
+SET TRIMSPOOL ON
+SET TAB OFF
+
+ALTER SESSION SET CONTAINER = CDB$ROOT;
+
+COLUMN inst_id FORMAT 999 HEADING 'INST'
+COLUMN name FORMAT A24
+COLUMN value FORMAT A18
+COLUMN isdefault FORMAT A10
+COLUMN ismodified FORMAT A12
+
+SELECT inst_id, name, value, isdefault, ismodified
+FROM   gv$parameter
+WHERE  name IN ('memory_target','memory_max_target','sga_target','sga_max_size',
+                'pga_aggregate_target','pga_aggregate_limit')
+ORDER BY inst_id, name;</code></pre></div><div class="code-card code-output mt-5"><div class="code-toolbar"><span class="code-type">Output</span></div><div class="code-description code-objective"><span class="objective-label">Objective:</span> Record the pre-change root memory parameter values.</div><pre class="code-scroll"><code>INST NAME                         VALUE              ISDEFAULT  ISMODIFIED
+---- ---------------------------- ------------------ ---------- ----------
+   1 memory_max_target            0                  TRUE       FALSE
+   1 memory_target                0                  TRUE       FALSE
+   1 pga_aggregate_limit          10737418240        TRUE       FALSE
+   1 pga_aggregate_target         2621440000         FALSE      FALSE
+   1 sga_max_size                 3992977408         TRUE       FALSE
+   1 sga_target                   3992977408         FALSE      FALSE</code></pre></div><div class="code-card mt-5"><div class="code-toolbar"><span class="code-type">Bash</span><button class="copy-btn">Copy</button></div><div class="code-description code-objective"><span class="objective-label">Objective:</span> Create the backup directory and save timestamped SPFILE and PFILE copies.</div><pre class="code-scroll"><code>wb07_card01() {
+  if [[ -z "${ORACLE_SID:-}" ]]; then
+    clear
+    printf 'STOP: Set ORACLE_SID for the target database before creating backups.\n'
+    return 1
+  fi
+
+  local backup_dir="$HOME/backup"
+  local backup_stamp
+  backup_stamp="$(date +%Y%m%d_%H%M%S)"
+  mkdir -p "$backup_dir" || return 1
+
+  local spfile_backup="$backup_dir/spfile_${ORACLE_SID}_${backup_stamp}.ora"
+  local pfile_backup="$backup_dir/init${ORACLE_SID}_${backup_stamp}.ora"
+
+  sqlplus -s / as sysdba &lt;&lt;SQL
+WHENEVER SQLERROR EXIT SQL.SQLCODE
+CREATE SPFILE='${spfile_backup}' FROM SPFILE;
+CREATE PFILE='${pfile_backup}' FROM SPFILE;
+EXIT
+SQL
+
+  clear
+  printf '%-14s | %s\n' 'ARTIFACT' 'PATH' \
+    'SPFILE backup' "$spfile_backup" \
+    'PFILE backup' "$pfile_backup"
+  printf '\n%s\n' 'wb07_card01'
+}
+wb07_card01</code></pre></div><div class="code-card code-output mt-5"><div class="code-toolbar"><span class="code-type">Output</span></div><div class="code-description code-objective"><span class="objective-label">Objective:</span> Confirm the generated backup paths.</div><pre class="code-scroll"><code>ARTIFACT       | PATH
+SPFILE backup  | /home/oracle/backup/spfile_&lt;ORACLE_SID&gt;_&lt;YYYYMMDD_HHMMSS&gt;.ora
+PFILE backup   | /home/oracle/backup/init&lt;ORACLE_SID&gt;_&lt;YYYYMMDD_HHMMSS&gt;.ora
+
+wb07_card01</code></pre></div><div class="code-card mt-5"><div class="code-toolbar"><span class="code-type">SQL</span><button class="copy-btn">Copy</button></div><div class="code-description code-objective"><span class="objective-label">Objective:</span> Apply the reviewed root SGA candidate after approval.</div><pre class="code-scroll"><code>ALTER SESSION SET CONTAINER = CDB$ROOT;
+ALTER SYSTEM SET MEMORY_TARGET = 0 SCOPE=SPFILE;
+ALTER SYSTEM SET SGA_TARGET = 21G SCOPE=BOTH;</code></pre></div></section>
+<section id="chapter-navigation" class="border-t pt-10"><p class="nav-card-label">Continue the series</p><h2 class="text-3xl font-bold">Chapter navigation</h2><nav class="chapter-nav chapter-card-nav" aria-label="Chapter navigation"><div class="chapter-nav-row"><a class="chapter-link nav-card" href="../index.html"><span class="nav-card-label">Main</span><strong>Exascale Overview</strong></a><a class="chapter-link nav-card" href="../CDBResourceManager/index.html"><span class="nav-card-label">Previous</span><strong>CDB Resource Manager</strong></a><div class="chapter-link nav-card is-disabled"><span class="nav-card-label">Next</span><strong>End of workbook</strong></div></div></nav><div class="two-up"><a class="link-card" href="../index.html#documentation"><span class="nav-card-label">Series reference</span><strong>Series documentation</strong></a><a class="link-card" href="../index.html#glossary"><span class="nav-card-label">Series reference</span><strong>Series glossary</strong></a></div><nav class="related-links" data-guide-cards data-guide-variant="memoryManagement" data-guide-scope="nested" aria-label="Guide links"></nav></section></article></main>
+<footer class="border-t p-8 text-center text-sm dark:border-stone-800">Educational use and validation required. Last updated July 24, 2026.</footer><button id="top" class="fixed bottom-4 right-4 rounded bg-oracle-red px-3 py-2 text-sm text-white">Top</button><script>document.querySelectorAll('.copy-btn').forEach(b=>b.addEventListener('click',()=>navigator.clipboard.writeText(b.closest('.code-card').querySelector('pre code').textContent)));const theme=document.getElementById('theme');function setTheme(d){document.documentElement.classList.toggle('dark',d);localStorage.setItem('exascale-theme',d?'dark':'light');theme.textContent=d?'Light':'Dark'}setTheme(document.documentElement.classList.contains('dark'));theme.onclick=()=>setTheme(!document.documentElement.classList.contains('dark'));document.getElementById('top').onclick=()=>scrollTo({top:0,behavior:'smooth'});</script><script>window.addEventListener('load',()=>setTimeout(()=>{const nav=document.getElementById('chapter-navigation');if(!nav||document.getElementById('justify-sga-increase'))return;const section=document.createElement('section');section.id='justify-sga-increase';section.className='border-t pt-10';section.innerHTML=`<h2 class="text-3xl font-bold">Justify an SGA increase with evidence</h2><p class="mt-4 leading-7">Treat the SGA as shared, per-instance memory. Do not increase it because the CDB has a particular number of PDBs or because PDB caps add up to a larger number. Justify an increase only when a representative concurrent workload shows measurable benefit and the host has safe memory headroom.</p><ol class="mt-4 list-decimal space-y-2 pl-6 leading-7"><li>Run the normal concurrent workload for the PDBs and services.</li><li>Check SGA advice for lower estimated database time and physical reads at a larger candidate size.</li><li>Confirm pressure: low shared-pool free memory, repeated resizing, parse/cache symptoms, or ORA-04031 evidence.</li><li>Confirm that the increase plus peak PGA, background processes, and operating-system headroom fits on the VM.</li><li>Make a small, tested increase only when the evidence supports it. <code>SGA_MAX_SIZE</code> must permit the new target.</li></ol><div class="code-card mt-6"><div class="code-toolbar"><span class="code-type">SQL</span><button class="copy-btn" type="button">Copy</button></div><div class="code-description code-objective"><span class="objective-label">Objective:</span> Compare the current SGA with larger advisory candidate sizes on every RAC instance.</div><pre class="code-scroll"><code>SET LINESIZE 220
+SET PAGESIZE 100
+SET TRIMSPOOL ON
+SET TAB OFF
+
+COLUMN inst_id FORMAT 999 HEADING 'INST'
+COLUMN sga_mb FORMAT 9999990 HEADING 'SGA_MB'
+COLUMN db_time_factor FORMAT 0.999 HEADING 'DB_TIME_FACTOR'
+COLUMN estd_reads FORMAT 999999999999 HEADING 'ESTD_PHYSICAL_READS'
+
+SELECT inst_id,
+       ROUND(sga_size / 1024 / 1024) AS sga_mb,
+       sga_size_factor,
+       estd_db_time_factor AS db_time_factor,
+       estd_physical_reads AS estd_reads
+FROM   gv$sga_target_advice
+WHERE  sga_size_factor >= 1
+ORDER BY inst_id, sga_size;</code></pre></div><div class="code-card code-output mt-5"><div class="code-toolbar"><span class="code-type">Output</span></div><div class="code-description code-objective"><span class="objective-label">Objective:</span> Compare the current SGA baseline with larger advisory candidates.</div><pre class="code-scroll"><code>INST SGA_MB SGA_SIZE_FACTOR DB_TIME_FACTOR ESTD_PHYSICAL_READS
+---- ------ --------------- -------------- -------------------
+   1   3808           1.000          1.000      &lt;current value&gt;
+   1   &lt;larger MB&gt;    &lt;factor&gt;       &lt;factor&gt;   &lt;estimated value&gt;
+   2   3808           1.000          1.000      &lt;current value&gt;
+   2   &lt;larger MB&gt;    &lt;factor&gt;       &lt;factor&gt;   &lt;estimated value&gt;</code></pre></div><p class="mt-4 leading-7">A larger target becomes a candidate only when its estimated database-time factor is meaningfully below <code>1.000</code> and estimated physical reads are lower during representative workload. If the advisory result is flat, there is no performance justification to enlarge the SGA.</p><div class="code-card mt-6"><div class="code-toolbar"><span class="code-type">SQL</span><button class="copy-btn" type="button">Copy</button></div><div class="code-description code-objective"><span class="objective-label">Objective:</span> Identify shared-pool free-memory pressure by RAC instance and container.</div><pre class="code-scroll"><code>SET LINESIZE 220
+SET PAGESIZE 100
+SET TRIMSPOOL ON
+SET TAB OFF
+
+COLUMN inst_id FORMAT 999 HEADING 'INST'
+COLUMN con_id FORMAT 999 HEADING 'CON'
+COLUMN pool FORMAT A14
+COLUMN free_mb FORMAT 9999990 HEADING 'FREE_MB'
+
+SELECT inst_id,
+       con_id,
+       pool,
+       ROUND(SUM(bytes) / 1024 / 1024) AS free_mb
+FROM   gv$sgastat
+WHERE  name = 'free memory'
+GROUP BY inst_id, con_id, pool
+ORDER BY inst_id, con_id, pool;</code></pre></div><div class="code-card code-output mt-5"><div class="code-toolbar"><span class="code-type">Output</span></div><div class="code-description code-objective"><span class="objective-label">Objective:</span> Record free shared-pool memory for each instance and container.</div><pre class="code-scroll"><code>INST CON POOL           FREE_MB
+---- --- -------------- -------
+   1   0 shared pool    &lt;MB&gt;
+   2   0 shared pool    &lt;MB&gt;</code></pre></div><p class="mt-4 leading-7">Low or consistently declining free shared-pool memory is a pressure signal, not by itself an approval to increase SGA. Correlate it with SGA advice, workload symptoms, PGA consumption, and operating-system headroom. The observed 5.4 GiB available on the VM does not support a large SGA increase without that complete review.</p>`;nav.before(section);section.querySelectorAll('.copy-btn').forEach(button=>button.addEventListener('click',()=>navigator.clipboard.writeText(button.closest('.code-card').querySelector('pre code').textContent)))},1600))</script><script>window.addEventListener('load',()=>setTimeout(()=>{const root=document.getElementById('root-sga');if(!root)return;const title=root.querySelector('h2');if(title)title.textContent='Root SGA review';const obsolete=[...root.querySelectorAll('.code-card')].find(card=>card.querySelector('pre code')?.textContent.includes('ALTER SYSTEM SET SGA_TARGET = 21G'));if(obsolete){const heading=obsolete.previousElementSibling;if(heading?.tagName==='H2')heading.remove();obsolete.remove()}const planningText=[...root.querySelectorAll('p')].find(p=>p.textContent.includes('21 GB')&&p.textContent.includes('capacity-planning candidate'));if(planningText)planningText.innerHTML='No change from <code>SGA_TARGET=3,808 MB</code> to 21 GB is recommended by this workbook. The former 21 GB example incorrectly treated the sum of illustrative PDB SGA caps as a root-SGA sizing result. A PDB <code>SGA_TARGET</code> is a maximum for that PDB, not reserved memory that can simply be added to derive the CDB-root target.<br><br>Oracle applies the relationship per PDB: each PDB <code>SGA_TARGET</code> must be less than or equal to the root <code>SGA_TARGET</code> and <code>SGA_MAX_SIZE</code>. Change the root settings only after measured workload evidence demonstrates sustained SGA pressure and an approved instance-wide memory design.';const warning=root.querySelector('.border-l-4');if(warning)warning.textContent='Warning: do not change the root SGA from this workbook’s illustrative PDB-capacity arithmetic. Validate sustained SGA pressure, PGA demand, process memory, and operating-system headroom first.'},1400))</script>
+<script>window.addEventListener('load',()=>setTimeout(()=>{const backup=[...document.querySelectorAll('.code-card')].find(card=>card.querySelector('pre code')?.textContent.includes('wb07_card01'));if(!backup)return;const output=backup.nextElementSibling;backup.remove();if(output?.querySelector('.code-type')?.textContent==='Output')output.remove();document.getElementById('backup-root-memory')?.remove()},1200))</script>
+<script>window.addEventListener('load',()=>setTimeout(()=>{const output=`PDB_NAME         PGA_TARGET_MB PGA_LIMIT_MB VALUE_SOURCE
+---------------- ------------- ------------ ------------------
+PDB01                     2500        10240 Inherited CDB root
+PDB05                     2500        10240 Inherited CDB root
+PDB09                     2500        10240 Inherited CDB root`;const card=[...document.querySelectorAll('.code-card')].find(item=>item.querySelector('.code-type')?.textContent==='Output'&&item.querySelector('pre code')?.textContent.includes('PGA_TARGET_MB'));if(!card)return;card.querySelector('pre code').textContent=output;if(document.getElementById('pga-observed-explanation'))return;const note=document.createElement('p');note.id='pga-observed-explanation';note.className='mt-4 leading-7';note.innerHTML='<strong>Interpretation:</strong> none of the displayed PDBs has a local PGA override. Each inherits the current CDB-root values of 2,500 MB target and 10,240 MB limit. These values are <strong>not reserved per PDB</strong> and must not be added together as separate PDB allocations. To establish Platinum, Gold, and Silver guardrails, set explicit <code>PGA_AGGREGATE_TARGET</code> and <code>PGA_AGGREGATE_LIMIT</code> values inside each PDB, within the root constraints.';card.after(note)},1000))</script>
+<script>window.addEventListener('load',()=>setTimeout(()=>{const query=`SET LINESIZE 220
+SET PAGESIZE 100
+SET TRIMSPOOL ON
+SET TAB OFF
+
+COLUMN pdb_name FORMAT A16 HEADING 'PDB_NAME'
+COLUMN pga_target_mb FORMAT 9999990 HEADING 'PGA_TARGET_MB'
+COLUMN pga_limit_mb FORMAT 9999990 HEADING 'PGA_LIMIT_MB'
+COLUMN value_source FORMAT A18 HEADING 'VALUE_SOURCE'
+
+WITH root_pga AS (
+  SELECT MAX(CASE WHEN name = 'pga_aggregate_target' THEN ROUND(TO_NUMBER(value) / 1024 / 1024) END) AS pga_target_mb,
+         MAX(CASE WHEN name = 'pga_aggregate_limit' THEN ROUND(TO_NUMBER(value) / 1024 / 1024) END) AS pga_limit_mb
+  FROM v$parameter
+  WHERE name IN ('pga_aggregate_target', 'pga_aggregate_limit')
+),
+pdb_overrides AS (
+  SELECT pdb_uid,
+         MAX(CASE WHEN name = 'pga_aggregate_target' THEN ROUND(TO_NUMBER(value$) / 1024 / 1024) END) AS pga_target_mb,
+         MAX(CASE WHEN name = 'pga_aggregate_limit' THEN ROUND(TO_NUMBER(value$) / 1024 / 1024) END) AS pga_limit_mb
+  FROM pdb_spfile$
+  WHERE name IN ('pga_aggregate_target', 'pga_aggregate_limit')
+  AND BITAND(NVL(spare2, 0), 1) = 0
+  GROUP BY pdb_uid
+)
+SELECT p.name AS pdb_name,
+       COALESCE(o.pga_target_mb, r.pga_target_mb) AS pga_target_mb,
+       COALESCE(o.pga_limit_mb, r.pga_limit_mb) AS pga_limit_mb,
+       CASE WHEN o.pdb_uid IS NULL THEN 'Inherited CDB root' ELSE 'PDB override' END AS value_source
+FROM v$pdbs p
+CROSS JOIN root_pga r
+LEFT JOIN pdb_overrides o ON o.pdb_uid = p.con_uid
+WHERE p.con_id > 2
+ORDER BY p.name;`;const output=`PDB_NAME         PGA_TARGET_MB PGA_LIMIT_MB VALUE_SOURCE
+---------------- ------------- ------------ ------------------
+PDB01                    <MB>         <MB> Inherited CDB root
+PDB02                    <MB>         <MB> PDB override
+...                       ...          ... ...
+PDB12                    <MB>         <MB> PDB override`;const card=[...document.querySelectorAll('.code-card')].find(item=>{const text=item.querySelector('pre code')?.textContent||'';return text.includes('SPOOL /tmp/pga_pdb_inventory.sql')||text.includes('TYPE pdb_name_list_t')});if(card){card.querySelector('.code-description').innerHTML='<span class="objective-label">Objective:</span> Display effective PGA target and limit for every user PDB with one query; SGA is intentionally excluded.';card.querySelector('pre code').textContent=query;const outputCard=card.nextElementSibling;if(outputCard?.querySelector('.code-type')?.textContent==='Output')outputCard.querySelector('pre code').textContent=output}},800))</script>
+<script>window.addEventListener('load',()=>setTimeout(()=>document.querySelectorAll('.code-card pre code').forEach(code=>{if(code.textContent.includes('SPOOL /tmp/pga_pdb_inventory.sql'))code.textContent=code.textContent.replace('SET PAGESIZE 0\n\nSPOOL','SET PAGESIZE 0\nSET LINESIZE 1000\n\nSPOOL')}),500))</script>
+<script>window.addEventListener('load',()=>setTimeout(()=>{const report=`SET LINESIZE 220
+SET PAGESIZE 100
+SET TRIMSPOOL ON
+SET TAB OFF
+SET TERMOUT OFF
+SET ECHO OFF
+SET FEEDBACK OFF
+SET HEADING OFF
+SET PAGESIZE 0
+
+SPOOL /tmp/pga_pdb_inventory.sql
+
+PROMPT SET LINESIZE 220
+PROMPT SET PAGESIZE 100
+PROMPT SET TRIMSPOOL ON
+PROMPT SET TAB OFF
+PROMPT SET HEADING OFF
+PROMPT PROMPT PDB_NAME         | PGA_TARGET_MB | PGA_LIMIT_MB
+PROMPT PROMPT -----------------+---------------+-------------
+
+SELECT 'ALTER SESSION SET CONTAINER = ' || name || ';' || CHR(10) ||
+       'SELECT RPAD(SYS_CONTEXT(''USERENV'', ''CON_NAME''), 16) || '' | '' || ' ||
+       'LPAD(NVL(TO_CHAR(MAX(CASE WHEN name = ''pga_aggregate_target'' THEN ROUND(TO_NUMBER(value) / 1024 / 1024) END)), ''NOT SET''), 13) || '' | '' || ' ||
+       'LPAD(NVL(TO_CHAR(MAX(CASE WHEN name = ''pga_aggregate_limit'' THEN ROUND(TO_NUMBER(value) / 1024 / 1024) END)), ''NOT SET''), 12) ' ||
+       'FROM v$parameter WHERE name IN (''pga_aggregate_target'', ''pga_aggregate_limit'');'
+FROM   v$containers
+WHERE  con_id > 2
+AND    open_mode IN ('READ WRITE', 'READ ONLY')
+ORDER BY name;
+
+PROMPT ALTER SESSION SET CONTAINER = CDB$ROOT;
+SPOOL OFF
+
+SET TERMOUT ON
+@/tmp/pga_pdb_inventory.sql`;document.querySelectorAll('.code-card pre code').forEach(code=>{if(code.textContent.includes('TYPE pdb_name_list_t'))code.textContent=report})},250))</script>
+<script>window.addEventListener('load',()=>setTimeout(()=>{const report=`SET LINESIZE 220
+SET PAGESIZE 100
+SET TRIMSPOOL ON
+SET TAB OFF
+SET SERVEROUTPUT ON SIZE UNLIMITED
+
+DECLARE
+  TYPE pdb_name_list_t IS TABLE OF VARCHAR2(128);
+  l_pdb_names   pdb_name_list_t;
+  l_pga_target  NUMBER;
+  l_pga_limit   NUMBER;
+BEGIN
+  SELECT name BULK COLLECT INTO l_pdb_names
+  FROM v$containers
+  WHERE con_id > 2 AND open_mode IN ('READ WRITE','READ ONLY')
+  ORDER BY name;
+
+  DBMS_OUTPUT.PUT_LINE(RPAD('PDB_NAME', 16) || ' | ' || LPAD('PGA_TARGET_MB', 13) || ' | ' || LPAD('PGA_LIMIT_MB', 12));
+  DBMS_OUTPUT.PUT_LINE(RPAD('-', 16, '-') || '-+-' || RPAD('-', 13, '-') || '-+-' || RPAD('-', 12, '-'));
+
+  FOR i IN 1 .. l_pdb_names.COUNT LOOP
+    EXECUTE IMMEDIATE 'ALTER SESSION SET CONTAINER = ' || DBMS_ASSERT.ENQUOTE_NAME(l_pdb_names(i), FALSE);
+    SELECT MAX(CASE WHEN name = 'pga_aggregate_target' THEN ROUND(TO_NUMBER(value) / 1024 / 1024) END),
+           MAX(CASE WHEN name = 'pga_aggregate_limit'  THEN ROUND(TO_NUMBER(value) / 1024 / 1024) END)
+    INTO l_pga_target, l_pga_limit
+    FROM v$parameter
+    WHERE name IN ('pga_aggregate_target','pga_aggregate_limit');
+    DBMS_OUTPUT.PUT_LINE(RPAD(l_pdb_names(i), 16) || ' | ' || LPAD(NVL(TO_CHAR(l_pga_target), 'NOT SET'), 13) || ' | ' || LPAD(NVL(TO_CHAR(l_pga_limit), 'NOT SET'), 12));
+  END LOOP;
+  EXECUTE IMMEDIATE 'ALTER SESSION SET CONTAINER = CDB$ROOT';
+END;
+/`;const output=`PDB_NAME         | PGA_TARGET_MB | PGA_LIMIT_MB
+-----------------+---------------+-------------
+PDB01            | <MB>          | <MB>
+PDB02            | <MB>          | <MB>
+...              | ...           | ...
+PDB12            | <MB>          | <MB>`;const cards=[...document.querySelectorAll('.code-card')];const card=cards.find(item=>item.querySelector('pre code')?.textContent.includes("'sga_target','pga_aggregate_target'"));if(card){card.querySelector('.code-description').innerHTML='<span class="objective-label">Objective:</span> Display effective PGA target and limit from inside every open user PDB; SGA is intentionally excluded.';card.querySelector('pre code').textContent=report;const outputCard=card.nextElementSibling;if(outputCard?.querySelector('.code-type')?.textContent==='Output')outputCard.querySelector('pre code').textContent=output}cards.filter(item=>item.querySelector('pre code')?.textContent.includes("MAX(CASE WHEN p.name = 'pga_aggregate_target'")).forEach(item=>{const next=item.nextElementSibling;item.remove();if(next?.querySelector('.code-type')?.textContent==='Output')next.remove()})},100))</script>
+<script>window.addEventListener('load',()=>setTimeout(()=>document.querySelectorAll('.code-card pre code').forEach(code=>{code.textContent=code.textContent.replaceAll('FROM   cdb_parameters p','FROM   CONTAINERS(v$system_parameter) p')}),0))</script>
+<script>window.addEventListener('DOMContentLoaded',()=>{const review=document.getElementById('review');const card=review?.querySelector('.code-card');if(!review||!card||document.getElementById('pga-root-scope-explained'))return;const explanation=document.createElement('div');explanation.id='pga-root-scope-explained';explanation.className='mt-6 leading-7';explanation.innerHTML='<h3 class="text-xl font-bold">PGA scope in the CDB root</h3><p class="mt-3">The <code>PGA_AGGREGATE_TARGET</code> and <code>PGA_AGGREGATE_LIMIT</code> values returned here apply to <strong>one RAC instance</strong>. They are neither a value assigned to every PDB nor the sum of the PDB-level limits.</p><ul class="mt-3 list-disc space-y-2 pl-6"><li><code>PGA_AGGREGATE_TARGET=2,500 MB</code> is the root instance aggregate PGA tuning target across its attached server processes.</li><li><code>PGA_AGGREGATE_LIMIT=10,240 MB</code> is the root instance aggregate PGA hard limit.</li><li>Each PDB can have explicit PGA values. Its target must be no greater than the root target and no greater than half of both the root and PDB limits; its limit must be no greater than the root limit and at least twice its PDB target.</li></ul><p class="mt-3">Use the PGA configuration card later in this workbook to see every PDB’s actual values. Do not add the root values to the PDB values: the root values are instance-level controls, while PDB values are individual guardrails. <a class="font-semibold text-red-700 underline" target="_blank" rel="noopener" href="https://docs.oracle.com/en/database/oracle/oracle-database/26/admin/managing-resources-with-oracle-database-resource-manager.html">Oracle Resource Manager memory controls</a></p>';card.before(explanation)})</script>
+<script>window.addEventListener('DOMContentLoaded',()=>{const section=document.getElementById('root-sga');if(!section||document.getElementById('root-sga-current-values'))return;const intro=section.querySelector('p.mt-4');const warning=section.querySelector('.border-l-4');if(intro)intro.textContent='Start with the current per-instance configuration.';const table=document.createElement('div');table.id='root-sga-current-values';table.className='mt-5 overflow-x-auto';table.innerHTML='<table class="w-full min-w-[680px] border-collapse text-sm"><thead><tr><th class="p-3 text-left">Current parameter</th><th class="p-3 text-left">Retrieved value</th><th class="p-3 text-left">Meaning for this plan</th></tr></thead><tbody><tr class="border-t"><td class="p-3"><code>MEMORY_TARGET</code> / <code>MEMORY_MAX_TARGET</code></td><td class="p-3">0 MB / 0 MB</td><td class="p-3">AMM is disabled; SGA and PGA use separate controls.</td></tr><tr class="border-t"><td class="p-3"><code>SGA_TARGET</code> / <code>SGA_MAX_SIZE</code></td><td class="p-3">3,808 MB / 3,808 MB</td><td class="p-3">The current root SGA cannot grow above about 3.7 GiB without changing the maximum.</td></tr><tr class="border-t"><td class="p-3"><code>PGA_AGGREGATE_TARGET</code></td><td class="p-3">2,500 MB</td><td class="p-3">Current automatic-tuning budget for aggregate PGA.</td></tr><tr class="border-t"><td class="p-3"><code>PGA_AGGREGATE_LIMIT</code></td><td class="p-3">10,240 MB</td><td class="p-3">Current instance-wide PGA hard limit.</td></tr></tbody></table><p class="mt-4 leading-7">The 21 GB <code>SGA_TARGET</code> is only a capacity-planning candidate: 18 GB for the combined PDB SGA-target model plus up to 3 GB for root/background shared memory. The retrieved 3,808 MB <code>SGA_MAX_SIZE</code> cannot support that target, so validate the complete SGA, PGA, process, and operating-system envelope before changing either value.</p>';if(warning)table.before(warning);else section.append(table);if(warning)warning.textContent='Warning: do not apply the candidate solely because the arithmetic fits. The 9 GB PDB PGA-limit envelope, root PGA, and OS/transient headroom can require a smaller PDB SGA envelope or a different target.'})</script>
+<script>window.addEventListener('DOMContentLoaded',()=>{const review=document.getElementById('review');const card=review?.querySelector('.code-card');if(!review||!card||document.getElementById('amm-parameters-explained'))return;const explanation=document.createElement('div');explanation.id='amm-parameters-explained';explanation.className='mt-4 leading-7';explanation.innerHTML='<p><code>MEMORY_TARGET</code> and <code>MEMORY_MAX_TARGET</code> are Oracle Automatic Memory Management (AMM) parameters that tune memory between the SGA and aggregate PGA.</p><ul class="mt-3 list-disc space-y-2 pl-6"><li><code>MEMORY_TARGET</code> is the active total database-memory target. It is dynamic and cannot exceed a nonzero <code>MEMORY_MAX_TARGET</code>.</li><li><code>MEMORY_MAX_TARGET</code> is the upper bound for <code>MEMORY_TARGET</code>; it is not dynamically modifiable.</li></ul><p class="mt-3">Both retrieved values are <strong>0 MB</strong>, so AMM is not active for this CDB. The remaining review therefore focuses on the separately configured SGA and PGA parameters. On Linux, Oracle advises against explicitly setting these AMM parameters at startup because of their interaction with SGA page allocation. <a class="font-semibold text-red-700 underline" target="_blank" rel="noopener" href="https://docs.oracle.com/en/database/oracle/oracle-database/26/refrn/MEMORY_TARGET.html">MEMORY_TARGET reference</a> · <a class="font-semibold text-red-700 underline" target="_blank" rel="noopener" href="https://docs.oracle.com/en/database/oracle/oracle-database/26/refrn/MEMORY_MAX_TARGET.html">MEMORY_MAX_TARGET reference</a></p>';card.before(explanation)})</script>
+<script>window.addEventListener('DOMContentLoaded',()=>{const parameterSql=`SET LINESIZE 220
+SET PAGESIZE 100
+SET TRIMSPOOL ON
+SET TAB OFF
+
+SHOW CON_NAME
+SELECT inst_id,
+       name,
+       ROUND(TO_NUMBER(value) / 1024 / 1024) AS value_mb,
+       isdefault,
+       ismodified
+FROM   gv$parameter
+WHERE  name IN ('memory_target','memory_max_target','sga_target','sga_max_size',
+                'pga_aggregate_target','pga_aggregate_limit')
+ORDER BY inst_id, name;`;const parameterOutput=`INST NAME                         VALUE_MB   ISDEFAULT  ISMODIFIED
+---- ---------------------------- ---------- ---------- ----------
+   1 memory_max_target                     0 TRUE       FALSE
+   1 memory_target                         0 TRUE       FALSE
+   1 pga_aggregate_limit               10240 TRUE       FALSE
+   1 pga_aggregate_target               2500 FALSE      FALSE
+   1 sga_max_size                       3808 TRUE       FALSE
+   1 sga_target                         3808 FALSE      FALSE`;const pdbSql=`SET LINESIZE 220
+SET PAGESIZE 100
+SET TRIMSPOOL ON
+SET TAB OFF
+
+COLUMN pdb_name FORMAT A14
+COLUMN name FORMAT A24
+COLUMN value_mb FORMAT 9999990 HEADING 'VALUE_MB'
+
+SELECT c.name AS pdb_name,
+       p.name,
+       ROUND(TO_NUMBER(p.value) / 1024 / 1024) AS value_mb
+FROM   cdb_parameters p
+JOIN   v$containers c ON c.con_id = p.con_id
+WHERE  p.name IN ('sga_target','pga_aggregate_target','pga_aggregate_limit')
+ORDER BY p.con_id, p.name;`;const pdbOutput=`PDB_NAME       NAME                     VALUE_MB
+-------------- ------------------------ --------
+PDB01          pga_aggregate_limit      &lt;MB&gt;
+PDB01          pga_aggregate_target     &lt;MB&gt;
+PDB01          sga_target               &lt;MB&gt;
+...             ...                      ...
+PDB12          pga_aggregate_limit      &lt;MB&gt;
+PDB12          pga_aggregate_target     &lt;MB&gt;
+PDB12          sga_target               &lt;MB&gt;`;const pgaSql=`SET LINESIZE 220
+SET PAGESIZE 100
+SET TRIMSPOOL ON
+SET TAB OFF
+
+COLUMN pdb_name FORMAT A14 HEADING 'PDB_NAME'
+COLUMN pga_target FORMAT A18 HEADING 'PGA_TARGET'
+COLUMN pga_limit FORMAT A18 HEADING 'PGA_LIMIT'
+
+SELECT c.name AS pdb_name,
+       MAX(CASE WHEN p.name = 'pga_aggregate_target'
+                THEN ROUND(TO_NUMBER(p.value) / 1024 / 1024) END) AS pga_target,
+       MAX(CASE WHEN p.name = 'pga_aggregate_limit'
+                THEN ROUND(TO_NUMBER(p.value) / 1024 / 1024) END) AS pga_limit
+FROM   cdb_parameters p
+JOIN   v$containers c ON c.con_id = p.con_id
+WHERE  p.name IN ('pga_aggregate_target','pga_aggregate_limit')
+AND    c.con_id &gt; 2
+GROUP BY c.name
+ORDER BY pdb_name;`;const pgaOutput=`PDB_NAME       PGA_TARGET         PGA_LIMIT
+-------------- ------------------ ------------------
+PDB01          &lt;MB&gt;               &lt;MB&gt;
+PDB02          &lt;MB&gt;               &lt;MB&gt;
+...             ...                ...
+PDB12          &lt;MB&gt;               &lt;MB&gt;`;document.querySelectorAll('.code-card pre code').forEach(code=>{const text=code.textContent;if(text.includes('SELECT inst_id, name, value, isdefault'))code.textContent=parameterSql;else if(text.includes('10737418240'))code.textContent=parameterOutput;else if(text.includes('SELECT c.name AS pdb_name, p.name, p.value'))code.textContent=pdbSql;else if(text.includes('pga_aggregate_limit      <current value>'))code.innerHTML=pdbOutput;else if(text.includes("MAX(CASE WHEN p.name = 'pga_aggregate_target' THEN p.value"))code.innerHTML=pgaSql;else if(text.includes('PGA_TARGET         PGA_LIMIT')&&text.includes('&lt;current value&gt;'))code.innerHTML=pgaOutput})})</script>
+</body></html>

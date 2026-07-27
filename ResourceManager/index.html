@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="Oracle Exadata Exascale Resource Manager guide for governing OLTP, reporting, batch, and administrative workloads with service-based consumer groups." />
+  <meta name="description" content="Oracle Exadata Exascale guide for governing OLTP, reporting, batch, and administrative workloads inside PDB01 with a PDB-level Resource Manager plan and service-based consumer groups." />
   <title>Exadata Exascale Resource Manager</title>
   <link rel="icon" href="data:,">
   <script>
@@ -53,6 +53,64 @@
     body {
       font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       text-rendering: optimizeLegibility;
+    }
+    .chapter-link,
+    .link-card,
+    .related-link,
+    .related-links a {
+      display: grid;
+      gap: 0.35rem;
+      min-height: 92px;
+      border: 1px solid #d6cfcb;
+      border-radius: 8px;
+      background: #ffffff;
+      color: #1f1b1a;
+      font: 1rem/1.7 ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      padding: 1rem;
+      text-decoration: none;
+    }
+    .nav-card-label,
+    .chapter-link span,
+    .link-card span {
+      color: #5f2b24;
+      font-size: 0.72rem;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      line-height: 1.2;
+      text-transform: uppercase;
+    }
+    .chapter-link strong,
+    .link-card strong,
+    .related-link strong,
+    .related-links a strong {
+      color: inherit;
+      font-size: 1rem;
+      font-weight: 700;
+      line-height: 1.35;
+    }
+    .related-link span,
+    .related-links a span {
+      color: #57534e;
+      font-size: 0.92rem;
+      line-height: 1.55;
+      text-transform: none;
+    }
+    .dark .chapter-link,
+    .dark .link-card,
+    .dark .related-link,
+    .dark .related-links a {
+      background: #211d1b;
+      border-color: #57534e;
+      color: #f5f5f4;
+    }
+    .dark .nav-card-label,
+    .dark .chapter-link span,
+    .dark .link-card span {
+      color: #f4b8ad;
+    }
+    .dark .related-link span,
+    .dark .related-links a span {
+      color: #d6d3d1;
     }
     code, pre, kbd, samp {
       font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
@@ -267,20 +325,23 @@
         </div>
       </nav>
 
-      <div class="grid gap-5 py-6 sm:gap-6 sm:py-10 lg:gap-8 lg:py-12">
+      <div class="grid gap-5 py-6 sm:gap-6 sm:py-10 lg:grid-cols-[minmax(0,1fr)_360px] lg:items-end lg:gap-8 lg:py-12">
         <div class="max-w-4xl">
           <p class="text-sm font-semibold uppercase tracking-[0.18em] text-oracle-red dark:text-orange-300">Oracle technical article</p>
           <h1 class="mt-4 text-3xl font-bold leading-tight tracking-tight text-stone-950 dark:text-white sm:text-5xl lg:text-6xl">Governing Workloads with Database Resource Manager</h1>
-          <p class="mt-4 max-w-3xl text-base leading-7 text-stone-700 dark:text-stone-300 sm:text-lg sm:leading-8">A service-based Resource Manager pattern for OLTP, reporting, batch, and administrative workloads that builds on the connection services guide.</p>
+          <p class="mt-4 max-w-3xl text-base leading-7 text-stone-700 dark:text-stone-300 sm:text-lg sm:leading-8">A PDB-level, service-based Resource Manager pattern for OLTP, reporting, batch, and administrative workloads inside PDB01 that builds on the connection services guide.</p>
           <div class="mt-5 flex min-w-0 flex-wrap gap-3 text-sm text-stone-600 dark:text-stone-400">
-            <span class="max-w-full rounded-md border border-stone-300 bg-white px-3 py-1.5 break-words dark:border-stone-700 dark:bg-stone-900">Last updated June 17, 2026</span>
+            <span class="max-w-full rounded-md border border-stone-300 bg-white px-3 py-1.5 break-words dark:border-stone-700 dark:bg-stone-900">Last updated July 24, 2026</span>
           </div>
           <details class="disclaimer mt-5 max-w-3xl rounded-lg border border-amber-300 bg-amber-50 text-amber-950 dark:border-amber-500/40 dark:bg-amber-950/25 dark:text-amber-100">
             <summary class="cursor-pointer list-none px-4 py-3 text-sm font-bold uppercase tracking-[0.14em] focus:outline-none focus:ring-2 focus:ring-amber-500/50">Educational use and validation required <span class="disclaimer-action ml-2 whitespace-nowrap text-xs font-semibold normal-case tracking-normal text-amber-800 underline underline-offset-2 dark:text-amber-200">click here</span></summary>
             <p class="border-t border-amber-200 px-4 pb-4 pt-3 text-sm leading-6 dark:border-amber-500/30">This content is for educational and planning purposes only. Apply every command and configuration first in a non-production test environment that mirrors your RAC, service, client driver, workload, and failover requirements. The recommended values shown here may not work in your specific environment, may require change-control approval, and can affect availability, connection routing, transaction behavior, memory use, and batch workload placement. Validate with application owners, DBAs, network teams, and Oracle Support guidance before using any setting in production.</p>
           </details>
-          <nav class="related-links mt-5 grid gap-3 sm:grid-cols-2" data-guide-cards data-guide-variant="resourceManager" data-guide-scope="nested" aria-label="Guide links" data-card-class="rounded-lg border border-stone-200 bg-white p-4 text-sm shadow-sm transition hover:border-oracle-red hover:shadow-subtle focus:outline-none focus:ring-2 focus:ring-oracle-red/40 dark:border-stone-700 dark:bg-[#211d1b]" data-card-title-class="text-oracle-red dark:text-orange-300" data-card-description-class="mt-1 block leading-6 text-stone-700 dark:text-stone-300"></nav>
         </div>
+        <aside class="rounded-lg border border-stone-200 bg-white p-5 shadow-subtle dark:border-stone-700 dark:bg-[#211d1b]" aria-label="Latest guide coverage">
+          <p class="text-xs font-bold uppercase tracking-[0.16em] text-oracle-red dark:text-orange-300">Latest guide coverage</p>
+          <ul class="mt-4 space-y-3 text-sm leading-6 text-stone-700 dark:text-stone-300"><li>Service-based consumer-group mapping for OLTP, reporting, batch, and administration.</li><li>Business-hours and after-hours plans with CPU shares and parallel-execution limits.</li><li>Session, plan, DOP, and SQL-monitoring validation workflow.</li><li>Controlled plan disablement and validation cleanup.</li></ul>
+        </aside>
       </div>
     </div>
   </header>
@@ -294,6 +355,7 @@
       <a href="#resource-plan" class="whitespace-nowrap rounded-md border border-stone-200 px-3 py-1.5 text-sm font-medium text-stone-700 dark:border-stone-700 dark:text-stone-300">Resource Plan</a>
       <a href="#validation" class="whitespace-nowrap rounded-md border border-stone-200 px-3 py-1.5 text-sm font-medium text-stone-700 dark:border-stone-700 dark:text-stone-300">Validation</a>
       <a href="#disable" class="whitespace-nowrap rounded-md border border-stone-200 px-3 py-1.5 text-sm font-medium text-stone-700 dark:border-stone-700 dark:text-stone-300">Disable Plan</a>
+      <a href="#chapter-navigation" class="whitespace-nowrap rounded-md border border-stone-200 px-3 py-1.5 text-sm font-medium text-stone-700 dark:border-stone-700 dark:text-stone-300">Chapter navigation</a>
     </nav>
   </div>
 
@@ -313,6 +375,7 @@
           <a href="#best-practices" class="block rounded-md px-3 py-2 text-sm font-medium text-stone-700 transition hover:bg-stone-100 hover:text-oracle-red dark:text-stone-300 dark:hover:bg-stone-800 dark:hover:text-orange-200">Best Practices</a>
           <a href="#disable" class="block rounded-md px-3 py-2 text-sm font-medium text-stone-700 transition hover:bg-stone-100 hover:text-oracle-red dark:text-stone-300 dark:hover:bg-stone-800 dark:hover:text-orange-200">Disable Plan</a>
           <a href="#documentation" class="block rounded-md px-3 py-2 text-sm font-medium text-stone-700 transition hover:bg-stone-100 hover:text-oracle-red dark:text-stone-300 dark:hover:bg-stone-800 dark:hover:text-orange-200">References</a>
+          <a href="#chapter-navigation" class="block rounded-md px-3 py-2 text-sm font-medium text-stone-700 transition hover:bg-stone-100 hover:text-oracle-red dark:text-stone-300 dark:hover:bg-stone-800 dark:hover:text-orange-200">Chapter navigation</a>
         </nav>
       </div>
     </aside>
@@ -321,14 +384,14 @@
       <section id="overview" class="border-t border-stone-200 py-10 dark:border-stone-800">
         <p class="text-xs font-semibold uppercase tracking-[0.16em] text-oracle-red dark:text-orange-300">Purpose</p>
         <h2 class="mt-2 text-2xl font-bold tracking-tight text-stone-950 dark:text-white sm:text-3xl">Overview</h2>
-        <p class="mt-3 max-w-3xl text-base leading-7 text-stone-700 dark:text-stone-300">This article extends the Connection Services configuration from the previous blog and demonstrates how to use Oracle Database Resource Manager to govern database workloads connected through dedicated OLTP, reporting, and batch services. Oracle Database Resource Manager is the database-native control plane for sessions that compete for system and database resources: it classifies sessions into consumer groups, activates a resource plan, and uses plan directives to allocate CPU, constrain parallel execution, and make workload priority explicit inside the database.</p>
+        <p class="mt-3 max-w-3xl text-base leading-7 text-stone-700 dark:text-stone-300">This article extends the Connection Services configuration from the previous blog and demonstrates how to use Oracle Database Resource Manager to govern database workloads inside <code class="rounded bg-stone-100 px-1.5 py-0.5 text-sm font-semibold text-oracle-deep dark:bg-stone-800 dark:text-orange-200">PDB01</code>. The implementation is a <strong>PDB-level Resource Manager plan</strong>: consumer groups, service mappings, plan directives, and the <code class="rounded bg-stone-100 px-1.5 py-0.5 text-sm font-semibold text-oracle-deep dark:bg-stone-800 dark:text-orange-200">RESOURCE_MANAGER_PLAN</code> setting are created and enabled with <code class="rounded bg-stone-100 px-1.5 py-0.5 text-sm font-semibold text-oracle-deep dark:bg-stone-800 dark:text-orange-200">PDB01</code> as the current container. It governs how the portion of capacity available to <code class="rounded bg-stone-100 px-1.5 py-0.5 text-sm font-semibold text-oracle-deep dark:bg-stone-800 dark:text-orange-200">PDB01</code> is shared by its sessions; it does not create or modify a CDB resource plan that allocates resources among PDBs.</p>
         <p class="mt-4 max-w-3xl text-base leading-7 text-stone-700 dark:text-stone-300">Connection Services and users provide the classification signals. The <code class="rounded bg-stone-100 px-1.5 py-0.5 text-sm font-semibold text-oracle-deep dark:bg-stone-800 dark:text-orange-200">SOE</code> account remains the schema owner and is treated as an administrative identity. Application users such as <code class="rounded bg-stone-100 px-1.5 py-0.5 text-sm font-semibold text-oracle-deep dark:bg-stone-800 dark:text-orange-200">SOE_OLTP</code>, <code class="rounded bg-stone-100 px-1.5 py-0.5 text-sm font-semibold text-oracle-deep dark:bg-stone-800 dark:text-orange-200">SOE_REPORTS</code>, and <code class="rounded bg-stone-100 px-1.5 py-0.5 text-sm font-semibold text-oracle-deep dark:bg-stone-800 dark:text-orange-200">SOE_BATCH</code> connect through workload-specific RAC services. Resource Manager then maps the user and service attributes used at login to the matching consumer group, so the same PDB can serve multiple user communities without treating every active session equally.</p>
         <div class="mt-5 grid gap-3 sm:grid-cols-3">
           <div class="rounded-lg border border-stone-200 bg-stone-50 p-4 dark:border-stone-700 dark:bg-stone-900/45"><p class="text-sm font-bold text-stone-950 dark:text-white">OLTP</p><p class="mt-1 break-words font-mono text-xs text-oracle-red dark:text-orange-300">CDB01_PDB01.paas.oracle.com</p><p class="mt-2 text-xs leading-5 text-stone-600 dark:text-stone-400">Preferred: CDB011, CDB012. Available: none.</p></div>
           <div class="rounded-lg border border-stone-200 bg-stone-50 p-4 dark:border-stone-700 dark:bg-stone-900/45"><p class="text-sm font-bold text-stone-950 dark:text-white">Reporting</p><p class="mt-1 break-words font-mono text-xs text-oracle-red dark:text-orange-300">CDB01_PDB01_REPORTS.paas.oracle.com</p><p class="mt-2 text-xs leading-5 text-stone-600 dark:text-stone-400">Preferred: CDB012. Available: CDB011.</p></div>
           <div class="rounded-lg border border-stone-200 bg-stone-50 p-4 dark:border-stone-700 dark:bg-stone-900/45"><p class="text-sm font-bold text-stone-950 dark:text-white">Batch</p><p class="mt-1 break-words font-mono text-xs text-oracle-red dark:text-orange-300">CDB01_PDB01_BATCH.paas.oracle.com</p><p class="mt-2 text-xs leading-5 text-stone-600 dark:text-stone-400">Preferred: CDB011. Available: CDB012.</p></div>
         </div>
-        <p class="mt-5 max-w-3xl text-base leading-7 text-stone-700 dark:text-stone-300">The example uses the Swingbench SOE schema while keeping the Resource Manager configuration generic and reusable.</p>
+        <p class="mt-5 max-w-3xl text-base leading-7 text-stone-700 dark:text-stone-300">The example uses the Swingbench SOE schema in <code class="rounded bg-stone-100 px-1.5 py-0.5 text-sm font-semibold text-oracle-deep dark:bg-stone-800 dark:text-orange-200">PDB01</code> while keeping the Resource Manager configuration generic and reusable. Run every setup and validation command through the <code class="rounded bg-stone-100 px-1.5 py-0.5 text-sm font-semibold text-oracle-deep dark:bg-stone-800 dark:text-orange-200">PDB01</code> service and verify <code class="rounded bg-stone-100 px-1.5 py-0.5 text-sm font-semibold text-oracle-deep dark:bg-stone-800 dark:text-orange-200">SHOW CON_NAME</code> before changing Resource Manager objects or the active plan.</p>
         <div class="mt-5 rounded-lg border-l-4 border-oracle-red bg-red-50 px-4 py-3 text-sm leading-6 text-stone-700 dark:border-orange-300 dark:bg-orange-950/20 dark:text-stone-300">
           <p class="font-semibold text-stone-950 dark:text-stone-100">Integration pattern</p>
           <p class="mt-1">Connection Services decide how clients enter the PDB; database users and roles decide what those sessions can do; Resource Manager decides how much shared database capacity each workload class can consume when OLTP, reporting, batch, and administration run at the same time.</p>
@@ -367,10 +430,10 @@
             <div class="rounded-lg border border-stone-200 bg-white p-4 dark:border-stone-700 dark:bg-stone-900/45">
               <p class="text-xs font-bold uppercase tracking-[0.16em] text-oracle-red dark:text-orange-300">Resource Manager</p>
               <div class="mt-4 space-y-3">
-                <div class="rounded-md border border-stone-200 bg-stone-50 p-3 dark:border-stone-700 dark:bg-[#171412]"><p class="text-sm font-bold text-stone-950 dark:text-white">CG_OLTP</p><p class="text-xs text-stone-600 dark:text-stone-400">75% level-1 CPU share, serial operations</p></div>
-                <div class="rounded-md border border-stone-200 bg-stone-50 p-3 dark:border-stone-700 dark:bg-[#171412]"><p class="text-sm font-bold text-stone-950 dark:text-white">CG_REPORTING</p><p class="text-xs text-stone-600 dark:text-stone-400">DOP 2 business hours, DOP 4 after hours</p></div>
-                <div class="rounded-md border border-stone-200 bg-stone-50 p-3 dark:border-stone-700 dark:bg-[#171412]"><p class="text-sm font-bold text-stone-950 dark:text-white">CG_BATCH</p><p class="text-xs text-stone-600 dark:text-stone-400">Serial business hours, DOP 2 after hours</p></div>
-                <div class="rounded-md border border-stone-200 bg-stone-50 p-3 dark:border-stone-700 dark:bg-[#171412]"><p class="text-sm font-bold text-stone-950 dark:text-white">CG_ADMIN</p><p class="text-xs text-stone-600 dark:text-stone-400">50% level-1 CPU share, default DOP</p></div>
+                <div class="rounded-md border border-stone-200 bg-stone-50 p-3 dark:border-stone-700 dark:bg-[#171412]"><p class="text-sm font-bold text-stone-950 dark:text-white">CG_OLTP</p><p class="text-xs text-stone-600 dark:text-stone-400">40 elastic CPU shares; serial operations</p></div>
+                <div class="rounded-md border border-stone-200 bg-stone-50 p-3 dark:border-stone-700 dark:bg-[#171412]"><p class="text-sm font-bold text-stone-950 dark:text-white">CG_REPORTING</p><p class="text-xs text-stone-600 dark:text-stone-400">20 elastic CPU shares; DOP 2 business hours, DOP 4 after hours</p></div>
+                <div class="rounded-md border border-stone-200 bg-stone-50 p-3 dark:border-stone-700 dark:bg-[#171412]"><p class="text-sm font-bold text-stone-950 dark:text-white">CG_BATCH</p><p class="text-xs text-stone-600 dark:text-stone-400">30 elastic CPU shares; serial business hours, DOP 2 after hours</p></div>
+                <div class="rounded-md border border-stone-200 bg-stone-50 p-3 dark:border-stone-700 dark:bg-[#171412]"><p class="text-sm font-bold text-stone-950 dark:text-white">CG_ADMIN</p><p class="text-xs text-stone-600 dark:text-stone-400">10 CPU shares and serial in business hours; 100 shares and unrestricted DOP after hours</p></div>
               </div>
             </div>
             <div class="rounded-lg border border-stone-200 bg-white p-4 dark:border-stone-700 dark:bg-stone-900/45">
@@ -385,7 +448,7 @@
           <div class="border-t border-stone-200 bg-white px-5 py-4 dark:border-stone-700 dark:bg-stone-900/45">
             <div class="rounded-lg border border-oracle-red/25 bg-red-50 p-4 text-sm leading-6 text-stone-700 dark:border-orange-300/30 dark:bg-orange-950/20 dark:text-stone-300">
               <p class="font-semibold text-stone-950 dark:text-stone-100">Runtime enforcement path</p>
-              <p class="mt-1">Only one PDB Resource Manager plan is active at a time. Mapping rules place sessions into consumer groups, then the currently active business-hours or after-hours plan applies the CPU shares, parallel limits, and reporting timeout to those groups.</p>
+              <p class="mt-1">Only one PDB Resource Manager plan is active at a time. Mapping rules place sessions into consumer groups, then the active plan applies elastic CPU shares, parallel guardrails, and the reporting timeout. Idle PDB CPU is redistributed to groups with runnable work.</p>
             </div>
           </div>
         </div>
@@ -631,11 +694,11 @@ END;
         <p class="text-xs font-semibold uppercase tracking-[0.16em] text-oracle-red dark:text-orange-300">Plan directives</p>
         <h2 class="mt-2 text-2xl font-bold tracking-tight text-stone-950 dark:text-white sm:text-3xl">Resource Plan</h2>
         <p class="mt-3 max-w-3xl text-base leading-7 text-stone-700 dark:text-stone-300">A resource plan is the policy container that becomes effective when it is activated. Resource plan directives connect that plan to consumer groups and specify how resources are allocated to each group. Oracle documents CPU management attributes such as <code class="rounded bg-stone-100 px-1.5 py-0.5 text-sm font-semibold text-oracle-deep dark:bg-stone-800 dark:text-orange-200">MGMT_P1</code> as the level-1 CPU allocation mechanism used by this example, documents <code class="rounded bg-stone-100 px-1.5 py-0.5 text-sm font-semibold text-oracle-deep dark:bg-stone-800 dark:text-orange-200">PARALLEL_DEGREE_LIMIT_P1</code> as a directive attribute that limits the degree of parallelism for operations in a group, and documents switching directives such as <code class="rounded bg-stone-100 px-1.5 py-0.5 text-sm font-semibold text-oracle-deep dark:bg-stone-800 dark:text-orange-200">SWITCH_GROUP</code> and <code class="rounded bg-stone-100 px-1.5 py-0.5 text-sm font-semibold text-oracle-deep dark:bg-stone-800 dark:text-orange-200">SWITCH_ELAPSED_TIME</code> for handling sessions that cross a runtime threshold.</p>
-        <p class="mt-4 max-w-3xl text-base leading-7 text-stone-700 dark:text-stone-300">Create two plans for an 8 ECPU-per-VM Exascale environment. The business-hours plan, used from 8:00 AM to 6:00 PM Central Time, forces OLTP and batch operations to run serially with <code class="rounded bg-stone-100 px-1.5 py-0.5 text-sm font-semibold text-oracle-deep dark:bg-stone-800 dark:text-orange-200">PARALLEL_DEGREE_LIMIT_P1 =&gt; 0</code>, allows reporting a modest DOP 2, and cancels reporting calls that exceed 10 minutes of elapsed runtime. The after-hours plan keeps OLTP serial, raises reporting to DOP 4, and allows batch DOP 2. A DOP limit of 1 is not the same as explicitly forcing serial execution: Oracle documents <code class="rounded bg-stone-100 px-1.5 py-0.5 text-sm font-semibold text-oracle-deep dark:bg-stone-800 dark:text-orange-200">0</code> as the value that makes all operations serial, while <code class="rounded bg-stone-100 px-1.5 py-0.5 text-sm font-semibold text-oracle-deep dark:bg-stone-800 dark:text-orange-200">1</code> is still a parallel-degree limit. Each plan also includes the required <code class="rounded bg-stone-100 px-1.5 py-0.5 text-sm font-semibold text-oracle-deep dark:bg-stone-800 dark:text-orange-200">OTHER_GROUPS</code> fallback directive for sessions that do not match one of the application groups.</p>
+        <p class="mt-4 max-w-3xl text-base leading-7 text-stone-700 dark:text-stone-300">Create two plans for an 8 ECPU-per-VM Exascale environment. CPU is elastic: the business-hours plan uses 40:20:30:10:1 <code class="rounded bg-stone-100 px-1.5 py-0.5 text-sm font-semibold text-oracle-deep dark:bg-stone-800 dark:text-orange-200">MGMT_P1</code> shares for OLTP, reporting, batch, administration, and <code class="rounded bg-stone-100 px-1.5 py-0.5 text-sm font-semibold text-oracle-deep dark:bg-stone-800 dark:text-orange-200">OTHER_GROUPS</code>. After hours, CG_ADMIN uses 100 shares. With no hard CPU utilization limit or active-session pool in this plan, a group with runnable work can use unused PDB CPU from idle groups. Business hours forces CG_ADMIN and OTHER_GROUPS to serial execution. After hours, CG_ADMIN has no Resource Manager parallel-degree cap; the PDB and instance parallel settings remain the maximum boundary.</p>
         <div class="mt-5 overflow-x-auto rounded-lg border border-stone-200 bg-white dark:border-stone-700 dark:bg-[#211d1b]">
           <table class="min-w-[760px] border-collapse text-left text-sm">
-            <thead class="bg-stone-100 text-stone-700 dark:bg-stone-800 dark:text-stone-200"><tr><th class="px-4 py-3 font-semibold">Consumer Group</th><th class="px-4 py-3 font-semibold">CPU %</th><th class="px-4 py-3 font-semibold">Business Hours Parallel Limit</th><th class="px-4 py-3 font-semibold">After-Hours Parallel Limit</th><th class="px-4 py-3 font-semibold">Runtime Guardrail</th></tr></thead>
-            <tbody class="divide-y divide-stone-200 dark:divide-stone-700"><tr><td class="px-4 py-3 font-medium">CG_OLTP</td><td class="px-4 py-3">75</td><td class="px-4 py-3">0 / serial</td><td class="px-4 py-3">0 / serial</td><td class="px-4 py-3">None</td></tr><tr><td class="px-4 py-3 font-medium">CG_REPORTING</td><td class="px-4 py-3">15</td><td class="px-4 py-3">2</td><td class="px-4 py-3">4</td><td class="px-4 py-3">Cancel current report call after 600 seconds elapsed</td></tr><tr><td class="px-4 py-3 font-medium">CG_BATCH</td><td class="px-4 py-3">5</td><td class="px-4 py-3">0 / serial</td><td class="px-4 py-3">2</td><td class="px-4 py-3">None</td></tr><tr><td class="px-4 py-3 font-medium">CG_ADMIN</td><td class="px-4 py-3">50</td><td class="px-4 py-3">Default / unrestricted by this directive</td><td class="px-4 py-3">Default / unrestricted by this directive</td><td class="px-4 py-3">None</td></tr><tr><td class="px-4 py-3 font-medium">OTHER_GROUPS</td><td class="px-4 py-3">0</td><td class="px-4 py-3">Default</td><td class="px-4 py-3">Default</td><td class="px-4 py-3">Required fallback for unmapped sessions</td></tr></tbody>
+            <thead class="bg-stone-100 text-stone-700 dark:bg-stone-800 dark:text-stone-200"><tr><th class="px-4 py-3 font-semibold">Consumer Group</th><th class="px-4 py-3 font-semibold">CPU share</th><th class="px-4 py-3 font-semibold">Elastic CPU behavior</th><th class="px-4 py-3 font-semibold">Business Hours Parallel Limit</th><th class="px-4 py-3 font-semibold">After-Hours Parallel Limit</th><th class="px-4 py-3 font-semibold">Runtime Guardrail</th></tr></thead>
+            <tbody class="divide-y divide-stone-200 dark:divide-stone-700"><tr><td class="px-4 py-3 font-medium">CG_OLTP</td><td class="px-4 py-3">40</td><td class="px-4 py-3">Can use idle PDB CPU</td><td class="px-4 py-3">0 / serial</td><td class="px-4 py-3">0 / serial</td><td class="px-4 py-3">None</td></tr><tr><td class="px-4 py-3 font-medium">CG_REPORTING</td><td class="px-4 py-3">20</td><td class="px-4 py-3">Can use idle PDB CPU</td><td class="px-4 py-3">2</td><td class="px-4 py-3">4</td><td class="px-4 py-3">Cancel current report call after 600 seconds elapsed</td></tr><tr><td class="px-4 py-3 font-medium">CG_BATCH</td><td class="px-4 py-3">30</td><td class="px-4 py-3">Can use idle PDB CPU</td><td class="px-4 py-3">0 / serial</td><td class="px-4 py-3">2</td><td class="px-4 py-3">None</td></tr><tr><td class="px-4 py-3 font-medium">CG_ADMIN</td><td class="px-4 py-3">10 / 100</td><td class="px-4 py-3">Can use idle PDB CPU</td><td class="px-4 py-3">0 / serial</td><td class="px-4 py-3">Unrestricted by this directive</td><td class="px-4 py-3">None</td></tr><tr><td class="px-4 py-3 font-medium">OTHER_GROUPS</td><td class="px-4 py-3">1</td><td class="px-4 py-3">Fallback group; can use idle PDB CPU</td><td class="px-4 py-3">0 / serial</td><td class="px-4 py-3">0 / serial</td><td class="px-4 py-3">Required fallback for unmapped sessions</td></tr></tbody>
           </table>
         </div>
         <div class="mt-5 rounded-lg border-l-4 border-oracle-red bg-red-50 px-4 py-3 text-sm leading-6 text-stone-700 dark:border-orange-300 dark:bg-orange-950/20 dark:text-stone-300">
@@ -649,7 +712,7 @@ END;
         </div>
         <p class="mt-5 max-w-3xl text-base leading-7 text-stone-700 dark:text-stone-300">Before creating or enabling the application plan, check the current <code class="rounded bg-stone-100 px-1.5 py-0.5 text-sm font-semibold text-oracle-deep dark:bg-stone-800 dark:text-orange-200">RESOURCE_MANAGER_PLAN</code> value in <code class="rounded bg-stone-100 px-1.5 py-0.5 text-sm font-semibold text-oracle-deep dark:bg-stone-800 dark:text-orange-200">PDB01</code>. By default, there should not be an application resource plan active for this PDB, so this check should return a blank value.</p>
         <div class="mt-5 code-card"><div class="code-toolbar"><span class="code-type">SQL</span><button class="copy-btn" type="button">Copy</button></div><div class="code-description code-objective"><span class="objective-label">Objective:</span> Show the current PDB RESOURCE_MANAGER_PLAN value before creating or activating the business-hours and after-hours plans.</div><pre class="code-scroll"><code>SHOW PARAMETER resource_manager_plan</code></pre></div>
-        <div class="mt-5 code-card code-text"><div class="code-toolbar"><span class="code-type">Output</span><button class="copy-btn" type="button">Copy</button></div><div class="code-description code-objective"><span class="objective-label">Objective:</span> Expected default output when no PDB resource plan is active.</div><pre class="code-scroll"><code>NAME                                 TYPE        VALUE
+        <div class="mt-5 code-card code-output" data-card-state="expanded"><div class="code-toolbar"><span class="code-type">Output</span></div><div class="code-description code-objective"><span class="objective-label">Objective:</span> Expected default output when no PDB resource plan is active.</div><pre class="code-scroll"><code>NAME                                 TYPE        VALUE
 ------------------------------------ ----------- ------------------------------
 resource_manager_plan                string</code></pre></div>
         <div class="mt-5 code-card"><div class="code-toolbar"><span class="code-type">PL/SQL</span><button class="copy-btn" type="button">Copy</button></div><div class="code-description code-objective"><span class="objective-label">Objective:</span> Create business-hours and after-hours Resource Manager plans with reusable constants for CPU shares, parallel limits, and report runtime guardrails.</div><pre class="code-scroll"><code>SET LINESIZE 220
@@ -659,11 +722,14 @@ SET TAB OFF
 DECLARE
   c_business_plan                  CONSTANT VARCHAR2(30) := 'APP_RM_BUSINESS_HOURS';
   c_after_hours_plan               CONSTANT VARCHAR2(30) := 'APP_RM_AFTER_HOURS';
-  c_oltp_cpu                       CONSTANT PLS_INTEGER := 75;
-  c_reporting_cpu                  CONSTANT PLS_INTEGER := 15;
-  c_batch_cpu                      CONSTANT PLS_INTEGER := 5;
-  c_admin_cpu                      CONSTANT PLS_INTEGER := 50;
-  c_other_groups_cpu               CONSTANT PLS_INTEGER := 0;
+  c_oltp_cpu                       CONSTANT PLS_INTEGER := 40;
+  c_reporting_cpu                  CONSTANT PLS_INTEGER := 20;
+  c_batch_cpu                      CONSTANT PLS_INTEGER := 30;
+  c_business_admin_cpu             CONSTANT PLS_INTEGER := 10;
+  c_after_hours_admin_cpu          CONSTANT PLS_INTEGER := 100;
+  c_other_groups_cpu               CONSTANT PLS_INTEGER := 1;
+  -- MGMT_P1 values are elastic shares, not hard CPU reservations or caps.
+  -- No CPU utilization limit or active-session pool is configured here.
   -- 0 forces serial operations. 1 is a DOP cap, not the serial switch.
   c_oltp_parallel_limit            CONSTANT PLS_INTEGER := 0;
   c_business_reporting_parallel    CONSTANT PLS_INTEGER := 2;
@@ -677,6 +743,8 @@ DECLARE
       p_plan_name                IN VARCHAR2,
       p_reporting_parallel_limit IN PLS_INTEGER,
       p_batch_parallel_limit     IN PLS_INTEGER,
+      p_admin_cpu                IN PLS_INTEGER,
+      p_admin_parallel_limit     IN PLS_INTEGER,
       p_comment                  IN VARCHAR2)
   IS
   BEGIN
@@ -708,12 +776,14 @@ DECLARE
     DBMS_RESOURCE_MANAGER.CREATE_PLAN_DIRECTIVE(
         PLAN =&gt; p_plan_name,
         GROUP_OR_SUBPLAN =&gt; 'CG_ADMIN',
-        MGMT_P1 =&gt; c_admin_cpu);
+        MGMT_P1 =&gt; p_admin_cpu,
+        PARALLEL_DEGREE_LIMIT_P1 =&gt; p_admin_parallel_limit);
 
     DBMS_RESOURCE_MANAGER.CREATE_PLAN_DIRECTIVE(
         PLAN =&gt; p_plan_name,
         GROUP_OR_SUBPLAN =&gt; 'OTHER_GROUPS',
-        MGMT_P1 =&gt; c_other_groups_cpu);
+        MGMT_P1 =&gt; c_other_groups_cpu,
+        PARALLEL_DEGREE_LIMIT_P1 =&gt; 0);
   END create_workload_plan;
 BEGIN
   DBMS_RESOURCE_MANAGER.CREATE_PENDING_AREA();
@@ -722,12 +792,16 @@ BEGIN
       p_plan_name =&gt; c_business_plan,
       p_reporting_parallel_limit =&gt; c_business_reporting_parallel,
       p_batch_parallel_limit =&gt; c_business_batch_parallel,
+      p_admin_cpu =&gt; c_business_admin_cpu,
+      p_admin_parallel_limit =&gt; 0,
       p_comment =&gt; 'Business-hours plan: reports DOP 2, batch serial');
 
   create_workload_plan(
       p_plan_name =&gt; c_after_hours_plan,
       p_reporting_parallel_limit =&gt; c_after_hours_reporting_parallel,
       p_batch_parallel_limit =&gt; c_after_hours_batch_parallel,
+      p_admin_cpu =&gt; c_after_hours_admin_cpu,
+      p_admin_parallel_limit =&gt; NULL,
       p_comment =&gt; 'After-hours plan: reports DOP 4, batch DOP 2');
 
   DBMS_RESOURCE_MANAGER.SUBMIT_PENDING_AREA();
@@ -1042,7 +1116,7 @@ SHOW PARAMETER parallel_degree_limit
 SHOW PARAMETER parallel_threads_per_cpu
 SHOW PARAMETER cpu_count
 SHOW PARAMETER resource_manager_plan</code></pre></div>
-        <div class="mt-5 code-card code-text"><div class="code-toolbar"><span class="code-type">Output</span><button class="copy-btn" type="button">Copy</button></div><div class="code-description code-objective"><span class="objective-label">Objective:</span> Expected output for the current DOP-related PDB settings in this demo environment.</div><pre class="code-scroll"><code>NAME                                 TYPE        VALUE
+        <div class="mt-5 code-card code-output" data-card-state="expanded"><div class="code-toolbar"><span class="code-type">Output</span></div><div class="code-description code-objective"><span class="objective-label">Objective:</span> Expected output for the current DOP-related PDB settings in this demo environment.</div><pre class="code-scroll"><code>NAME                                 TYPE        VALUE
 ------------------------------------ ----------- ------------------------------
 parallel_degree_policy               string      MANUAL
 
@@ -1068,7 +1142,7 @@ resource_manager_plan                string      APP_RM_BUSINESS_HOURS</code></p
             <li>parallel_degree_limit=CPU, parallel_threads_per_cpu=1, and cpu_count=4 show the local CPU-based parallel baseline visible to the PDB session.</li>
             <li>resource_manager_plan=APP_RM_BUSINESS_HOURS confirms that the business-hours plan is active while this SOE owner session prepares the demo objects.</li>
             <li>SOE is mapped to CG_ADMIN by the user-mapping rule, so the SOE owner session is governed by the CG_ADMIN directive.</li>
-            <li>CG_ADMIN tops out at the CG_ADMIN directive: 50% level-1 CPU share. Even if a SOE owner query requests DOP 16, Resource Manager still governs that session under the CG_ADMIN CPU share.</li>
+            <li>CG_ADMIN has a 5% level-1 CPU share during contention. It can use idle PDB CPU when higher-priority groups are not demanding it; when demand overlaps, the 75:15:5:5 share ratio applies.</li>
             <li>CG_ADMIN does not make the SOE owner session run at the requested DOP 16. With parallel_degree_limit=CPU, parallel_threads_per_cpu=1, and cpu_count=4, the optimizer is still bounded by the CPU-based parallel limit visible to this PDB session.</li>
             <li>The OLTP and reporting DOP caps are tested later with SOE_OLTP and SOE_REPORTS, not with the SOE owner session.</li>
           </ul>
@@ -1170,7 +1244,7 @@ WHERE statistic IN (
   'Servers Requested',
   'Servers Allocated'
 );</code></pre></div>
-          <div class="code-card"><div class="code-toolbar"><span class="code-type">Output</span><button class="copy-btn" type="button">Copy</button></div><div class="code-description code-objective"><span class="objective-label">Objective:</span> Expected verification output for an OLTP session forced to serial execution.</div><pre class="code-scroll"><code>STATISTIC                      LAST_QUERY SESSION_TOTAL
+          <div class="code-card code-output" data-card-state="expanded"><div class="code-toolbar"><span class="code-type">Output</span></div><div class="code-description code-objective"><span class="objective-label">Objective:</span> Expected verification output for an OLTP session forced to serial execution.</div><pre class="code-scroll"><code>STATISTIC                      LAST_QUERY SESSION_TOTAL
 ------------------------------ ---------- -------------
 Queries Parallelized                    0             0</code></pre></div>
           <div class="rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 text-sm leading-6 text-amber-950 dark:border-amber-500/40 dark:bg-amber-950/25 dark:text-amber-100">
@@ -1183,7 +1257,7 @@ SET TRIMSPOOL ON
 SET TAB OFF
 SELECT *
 FROM TABLE(DBMS_XPLAN.DISPLAY_CURSOR(NULL, NULL, 'ALLSTATS LAST +PARALLEL'));</code></pre></div>
-          <div class="code-card"><div class="code-toolbar"><span class="code-type">Output</span><button class="copy-btn" type="button">Copy</button></div><div class="code-description code-objective"><span class="objective-label">Objective:</span> Expected output excerpt showing elapsed time, PX operations, and requested DOP.</div><pre class="code-scroll"><code>SET LINESIZE 220
+          <div class="code-card code-output" data-card-state="expanded"><div class="code-toolbar"><span class="code-type">Output</span></div><div class="code-description code-objective"><span class="objective-label">Objective:</span> Expected output excerpt showing elapsed time, PX operations, and requested DOP.</div><pre class="code-scroll"><code>SET LINESIZE 220
 SET PAGESIZE 100
 SET TRIMSPOOL ON
 SET TAB OFF
@@ -1281,7 +1355,7 @@ WHERE statistic IN (
   'Servers Requested',
   'Servers Allocated'
 );</code></pre></div>
-          <div class="code-card"><div class="code-toolbar"><span class="code-type">Output</span><button class="copy-btn" type="button">Copy</button></div><div class="code-description code-objective"><span class="objective-label">Objective:</span> Expected reporting output showing faster elapsed time and parallelized execution.</div><pre class="code-scroll"><code>SAMPLED_FACT_ROWS SAMPLED_LINE_VALUE
+          <div class="code-card code-output" data-card-state="expanded"><div class="code-toolbar"><span class="code-type">Output</span></div><div class="code-description code-objective"><span class="objective-label">Objective:</span> Expected reporting output showing faster elapsed time and parallelized execution.</div><pre class="code-scroll"><code>SAMPLED_FACT_ROWS SAMPLED_LINE_VALUE
 ----------------- ------------------
           3666408         1.6843E+10
 
@@ -1300,7 +1374,7 @@ SET TRIMSPOOL ON
 SET TAB OFF
 SELECT *
 FROM TABLE(DBMS_XPLAN.DISPLAY_CURSOR(NULL, NULL, 'ALLSTATS LAST +PARALLEL'));</code></pre></div>
-          <div class="code-card"><div class="code-toolbar"><span class="code-type">Output</span><button class="copy-btn" type="button">Copy</button></div><div class="code-description code-objective"><span class="objective-label">Objective:</span> Expected reporting plan excerpt showing PX operations and elapsed time.</div><pre class="code-scroll"><code>SET LINESIZE 220
+          <div class="code-card code-output" data-card-state="expanded"><div class="code-toolbar"><span class="code-type">Output</span></div><div class="code-description code-objective"><span class="objective-label">Objective:</span> Expected reporting plan excerpt showing PX operations and elapsed time.</div><pre class="code-scroll"><code>SET LINESIZE 220
 SET PAGESIZE 100
 SET TRIMSPOOL ON
 SET TAB OFF
@@ -1390,7 +1464,7 @@ REVOKE SELECT_CATALOG_ROLE FROM SOE_REPORTS;</code></pre></div>
       <section id="summary" class="border-t border-stone-200 py-10 dark:border-stone-800">
         <p class="text-xs font-semibold uppercase tracking-[0.16em] text-oracle-red dark:text-orange-300">Summary</p>
         <h2 class="mt-2 text-2xl font-bold tracking-tight text-stone-950 dark:text-white sm:text-3xl">Connection Services plus Resource Manager</h2>
-        <p class="mt-3 max-w-3xl text-base leading-7 text-stone-700 dark:text-stone-300">Connection Services identifies workload classes through dedicated RAC services. Resource Manager enforces CPU allocation, concurrency controls, and parallel execution limits. Together they provide a scalable governance model for Exadata Exascale deployments.</p>
+        <p class="mt-3 max-w-3xl text-base leading-7 text-stone-700 dark:text-stone-300">Connection Services identifies workload classes through dedicated RAC services. Within <code class="rounded bg-stone-100 px-1.5 py-0.5 text-sm font-semibold text-oracle-deep dark:bg-stone-800 dark:text-orange-200">PDB01</code>, the PDB Resource Manager plan enforces CPU allocation, concurrency controls, and parallel execution limits for sessions in those workload classes. Together they provide a scalable governance model inside the PDB; use a separate CDB resource plan when the requirement is to allocate capacity among multiple PDBs.</p>
       </section>
 
       <section id="disable" class="border-t border-stone-200 py-10 dark:border-stone-800">
@@ -1421,6 +1495,20 @@ ALTER SYSTEM SET RESOURCE_MANAGER_PLAN='';</code></pre></div>
           <a href="../index.html#glossary" class="inline-flex rounded-md border border-stone-300 bg-white px-4 py-2 text-sm font-bold text-stone-800 shadow-sm transition hover:border-oracle-red hover:text-oracle-red focus:outline-none focus:ring-2 focus:ring-oracle-red/50 dark:border-stone-700 dark:bg-stone-900 dark:text-stone-100 dark:hover:text-orange-300">Series glossary</a>
         </div>
       </section>
+
+      <section id="chapter-navigation" class="border-t border-stone-200 py-10 dark:border-stone-800">
+        <p class="nav-card-label">Continue the series</p>
+        <h2 class="mt-2 text-2xl font-bold tracking-tight text-stone-950 dark:text-white sm:text-3xl">Chapter navigation</h2>
+        <nav class="chapter-nav chapter-card-nav" aria-label="Chapter navigation">
+          <div class="chapter-nav-row mt-5 grid gap-3 sm:grid-cols-3">
+          <a class="chapter-link nav-card" href="../index.html"><span class="nav-card-label">Main</span><strong>Exascale Overview</strong></a>
+          <a class="chapter-link nav-card" href="../ConnectionServices/index.html"><span class="nav-card-label">Previous</span><strong>Connection Services</strong></a>
+          <a class="chapter-link nav-card" href="../CDBResourceManager/index.html"><span class="nav-card-label">Next</span><strong>CDB Resource Manager</strong></a>
+          </div>
+        </nav>
+        <div class="two-up mt-3 grid gap-3 sm:grid-cols-2"><a class="link-card" href="../index.html#documentation"><span class="nav-card-label">Series reference</span><strong>Series documentation</strong></a><a class="link-card" href="../index.html#glossary"><span class="nav-card-label">Series reference</span><strong>Series glossary</strong></a></div>
+        <nav class="related-links mt-5 grid gap-3 sm:grid-cols-2" data-guide-cards data-guide-variant="resourceManager" data-guide-scope="nested" aria-label="Guide links"></nav>
+      </section>
     </article>
   </main>
 
@@ -1430,7 +1518,7 @@ ALTER SYSTEM SET RESOURCE_MANAGER_PLAN='';</code></pre></div>
         <summary class="cursor-pointer list-none px-4 py-3 text-sm font-bold uppercase tracking-[0.14em] focus:outline-none focus:ring-2 focus:ring-amber-500/50">Educational use and validation required <span class="disclaimer-action ml-2 whitespace-nowrap text-xs font-semibold normal-case tracking-normal text-amber-800 underline underline-offset-2 dark:text-amber-200">click here</span></summary>
         <p class="border-t border-amber-200 px-4 pb-4 pt-3 text-sm leading-6 dark:border-amber-500/30">This content is for educational and planning purposes only. Apply every command and configuration first in a non-production test environment that mirrors your RAC, service, client driver, workload, and failover requirements. The recommended values shown here may not work in your specific environment, may require change-control approval, and can affect availability, connection routing, transaction behavior, memory use, and batch workload placement. Validate with application owners, DBAs, network teams, and Oracle Support guidance before using any setting in production.</p>
       </details>
-      <p class="mt-5">Last updated June 17, 2026</p>
+      <p class="mt-5">Last updated July 24, 2026</p>
     </div>
   </footer>
 
@@ -1454,7 +1542,21 @@ ALTER SYSTEM SET RESOURCE_MANAGER_PLAN='';</code></pre></div>
           "This content is for educational and planning purposes only. Apply every command and configuration first in a non-production test environment that mirrors your RAC, service, client driver, workload, and failover requirements. The recommended values shown here may not work in your specific environment, may require change-control approval, and can affect availability, connection routing, transaction behavior, memory use, and batch workload placement. Validate with application owners, DBAs, network teams, and Oracle Support guidance before using any setting in production.": "Este contenido es solo para fines educativos y de planificación. Aplica cada comando y configuración primero en un entorno de prueba no productivo que refleje tus requisitos de RAC, servicio, controlador cliente, carga de trabajo y failover. Los valores recomendados aquí pueden no funcionar en tu entorno específico, pueden requerir aprobación de control de cambios y pueden afectar disponibilidad, enrutamiento de conexiones, comportamiento transaccional, uso de memoria y ubicación de cargas batch. Valida con dueños de aplicaciones, DBAs, equipos de red y la guía de Oracle Support antes de usar cualquier configuración en producción.",
           "Governing Workloads with Database Resource Manager": "Gobierno de cargas con Database Resource Manager",
           "A service-based Resource Manager pattern for OLTP, reporting, batch, and administrative workloads that builds on the connection services guide.": "Un patrón de Resource Manager basado en servicios para cargas OLTP, reportes, batch y administración, construido sobre la guía de Connection Services.",
-          "Last updated June 17, 2026": "Última actualización 17 de junio de 2026",
+          "Last updated July 24, 2026": "Última actualización 24 de julio de 2026",
+          "Latest guide coverage": "Cobertura más reciente de la guía",
+          "Service-based consumer-group mapping for OLTP, reporting, batch, and administration.": "Mapeo de grupos de consumidores basado en servicios para OLTP, reportes, batch y administración.",
+          "Business-hours and after-hours plans with CPU shares and parallel-execution limits.": "Planes de horario laboral y fuera de horario con cuotas de CPU y límites de ejecución paralela.",
+          "Session, plan, DOP, and SQL-monitoring validation workflow.": "Flujo de validación de sesiones, planes, DOP y monitoreo SQL.",
+          "Controlled plan disablement and validation cleanup.": "Deshabilitación controlada del plan y limpieza de validación.",
+          "Chapter navigation": "Navegación del capítulo",
+          "Continue the series": "Continuar la serie",
+          "Main": "Principal",
+          "Previous": "Anterior",
+          "Next": "Siguiente",
+          "End of workbook": "Fin del libro de trabajo",
+          "Series reference": "Referencia de la serie",
+          "Exascale Overview": "Overview de Exascale",
+          "Connection Services": "Servicios de conexión",
           "Table of contents": "Tabla de contenido",
           "Overview": "Overview",
           "Architecture": "Arquitectura",
@@ -1661,7 +1763,21 @@ ALTER SYSTEM SET RESOURCE_MANAGER_PLAN='';</code></pre></div>
           "This content is for educational and planning purposes only. Apply every command and configuration first in a non-production test environment that mirrors your RAC, service, client driver, workload, and failover requirements. The recommended values shown here may not work in your specific environment, may require change-control approval, and can affect availability, connection routing, transaction behavior, memory use, and batch workload placement. Validate with application owners, DBAs, network teams, and Oracle Support guidance before using any setting in production.": "Este conteúdo é apenas para fins educacionais e de planejamento. Aplique cada comando e configuração primeiro em um ambiente de teste não produtivo que reflita seus requisitos de RAC, serviço, driver cliente, carga de trabalho e failover. Os valores recomendados aqui podem não funcionar no seu ambiente específico, podem exigir aprovação de controle de mudanças e podem afetar disponibilidade, roteamento de conexões, comportamento transacional, uso de memória e posicionamento de cargas batch. Valide com responsáveis por aplicações, DBAs, equipes de rede e a orientação do Oracle Support antes de usar qualquer configuração em produção.",
           "Governing Workloads with Database Resource Manager": "Governança de cargas com Database Resource Manager",
           "A service-based Resource Manager pattern for OLTP, reporting, batch, and administrative workloads that builds on the connection services guide.": "Um padrão de Resource Manager baseado em serviços para cargas OLTP, relatórios, batch e administrativas, construído sobre o guia de Connection Services.",
-          "Last updated June 17, 2026": "Última atualização 17 de junho de 2026",
+          "Last updated July 24, 2026": "Última atualização 24 de julho de 2026",
+          "Latest guide coverage": "Cobertura mais recente do guia",
+          "Service-based consumer-group mapping for OLTP, reporting, batch, and administration.": "Mapeamento de grupos de consumidores baseado em serviços para OLTP, relatórios, batch e administração.",
+          "Business-hours and after-hours plans with CPU shares and parallel-execution limits.": "Planos de horário comercial e fora do horário com parcelas de CPU e limites de execução paralela.",
+          "Session, plan, DOP, and SQL-monitoring validation workflow.": "Fluxo de validação de sessões, planos, DOP e monitoramento SQL.",
+          "Controlled plan disablement and validation cleanup.": "Desativação controlada do plano e limpeza de validação.",
+          "Chapter navigation": "Navegação do capítulo",
+          "Continue the series": "Continuar a série",
+          "Main": "Principal",
+          "Previous": "Anterior",
+          "Next": "Próximo",
+          "End of workbook": "Fim do livro de trabalho",
+          "Series reference": "Referência da série",
+          "Exascale Overview": "Visão geral do Exascale",
+          "Connection Services": "Serviços de conexão",
           "Table of contents": "Sumário",
           "Overview": "Overview",
           "Architecture": "Arquitetura",
